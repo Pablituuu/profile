@@ -38,7 +38,7 @@ A premium, modern, and high-performance CV website built with Next.js 15+, Tailw
    Create a `.env.local` file:
 
    ```env
-   GITHUB_USERNAME=Pablituuu
+   GITHUB_USERNAME=your_username
    ```
 
 4. **Run development server**:

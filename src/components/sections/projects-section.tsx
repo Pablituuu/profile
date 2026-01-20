@@ -14,7 +14,7 @@ export function ProjectsSection() {
     {
       title: "React Video Editor",
       url: "https://react-video-editor-mu.vercel.app/",
-      github: "https://github.com/Pablituuu/react-video-editor",
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}/react-video-editor`,
       image: "/video-editor.png",
       desc: t("videoEditorDesc"),
       techs: ["React", "Remotion", "TypeScript", "Tailwind CSS", "Zustand"],
