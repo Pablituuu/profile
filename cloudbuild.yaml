@@ -4,7 +4,7 @@ steps:
     args:
       - "build"
       - "--build-arg"
-      - "NEXT_PUBLIC_GITHUB_USERNAME=pablituuu"
+      - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME}"
       - "-t"
       - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
       - "."
@@ -26,8 +26,8 @@ steps:
       - "us-central1"
       - "--allow-unauthenticated"
       - "--set-env-vars"
-      - "NEXT_PUBLIC_GITHUB_USERNAME=pablituuu"
-      - "GITHUB_USERNAME=pablituuu"
+      - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME}"
+      - "GITHUB_USERNAME=${_GITHUB_USERNAME}"
 
 images:
   - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
