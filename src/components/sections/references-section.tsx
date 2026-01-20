@@ -9,23 +9,27 @@ export function ReferencesSection() {
 
   const references = [
     {
-      name: "Mohit",
+      name: "Mohit Chopra",
       role: t("rolePM"),
+      company: "Cliquify",
       tel: "+1 (309) 472-1607",
     },
     {
-      name: "Umanda Jayobandara",
+      name: "Umanda Joyobandara",
       role: t("rolePM"),
+      company: "Drawify",
       tel: "+94 77 679 0596",
     },
     {
-      name: "Dany Boza Canto",
+      name: "Dany Boza",
       role: t("roleFullstack"),
+      company: "Cliquify - Drawify - My Design",
       tel: "+51 944 267 715",
     },
     {
-      name: "Ze Carlos Guerrero",
+      name: "Ze Carlos",
       role: t("roleAnalyst"),
+      company: "Telefonica TECH",
       tel: "+51 958 973 260",
     },
   ];
@@ -44,8 +48,11 @@ export function ReferencesSection() {
                 {ref.name}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm">
+            <CardContent className="text-sm space-y-1">
               <p className="text-brand-secondary font-medium">{ref.role}</p>
+              <p className="text-muted-foreground text-xs font-semibold">
+                {ref.company}
+              </p>
               <p className="text-muted-foreground mt-1">{ref.tel}</p>
             </CardContent>
           </Card>
