@@ -20,11 +20,35 @@ import {
   Award,
   Code2,
   ExternalLink,
+  GitBranch,
+  Star,
+  Users,
+  Activity,
 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { GitHubCalendarComponent } from "@/components/github-calendar";
 import Image from "next/image";
 
-export default function Home() {
+async function getGitHubStats() {
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const host = process.env.NEXT_PUBLIC_VERCEL_URL || "localhost:3000";
+  const baseUrl = `${protocol}://${host}`;
+
+  try {
+    const res = await fetch(`${baseUrl}/api/github/stats`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (error) {
+    console.error("GitHub stats fetch failed:", error);
+    return null;
+  }
+}
+
+export default async function Home() {
+  const githubStats = await getGitHubStats();
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
       <ModeToggle />
@@ -113,6 +137,52 @@ export default function Home() {
                   <Github className="w-5 h-5" />
                 </a>
               </Button>
+            </div>
+
+            {/* GitHub Insights */}
+            <div className="w-full space-y-4 pt-6">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Activity className="w-4 h-4 text-brand-primary" />
+                GitHub Insights
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xl font-bold">
+                    {githubStats?.public_repos || "—"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase">
+                    Repositorios
+                  </span>
+                </Card>
+                <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
+                  <GitBranch className="w-4 h-4 text-blue-500" />
+                  <span className="text-xl font-bold">
+                    {githubStats?.followers || "—"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase">
+                    Seguidores
+                  </span>
+                </Card>
+              </div>
+
+              <Card className="glass border-none p-4 overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <Activity className="w-3 h-3" /> Actividad Anual
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                  >
+                    Online
+                  </Badge>
+                </div>
+                <div className="scale-[0.85] origin-left -ml-2">
+                  <GitHubCalendarComponent />
+                </div>
+              </Card>
             </div>
           </div>
 
