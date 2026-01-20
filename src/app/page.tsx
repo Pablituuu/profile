@@ -19,11 +19,15 @@ import {
   GraduationCap,
   Award,
   Code2,
+  ExternalLink,
 } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
+      <ModeToggle />
       {/* Hero Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/30 blur-[120px] rounded-full" />
@@ -162,6 +166,8 @@ export default function Home() {
               {[
                 {
                   company: "CLIQUIFY",
+                  url: "https://www.thecliquify.co/",
+                  image: "/cliquify.png",
                   role: "Desarrollador Front-end",
                   period: "Oct 2023 – Ene 2026",
                   desc: "Liderazgo en el desarrollo de editores de imágenes y video avanzados. Implementación de tecnologías complejas de manipulación de lienzos.",
@@ -175,6 +181,8 @@ export default function Home() {
                 },
                 {
                   company: "MY DESIGN",
+                  url: "https://mydesigns.io/",
+                  image: "/mydesigns.png",
                   role: "Desarrollador Front-end",
                   period: "Ene 2024 – Jul 2024",
                   desc: "Desarrollo de editores de imágenes en Vue JS con renderizado optimizado a través de AWS Lambda. Integración de herramientas de diseño interactivas.",
@@ -189,6 +197,8 @@ export default function Home() {
                 },
                 {
                   company: "DRAWIFY",
+                  url: "https://drawify.com/home",
+                  image: "/drawify.png",
                   role: "Desarrollador Front-end",
                   period: "Jul 2022 – Nov 2024",
                   desc: "Desarrollo de herramientas de diseño con integraciones de AWS S3 y pasarelas de pago Stripe. Control de versiones y despliegue continuo.",
@@ -209,9 +219,21 @@ export default function Home() {
                   <div className="absolute left-[-4px] top-2 w-2 h-2 rounded-full bg-brand-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-xl font-bold text-foreground">
-                        {exp.company}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold text-foreground">
+                          {exp.company}
+                        </h3>
+                        {exp.url && (
+                          <a
+                            href={exp.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
                       <span className="text-sm text-muted-foreground font-medium">
                         {exp.period}
                       </span>
@@ -219,6 +241,21 @@ export default function Home() {
                     <p className="text-brand-primary font-medium text-sm uppercase tracking-wider">
                       {exp.role}
                     </p>
+                    {exp.image && (
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border/50 my-4 group/image">
+                        <Image
+                          src={exp.image}
+                          alt={exp.company}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover/image:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                          <span className="text-xs font-medium text-white px-2 py-1 bg-black/50 rounded-lg backdrop-blur-md">
+                            Ver proyecto
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       {exp.desc}
                     </p>
