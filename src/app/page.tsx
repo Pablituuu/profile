@@ -220,18 +220,22 @@ export default function Home() {
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold text-foreground">
-                          {exp.company}
-                        </h3>
-                        {exp.url && (
+                        {exp.url ? (
                           <a
                             href={exp.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
+                            className="flex items-center gap-2 group/link"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <h3 className="text-xl font-bold text-foreground group-hover/link:text-brand-primary transition-colors">
+                              {exp.company}
+                            </h3>
+                            <ExternalLink className="w-4 h-4 text-muted-foreground group-hover/link:text-brand-primary transition-colors" />
                           </a>
+                        ) : (
+                          <h3 className="text-xl font-bold text-foreground">
+                            {exp.company}
+                          </h3>
                         )}
                       </div>
                       <span className="text-sm text-muted-foreground font-medium">
@@ -243,17 +247,34 @@ export default function Home() {
                     </p>
                     {exp.image && (
                       <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border/50 my-4 group/image">
-                        <Image
-                          src={exp.image}
-                          alt={exp.company}
-                          fill
-                          className="object-cover transition-transform duration-500 group-hover/image:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                          <span className="text-xs font-medium text-white px-2 py-1 bg-black/50 rounded-lg backdrop-blur-md">
-                            Ver proyecto
-                          </span>
-                        </div>
+                        {exp.url ? (
+                          <a
+                            href={exp.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full h-full"
+                          >
+                            <Image
+                              src={exp.image}
+                              alt={exp.company}
+                              fill
+                              className="object-cover transition-transform duration-500 group-hover/image:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                              <span className="text-xs font-medium text-white px-2 py-1 bg-black/50 rounded-lg backdrop-blur-md flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" /> Ver
+                                proyecto online
+                              </span>
+                            </div>
+                          </a>
+                        ) : (
+                          <Image
+                            src={exp.image}
+                            alt={exp.company}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
                       </div>
                     )}
                     <p className="text-muted-foreground text-sm leading-relaxed">
