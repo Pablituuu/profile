@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useLanguage } from "@/context/language-context";
+import type { Project } from "@/types/content";
 
 export function ProjectsSection() {
   const { t } = useLanguage();
 
-  const projects = [
+  const projects: Project[] = [
     {
       title: "React Video Editor",
       url: "https://react-video-editor-mu.vercel.app/",

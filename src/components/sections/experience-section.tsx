@@ -4,11 +4,12 @@ import { Briefcase, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useLanguage } from "@/context/language-context";
+import type { Experience } from "@/types/content";
 
 export function ExperienceSection() {
   const { t } = useLanguage();
 
-  const experiences = [
+  const experiences: Experience[] = [
     {
       company: "CLIQUIFY",
       url: "https://www.thecliquify.co/",
@@ -104,7 +105,7 @@ export function ExperienceSection() {
                       fill
                       className="object-cover transition-transform duration-500 group-hover/image:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <div className="absolute inset-0 bg-linear-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
                       <span className="text-xs font-medium text-white px-2 py-1 bg-black/50 rounded-lg backdrop-blur-md flex items-center gap-1">
                         <ExternalLink className="w-3 h-3" /> {t("verProyecto")}
                       </span>

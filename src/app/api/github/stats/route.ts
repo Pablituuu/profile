@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { GitHubRepo } from "@/types/github";
 
 export async function GET() {
   const username = process.env.GITHUB_USERNAME;
@@ -29,14 +30,14 @@ export async function GET() {
     }
 
     const userData = await userRes.json();
-    const reposData = await reposRes.json();
+    const reposData: GitHubRepo[] = await reposRes.json();
 
     const totalStars = reposData.reduce(
-      (acc: number, repo: any) => acc + (repo.stargazers_count || 0),
+      (acc: number, repo: GitHubRepo) => acc + (repo.stargazers_count || 0),
       0,
     );
     const topRepo = reposData.sort(
-      (a: any, b: any) => b.stargazers_count - a.stargazers_count,
+      (a: GitHubRepo, b: GitHubRepo) => b.stargazers_count - a.stargazers_count,
     )[0];
 
     return NextResponse.json({

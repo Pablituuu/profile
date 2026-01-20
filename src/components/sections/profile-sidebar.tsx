@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import { GitHubCalendarComponent } from "@/components/github-calendar";
+import type { GitHubStats } from "@/types/github";
 
 interface ProfileSidebarProps {
-  githubStats: any;
+  githubStats: GitHubStats | null;
 }
 
 export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
@@ -188,7 +189,6 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
             "Linux",
             "JWT",
             "Cortex XDR",
-            "JWT",
           ].map((skill, i) => (
             <Badge
               key={`${skill}-${i}`}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
+import type { GitHubStats } from "@/types/github";
 
 // Sections
 import { ProfileSidebar } from "@/components/sections/profile-sidebar";
@@ -14,7 +15,7 @@ import { ReferencesSection } from "@/components/sections/references-section";
 import { Footer } from "@/components/sections/footer";
 
 export default function Home() {
-  const [githubStats, setGithubStats] = useState<any>(null);
+  const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
 
   useEffect(() => {
     async function fetchStats() {

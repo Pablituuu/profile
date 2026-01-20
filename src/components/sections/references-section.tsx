@@ -3,11 +3,12 @@
 import { User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/context/language-context";
+import type { Reference } from "@/types/content";
 
 export function ReferencesSection() {
   const { t } = useLanguage();
 
-  const references = [
+  const references: Reference[] = [
     {
       name: "Mohit Chopra",
       role: t("rolePM"),
