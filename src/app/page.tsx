@@ -1,48 +1,303 @@
-import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Linkedin,
+  Github,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Code2,
+} from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center py-20 px-4">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/20 blur-[120px] rounded-full animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-secondary/20 blur-[120px] rounded-full animate-float" />
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
+      {/* Hero Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/30 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-secondary/30 blur-[120px] rounded-full" />
       </div>
 
-      <main className="max-w-4xl text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <div className="inline-block px-4 py-1.5 rounded-full glass text-sm font-medium text-brand-primary mb-4">
-          Powered by Next.js 15 & Antigravity
-        </div>
+      <div className="max-w-6xl mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Left Column - Profile & Contact */}
+        <aside className="lg:col-span-4 space-y-8 animate-in slide-in-from-left-8 duration-700">
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
+            <Avatar className="w-48 h-48 border-4 border-border/50 shadow-2xl">
+              <AvatarImage src="/avatar.png" alt="Pablito Silva Inca" />
+              <AvatarFallback>PS</AvatarFallback>
+            </Avatar>
 
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight">
-          Design the <span className="text-gradient">Future</span> <br />
-          with Next.js
-        </h1>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-extrabold tracking-tight">
+                Pablito Jean Pool Silva Inca
+              </h1>
+              <p className="text-xl text-brand-primary font-medium">
+                Ingeniero de Sistemas e Informática
+              </p>
+            </div>
 
-        <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Start your next big project with a premium architecture. This template
-          is pre-configured with TypeScript, Tailwind CSS, and the latest App
-          Router patterns.
+            <p className="text-muted-foreground leading-relaxed">
+              Profesional apasionado por la tecnología con más de 6 años de
+              experiencia en ciberseguridad, desarrollo e implementación.
+              Especializado en crear soluciones óptimas y liderar equipos de
+              alto rendimiento.
+            </p>
+
+            <div className="w-full space-y-4 pt-4">
+              <div className="flex items-center gap-3 text-sm group cursor-pointer">
+                <div className="p-2 rounded-lg glass group-hover:bg-primary/10 transition-colors">
+                  <Phone className="w-4 h-4 text-primary" />
+                </div>
+                <span>+51 922323921</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm group cursor-pointer">
+                <div className="p-2 rounded-lg glass group-hover:bg-primary/10 transition-colors">
+                  <Mail className="w-4 h-4 text-primary" />
+                </div>
+                <span>pablito.silvainca@gmail.com</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <div className="p-2 rounded-lg glass">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
+                <span>Lima, Perú</span>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                size="icon"
+                variant="outline"
+                className="glass hover:text-primary transition-colors"
+              >
+                <Linkedin className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="glass hover:text-primary transition-colors"
+              >
+                <Github className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          <Card className="glass border-none shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Code2 className="w-5 h-5 text-brand-secondary" />
+                Habilidades
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {[
+                "React JS",
+                "Next JS",
+                "Vue JS",
+                "Flutter",
+                "React Native",
+                "Redux",
+                "Chakra UI",
+                "Vite",
+                "Shadcn",
+                "Zustand",
+                "Fabric JS",
+                "Moveable JS",
+                "DnD kit",
+                "Linux",
+                "JWT",
+                "Cortex XDR",
+              ].map((skill) => (
+                <Badge
+                  key={skill}
+                  variant="secondary"
+                  className="bg-primary/5 hover:bg-primary/10 text-xs py-1"
+                >
+                  {skill}
+                </Badge>
+              ))}
+            </CardContent>
+          </Card>
+        </aside>
+
+        {/* Right Column - Content */}
+        <main className="lg:col-span-8 space-y-12 animate-in slide-in-from-right-8 duration-700">
+          {/* Experience Section */}
+          <section className="space-y-6">
+            <h2 className="text-3xl font-bold flex items-center gap-3">
+              <Briefcase className="w-8 h-8 text-brand-primary" />
+              Experiencia Profesional
+            </h2>
+            <div className="space-y-6">
+              {[
+                {
+                  company: "CLIQUIFY",
+                  role: "Desarrollador Front-end",
+                  period: "Oct 2023 – Ene 2026",
+                  desc: "Liderazgo en el desarrollo de editores de imágenes y video avanzados. Implementación de tecnologías complejas de manipulación de lienzos.",
+                  techs: [
+                    "React JS",
+                    "Fabric JS",
+                    "Moveable JS",
+                    "Zustand",
+                    "Shadcn",
+                  ],
+                },
+                {
+                  company: "DRAWIFY",
+                  role: "Desarrollador Front-end",
+                  period: "Jul 2022 – Nov 2024",
+                  desc: "Desarrollo de herramientas de diseño con integraciones de AWS S3 y pasarelas de pago Stripe. Control de versiones y despliegue continuo.",
+                  techs: ["React JS", "Chakra UI", "Redux", "AWS", "Stripe"],
+                },
+                {
+                  company: "TELEFONICA CYBERSECURITY TECH",
+                  role: "Analista XDR",
+                  period: "Feb 2020 – Nov 2023",
+                  desc: "Operador avanzado de ciberseguridad en el área EDR. Despliegue, soporte y monitoreo del producto Cortex XDR para clientes corporativos.",
+                  techs: ["Cortex XDR", "EDR", "Cybersecurity", "Linux"],
+                },
+              ].map((exp, i) => (
+                <div
+                  key={i}
+                  className="relative pl-8 before:absolute before:left-0 before:top-2 before:bottom-0 before:w-px before:bg-border"
+                >
+                  <div className="absolute left-[-4px] top-2 w-2 h-2 rounded-full bg-brand-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-xl font-bold text-foreground">
+                        {exp.company}
+                      </h3>
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {exp.period}
+                      </span>
+                    </div>
+                    <p className="text-brand-primary font-medium text-sm uppercase tracking-wider">
+                      {exp.role}
+                    </p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {exp.desc}
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {exp.techs.map((t) => (
+                        <Badge
+                          key={t}
+                          variant="outline"
+                          className="text-[10px] uppercase tracking-tighter opacity-70"
+                        >
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Separator className="bg-border/50" />
+
+          {/* Projects & References Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <GraduationCap className="w-6 h-6 text-brand-secondary" />
+                Educación
+              </h2>
+              <Card className="glass border-none">
+                <CardHeader className="py-4">
+                  <CardTitle className="text-base">
+                    Univ. Tecnológica del Perú
+                  </CardTitle>
+                  <CardDescription>2016 - 2021</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Ingeniería de Sistemas e Informática
+                </CardContent>
+              </Card>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <Award className="w-6 h-6 text-brand-accent" />
+                Certificaciones
+              </h2>
+              <div className="space-y-3">
+                {[
+                  "Support-Engineer (Palo Alto)",
+                  "Itil Foundation 4",
+                  "CCNA (I - II - III)",
+                  "C# Solutions Development",
+                ].map((cert) => (
+                  <div
+                    key={cert}
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
+                    {cert}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <Separator className="bg-border/50" />
+
+          {/* References */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold">Referencias</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                {
+                  name: "Dany Boza Canto",
+                  phone: "+51 944 267 715",
+                  company: "Cliquify / MyDesign",
+                },
+                {
+                  name: "Ze Carlos Guerrero",
+                  phone: "+51 958 973 260",
+                  company: "Telefonica Tech",
+                },
+              ].map((ref, i) => (
+                <Card
+                  key={i}
+                  className="glass border-none hover:bg-white/5 transition-colors group"
+                >
+                  <CardContent className="p-4 flex flex-col gap-1">
+                    <span className="font-bold text-foreground group-hover:text-primary transition-colors">
+                      {ref.name}
+                    </span>
+                    <span className="text-xs text-brand-primary">
+                      {ref.company}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {ref.phone}
+                    </span>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full text-center py-12 text-zinc-600 text-xs border-t border-border/20 mt-12">
+        <p>
+          © 2026 Pablito Silva Inca • Built with Next.js, Shadcn & Antigravity
         </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-          <Link
-            href="/docs"
-            className="px-8 py-4 rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-white/5"
-          >
-            Get Started
-          </Link>
-          <Link
-            href="https://github.com"
-            className="px-8 py-4 rounded-xl glass font-semibold hover:bg-white/10 transition-all transform hover:scale-105 active:scale-95"
-          >
-            Github Preview
-          </Link>
-        </div>
-      </main>
-
-      <footer className="absolute bottom-8 text-zinc-500 text-sm">
-        Built with passion for high-end web applications.
       </footer>
     </div>
   );
