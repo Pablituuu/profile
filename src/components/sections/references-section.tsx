@@ -9,14 +9,24 @@ export function ReferencesSection() {
 
   const references = [
     {
-      name: "Jean Karlo Silva Inca",
-      role: "Desarrollador Full-stack Sr",
-      tel: "+51 924 956 462",
+      name: "Mohit",
+      role: t("rolePM"),
+      tel: "+1 (309) 472-1607",
     },
     {
-      name: "Carlos Meza",
-      role: "Analista de Telecomunicaciones",
-      tel: "+51 964 693 723",
+      name: "Umanda Jayobandara",
+      role: t("rolePM"),
+      tel: "+94 77 679 0596",
+    },
+    {
+      name: "Dany Boza Canto",
+      role: t("roleFullstack"),
+      tel: "+51 944 267 715",
+    },
+    {
+      name: "Ze Carlos Guerrero",
+      role: t("roleAnalyst"),
+      tel: "+51 958 973 260",
     },
   ];
 

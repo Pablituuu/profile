@@ -32,7 +32,7 @@ export const translations = {
     footer:
       "© 2026 Pablito Silva Inca • Construido con Next.js, Shadcn & Antigravity",
     expCliquify:
-      "Liderazgo en el desarrollo de editores de imágenes y video avanzados. Implementación de tecnologías complejas de manipulación de lienzos.",
+      "Liderazgo en el desarrollo de editores de imágenes y video avanzados. Implementación de tecnologías complejas de manipulación de lioenzos.",
     expMyDesign:
       "Desarrollo de editores de imágenes en Vue JS con renderizado optimizado a través de AWS Lambda. Integración de herramientas de diseño interactivas.",
     expDrawify:
@@ -41,6 +41,9 @@ export const translations = {
       "Operador avanzado de ciberseguridad en el área EDR. Despliegue, soporte y monitoreo del producto Cortex XDR para clientes corporativos.",
     roleFrontend: "Desarrollador Front-end",
     roleAnalyst: "Analista XDR",
+    rolePM: "Project Manager",
+    roleFullstack: "Desarrollador Full-stack Sr",
+    roleTelecom: "Analista de Telecomunicaciones",
   },
   en: {
     title: "Systems and Informatics Engineer",
@@ -84,6 +87,9 @@ export const translations = {
       "Advanced cybersecurity operator in the EDR area. Deployment, support, and monitoring of the Cortex XDR product for corporate clients.",
     roleFrontend: "Front-end Developer",
     roleAnalyst: "XDR Analyst",
+    rolePM: "Project Manager",
+    roleFullstack: "Sr. Full-stack Developer",
+    roleTelecom: "Telecommunications Analyst",
   },
 };
 
