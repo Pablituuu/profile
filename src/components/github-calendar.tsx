@@ -9,7 +9,7 @@ export function GitHubCalendarComponent() {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const username = "pablituuu";
+  const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "";
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

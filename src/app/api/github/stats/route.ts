@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import type { GitHubRepo } from "@/types/github";
 
 export async function GET() {
-  const username = "pablituuu";
+  const username =
+    process.env.GITHUB_USERNAME || process.env.NEXT_PUBLIC_GITHUB_USERNAME;
 
   if (!username) {
     return NextResponse.json(
