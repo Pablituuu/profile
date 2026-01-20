@@ -76,7 +76,7 @@ export default function Home() {
                 <div className="p-2 rounded-lg glass">
                   <MapPin className="w-4 h-4 text-primary" />
                 </div>
-                <span>Lima, Perú</span>
+                <span>Huancayo, Perú</span>
               </div>
             </div>
 
@@ -157,6 +157,20 @@ export default function Home() {
                     "Moveable JS",
                     "Zustand",
                     "Shadcn",
+                  ],
+                },
+                {
+                  company: "MY DESIGN",
+                  role: "Desarrollador Front-end",
+                  period: "Ene 2024 – Jul 2024",
+                  desc: "Desarrollo de editores de imágenes en Vue JS con renderizado optimizado a través de AWS Lambda. Integración de herramientas de diseño interactivas.",
+                  techs: [
+                    "Vue JS",
+                    "Fabric JS",
+                    "Material UI",
+                    "Zustand",
+                    "DnD kit",
+                    "AWS Lambda",
                   ],
                 },
                 {
