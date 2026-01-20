@@ -90,7 +90,7 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
             className="glass hover:text-primary transition-colors"
           >
             <a
-              href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}`}
+              href={`https://github.com/pablituuu`}
               target="_blank"
               rel="noopener noreferrer"
             >

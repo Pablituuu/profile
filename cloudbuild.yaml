@@ -21,6 +21,7 @@ steps:
       - "--allow-unauthenticated"
       - "--set-env-vars"
       - "NEXT_PUBLIC_GITHUB_USERNAME=Pablituuu"
+      - "GITHUB_USERNAME=Pablituuu"
 
 images:
   - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
