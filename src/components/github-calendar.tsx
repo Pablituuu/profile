@@ -33,7 +33,7 @@ export function GitHubCalendarComponent() {
     return () => clearTimeout(timer);
   }, [mounted]);
 
-  if (!mounted) return null;
+  if (!mounted || !username) return null;
 
   return (
     <div className="flex flex-col w-full overflow-hidden">
