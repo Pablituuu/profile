@@ -148,21 +148,39 @@ export default async function Home() {
 
               <div className="grid grid-cols-2 gap-4">
                 <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
-                  <Star className="w-4 h-4 text-yellow-500" />
+                  <Activity className="w-4 h-4 text-emerald-500" />
                   <span className="text-xl font-bold">
                     {githubStats?.public_repos || "—"}
                   </span>
-                  <span className="text-[10px] text-muted-foreground uppercase">
-                    Repositorios
+                  <span className="text-[10px] text-muted-foreground uppercase text-center">
+                    Proyectos
                   </span>
                 </Card>
                 <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
-                  <GitBranch className="w-4 h-4 text-blue-500" />
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xl font-bold">
+                    {githubStats?.total_stars || "—"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase text-center">
+                    Estrellas
+                  </span>
+                </Card>
+                <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
+                  <Users className="w-4 h-4 text-blue-500" />
                   <span className="text-xl font-bold">
                     {githubStats?.followers || "—"}
                   </span>
-                  <span className="text-[10px] text-muted-foreground uppercase">
+                  <span className="text-[10px] text-muted-foreground uppercase text-center">
                     Seguidores
+                  </span>
+                </Card>
+                <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
+                  <Code2 className="w-4 h-4 text-purple-500" />
+                  <span className="text-xl font-bold">
+                    {githubStats?.top_repo?.stars || "—"}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase text-center">
+                    Top Repo Stars
                   </span>
                 </Card>
               </div>

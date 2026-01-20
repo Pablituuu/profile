@@ -15,6 +15,7 @@ export function GitHubCalendarComponent() {
         fontSize={12}
         blockSize={12}
         blockMargin={4}
+        showWeekdayLabels
       />
     </div>
   );
