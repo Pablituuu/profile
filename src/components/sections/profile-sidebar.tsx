@@ -158,7 +158,7 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
               </Badge>
             </div>
             <div className="w-full">
-              <GitHubCalendarComponent />
+              <GitHubCalendarComponent username={githubStats?.login} />
             </div>
           </Card>
         </div>

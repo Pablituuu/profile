@@ -5,6 +5,7 @@ export interface GitHubRepo {
 }
 
 export interface GitHubStats {
+  login: string;
   public_repos: number;
   total_stars: number;
   followers: number;

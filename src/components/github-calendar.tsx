@@ -5,11 +5,18 @@ import { GitHubCalendar } from "react-github-calendar";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/context/language-context";
 
-export function GitHubCalendarComponent() {
+interface GitHubCalendarProps {
+  username?: string;
+}
+
+export function GitHubCalendarComponent({
+  username: propUsername,
+}: GitHubCalendarProps) {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "";
+  const username =
+    propUsername || process.env.NEXT_PUBLIC_GITHUB_USERNAME || "";
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
