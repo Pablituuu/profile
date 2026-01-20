@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GitHubCalendar } from "react-github-calendar";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/context/language-context";
@@ -8,10 +8,16 @@ import { useLanguage } from "@/context/language-context";
 export function GitHubCalendarComponent() {
   const { theme } = useTheme();
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "Pablituuu";
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     // We use a small timeout to ensure the SVG has fully rendered and the scrollWidth is accurate
     const timer = setTimeout(() => {
       if (containerRef.current) {
@@ -25,7 +31,9 @@ export function GitHubCalendarComponent() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [mounted]);
+
+  if (!mounted) return null;
 
   return (
     <div className="flex flex-col w-full overflow-hidden">
