@@ -82,18 +82,32 @@ export default function Home() {
 
             <div className="flex gap-4 pt-4">
               <Button
+                asChild
                 size="icon"
                 variant="outline"
                 className="glass hover:text-primary transition-colors"
               >
-                <Linkedin className="w-5 h-5" />
+                <a
+                  href="https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
               </Button>
               <Button
+                asChild
                 size="icon"
                 variant="outline"
                 className="glass hover:text-primary transition-colors"
               >
-                <Github className="w-5 h-5" />
+                <a
+                  href="https://github.com/Pablituuu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
               </Button>
             </div>
           </div>
