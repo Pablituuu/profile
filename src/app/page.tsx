@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -27,32 +30,34 @@ import {
   FolderDot,
 } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { GitHubCalendarComponent } from "@/components/github-calendar";
+import { useLanguage } from "@/context/language-context";
 import Image from "next/image";
 
-async function getGitHubStats() {
-  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  const host = process.env.NEXT_PUBLIC_VERCEL_URL || "localhost:3000";
-  const baseUrl = `${protocol}://${host}`;
+export default function Home() {
+  const { t } = useLanguage();
+  const [githubStats, setGithubStats] = useState<any>(null);
 
-  try {
-    const res = await fetch(`${baseUrl}/api/github/stats`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch (error) {
-    console.error("GitHub stats fetch failed:", error);
-    return null;
-  }
-}
-
-export default async function Home() {
-  const githubStats = await getGitHubStats();
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/github/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setGithubStats(data);
+        }
+      } catch (error) {
+        console.error("GitHub stats fetch failed:", error);
+      }
+    }
+    fetchStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
       <ModeToggle />
+      <LanguageToggle />
       {/* Hero Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/30 blur-[120px] rounded-full" />
@@ -77,16 +82,11 @@ export default async function Home() {
                 Pablito Jean Pool Silva Inca
               </h1>
               <p className="text-xl text-brand-primary font-medium">
-                Ingeniero de Sistemas e Informática
+                {t("title")}
               </p>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">
-              Profesional apasionado por la tecnología con más de 6 años de
-              experiencia en ciberseguridad, desarrollo e implementación.
-              Especializado en crear soluciones óptimas y liderar equipos de
-              alto rendimiento.
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{t("bio")}</p>
 
             <div className="w-full space-y-4 pt-4">
               <div className="flex items-center gap-3 text-sm group cursor-pointer">
@@ -101,8 +101,8 @@ export default async function Home() {
                 </div>
                 <span>pablito.silvainca@gmail.com</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div className="p-2 rounded-lg glass">
+              <div className="flex items-center gap-3 text-sm group cursor-pointer">
+                <div className="p-2 rounded-lg glass group-hover:bg-primary/10 transition-colors">
                   <MapPin className="w-4 h-4 text-primary" />
                 </div>
                 <span>Huancayo, Perú</span>
@@ -144,7 +144,7 @@ export default async function Home() {
             <div className="w-full space-y-4 pt-6">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                 <Activity className="w-4 h-4 text-brand-primary" />
-                GitHub Insights
+                {t("githubInsights")}
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
@@ -154,7 +154,7 @@ export default async function Home() {
                     {githubStats?.public_repos || "—"}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase text-center">
-                    Proyectos
+                    {t("repos")}
                   </span>
                 </Card>
                 <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
@@ -163,7 +163,7 @@ export default async function Home() {
                     {githubStats?.total_stars || "—"}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase text-center">
-                    Estrellas
+                    {t("stars")}
                   </span>
                 </Card>
                 <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
@@ -172,7 +172,7 @@ export default async function Home() {
                     {githubStats?.followers || "—"}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase text-center">
-                    Seguidores
+                    {t("followers")}
                   </span>
                 </Card>
                 <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
@@ -181,7 +181,7 @@ export default async function Home() {
                     {githubStats?.top_repo?.stars || "—"}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase text-center">
-                    Top Repo Stars
+                    {t("topRepo")}
                   </span>
                 </Card>
               </div>
@@ -189,13 +189,13 @@ export default async function Home() {
               <Card className="glass border-none p-4 overflow-hidden">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                    <Activity className="w-3 h-3" /> Actividad Anual
+                    <Activity className="w-3 h-3" /> {t("annualActivity")}
                   </span>
                   <Badge
                     variant="outline"
                     className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                   >
-                    Online
+                    {t("online")}
                   </Badge>
                 </div>
                 <div className="w-full">
@@ -209,7 +209,7 @@ export default async function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Code2 className="w-5 h-5 text-brand-secondary" />
-                Habilidades
+                {t("skills")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
@@ -249,7 +249,7 @@ export default async function Home() {
           <section className="space-y-6">
             <h2 className="text-3xl font-bold flex items-center gap-3">
               <FolderDot className="w-8 h-8 text-brand-secondary" />
-              Proyectos Personales
+              {t("personalProjects")}
             </h2>
             <div className="grid grid-cols-1 gap-8">
               {[
@@ -258,7 +258,7 @@ export default async function Home() {
                   url: "https://react-video-editor-mu.vercel.app/",
                   github: "https://github.com/Pablituuu/react-video-editor",
                   image: "/video-editor.png",
-                  desc: "Un editor de video robusto construido con React y Remotion. Permite la edición en tiempo real de líneas de tiempo, capas y efectos con una interfaz profesional e intuitiva.",
+                  desc: t("videoEditorDesc"),
                   techs: [
                     "React",
                     "Remotion",
@@ -288,7 +288,7 @@ export default async function Home() {
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                         <span className="px-6 py-2 bg-white text-black font-bold rounded-full shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
-                          Launch Demo
+                          {t("launchDemo")}
                         </span>
                       </div>
                     </a>
@@ -335,7 +335,7 @@ export default async function Home() {
                           rel="noopener noreferrer"
                           className="flex items-center gap-2"
                         >
-                          <ExternalLink className="w-4 h-4" /> Live Demo
+                          <ExternalLink className="w-4 h-4" /> {t("launchDemo")}
                         </a>
                       </Button>
                       <Button
@@ -350,7 +350,7 @@ export default async function Home() {
                           rel="noopener noreferrer"
                           className="flex items-center gap-2"
                         >
-                          <Github className="w-4 h-4" /> Code
+                          <Github className="w-4 h-4" /> {t("viewCode")}
                         </a>
                       </Button>
                     </div>
@@ -366,7 +366,7 @@ export default async function Home() {
           <section className="space-y-6">
             <h2 className="text-3xl font-bold flex items-center gap-3">
               <Briefcase className="w-8 h-8 text-brand-primary" />
-              Experiencia Profesional
+              {t("professionalExperience")}
             </h2>
             <div className="space-y-6">
               {[
@@ -374,9 +374,9 @@ export default async function Home() {
                   company: "CLIQUIFY",
                   url: "https://www.thecliquify.co/",
                   image: "/cliquify.png",
-                  role: "Desarrollador Front-end",
-                  period: "Oct 2023 – Ene 2026",
-                  desc: "Liderazgo en el desarrollo de editores de imágenes y video avanzados. Implementación de tecnologías complejas de manipulación de lienzos.",
+                  role: t("roleFrontend"),
+                  period: "Oct 2023 – Jan 2026",
+                  desc: t("expCliquify"),
                   techs: [
                     "React JS",
                     "Fabric JS",
@@ -389,9 +389,9 @@ export default async function Home() {
                   company: "MY DESIGN",
                   url: "https://mydesigns.io/",
                   image: "/mydesigns.png",
-                  role: "Desarrollador Front-end",
-                  period: "Ene 2024 – Jul 2024",
-                  desc: "Desarrollo de editores de imágenes en Vue JS con renderizado optimizado a través de AWS Lambda. Integración de herramientas de diseño interactivas.",
+                  role: t("roleFrontend"),
+                  period: "Jan 2024 – Jul 2024",
+                  desc: t("expMyDesign"),
                   techs: [
                     "Vue JS",
                     "Fabric JS",
@@ -405,16 +405,16 @@ export default async function Home() {
                   company: "DRAWIFY",
                   url: "https://drawify.com/home",
                   image: "/drawify.png",
-                  role: "Desarrollador Front-end",
+                  role: t("roleFrontend"),
                   period: "Jul 2022 – Nov 2024",
-                  desc: "Desarrollo de herramientas de diseño con integraciones de AWS S3 y pasarelas de pago Stripe. Control de versiones y despliegue continuo.",
+                  desc: t("expDrawify"),
                   techs: ["React JS", "Chakra UI", "Redux", "AWS", "Stripe"],
                 },
                 {
                   company: "TELEFONICA CYBERSECURITY TECH",
-                  role: "Analista XDR",
+                  role: t("roleAnalyst"),
                   period: "Feb 2020 – Nov 2023",
-                  desc: "Operador avanzado de ciberseguridad en el área EDR. Despliegue, soporte y monitoreo del producto Cortex XDR para clientes corporativos.",
+                  desc: t("expTelefonica"),
                   techs: ["Cortex XDR", "EDR", "Cybersecurity", "Linux"],
                 },
               ].map((exp, i) => (
@@ -468,8 +468,8 @@ export default async function Home() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-end p-4">
                               <span className="text-xs font-medium text-white px-2 py-1 bg-black/50 rounded-lg backdrop-blur-md flex items-center gap-1">
-                                <ExternalLink className="w-3 h-3" /> Ver
-                                proyecto online
+                                <ExternalLink className="w-3 h-3" />{" "}
+                                {t("verProyecto")}
                               </span>
                             </div>
                           </a>
@@ -507,17 +507,15 @@ export default async function Home() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold flex items-center gap-3">
                 <GraduationCap className="w-6 h-6 text-brand-secondary" />
-                Educación
+                {t("education")}
               </h2>
               <Card className="glass border-none">
                 <CardHeader className="py-4">
-                  <CardTitle className="text-base">
-                    Univ. Tecnológica del Perú
-                  </CardTitle>
+                  <CardTitle className="text-base">{t("university")}</CardTitle>
                   <CardDescription>2016 - 2021</CardDescription>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  Ingeniería de Sistemas e Informática
+                  {t("degree")}
                 </CardContent>
               </Card>
             </section>
@@ -525,7 +523,7 @@ export default async function Home() {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold flex items-center gap-3">
                 <Award className="w-6 h-6 text-brand-accent" />
-                Certificaciones
+                {t("certifications")}
               </h2>
               <div className="space-y-3">
                 {[
@@ -550,7 +548,7 @@ export default async function Home() {
 
           {/* References */}
           <section className="space-y-6">
-            <h2 className="text-2xl font-bold">Referencias</h2>
+            <h2 className="text-2xl font-bold">{t("references")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 {
@@ -588,9 +586,7 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="w-full text-center py-12 text-zinc-600 text-xs border-t border-border/20 mt-12">
-        <p>
-          © 2026 Pablito Silva Inca • Built with Next.js, Shadcn & Antigravity
-        </p>
+        <p>{t("footer")}</p>
       </footer>
     </div>
   );

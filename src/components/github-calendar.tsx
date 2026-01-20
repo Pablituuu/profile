@@ -3,9 +3,11 @@
 import { useEffect, useRef } from "react";
 import { GitHubCalendar } from "react-github-calendar";
 import { useTheme } from "next-themes";
+import { useLanguage } from "@/context/language-context";
 
 export function GitHubCalendarComponent() {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "Pablituuu";
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -45,10 +47,10 @@ export function GitHubCalendarComponent() {
       </div>
       <div className="flex justify-between items-center px-4 mt-1">
         <p className="text-[10px] text-muted-foreground italic">
-          ← Desliza para ver historial
+          {t("historyHint")}
         </p>
         <p className="text-[10px] text-brand-primary font-medium">
-          Actividad reciente
+          {t("recentActivity")}
         </p>
       </div>
     </div>
