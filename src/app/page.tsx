@@ -197,7 +197,7 @@ export default async function Home() {
                     Online
                   </Badge>
                 </div>
-                <div className="scale-[0.85] origin-left -ml-2">
+                <div className="w-full">
                   <GitHubCalendarComponent />
                 </div>
               </Card>
