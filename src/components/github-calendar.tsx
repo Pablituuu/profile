@@ -10,19 +10,29 @@ export function GitHubCalendarComponent() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (containerRef.current) {
-      // Scroll to the end to show recent activity
-      containerRef.current.scrollLeft = containerRef.current.scrollWidth;
-    }
+    // We use a small timeout to ensure the SVG has fully rendered and the scrollWidth is accurate
+    const timer = setTimeout(() => {
+      if (containerRef.current) {
+        const scrollAmount =
+          containerRef.current.scrollWidth - containerRef.current.clientWidth;
+        containerRef.current.scrollTo({
+          left: scrollAmount,
+          behavior: "smooth",
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex flex-col items-center w-full overflow-hidden">
+    <div className="flex flex-col w-full overflow-hidden">
       <div
         ref={containerRef}
         className="w-full overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing"
+        style={{ scrollBehavior: "smooth" }}
       >
-        <div className="flex justify-start min-w-max px-2">
+        <div className="flex justify-start min-w-max px-4">
           <GitHubCalendar
             username={username}
             colorScheme={theme === "dark" ? "dark" : "light"}
@@ -33,9 +43,14 @@ export function GitHubCalendarComponent() {
           />
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground mt-2 italic">
-        Desliza para ver actividad anterior
-      </p>
+      <div className="flex justify-between items-center px-4 mt-1">
+        <p className="text-[10px] text-muted-foreground italic">
+          ← Desliza para ver historial
+        </p>
+        <p className="text-[10px] text-brand-primary font-medium">
+          Actividad reciente
+        </p>
+      </div>
     </div>
   );
 }
