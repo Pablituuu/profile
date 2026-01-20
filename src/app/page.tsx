@@ -34,8 +34,12 @@ export default function Home() {
         {/* Left Column - Profile & Contact */}
         <aside className="lg:col-span-4 space-y-8 animate-in slide-in-from-left-8 duration-700">
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
-            <Avatar className="w-48 h-48 border-4 border-border/50 shadow-2xl">
-              <AvatarImage src="/avatar.png" alt="Pablito Silva Inca" />
+            <Avatar className="w-56 h-56 border-4 border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)] transition-transform hover:scale-105 duration-500">
+              <AvatarImage
+                src="/profile.png"
+                alt="Pablito Silva Inca"
+                className="object-cover"
+              />
               <AvatarFallback>PS</AvatarFallback>
             </Avatar>
 
