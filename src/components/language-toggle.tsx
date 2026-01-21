@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Languages } from "lucide-react";
-import { useLanguage } from "@/context/language-context";
-import { Button } from "@/components/ui/button";
+import * as React from 'react';
+import { Languages } from 'lucide-react';
+import { useLanguage } from '@/context/language-context';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
@@ -29,13 +29,13 @@ export function LanguageToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="glass border-none z-60">
         <DropdownMenuItem
-          onClick={() => setLanguage("es")}
+          onClick={() => setLanguage('es')}
           className="cursor-pointer focus:bg-primary/10"
         >
           Español
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => setLanguage("en")}
+          onClick={() => setLanguage('en')}
           className="cursor-pointer focus:bg-primary/10"
         >
           English

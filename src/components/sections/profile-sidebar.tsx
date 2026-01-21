@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Phone,
   Mail,
@@ -14,10 +14,10 @@ import {
   Star,
   Users,
   Code2,
-} from "lucide-react";
-import { useLanguage } from "@/context/language-context";
-import { GitHubCalendarComponent } from "@/components/github-calendar";
-import type { GitHubStats } from "@/types/github";
+} from 'lucide-react';
+import { useLanguage } from '@/context/language-context';
+import { GitHubCalendarComponent } from '@/components/github-calendar';
+import type { GitHubStats } from '@/types/github';
 
 interface ProfileSidebarProps {
   githubStats: GitHubStats | null;
@@ -42,10 +42,10 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
           <h1 className="text-4xl font-extrabold tracking-tight">
             Pablito Jean Pool Silva Inca
           </h1>
-          <p className="text-xl text-brand-primary font-medium">{t("title")}</p>
+          <p className="text-xl text-brand-primary font-medium">{t('title')}</p>
         </div>
 
-        <p className="text-muted-foreground leading-relaxed">{t("bio")}</p>
+        <p className="text-muted-foreground leading-relaxed">{t('bio')}</p>
 
         <div className="w-full space-y-4 pt-4">
           <div className="flex items-center gap-3 text-sm group cursor-pointer">
@@ -90,7 +90,7 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
             className="glass hover:text-primary transition-colors"
           >
             <a
-              href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}`}
+              href={`https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ''}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -103,44 +103,44 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
         <div className="w-full space-y-4 pt-6">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
             <Activity className="w-4 h-4 text-brand-primary" />
-            {t("githubInsights")}
+            {t('githubInsights')}
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
             <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
               <Activity className="w-4 h-4 text-emerald-500" />
               <span className="text-xl font-bold">
-                {githubStats?.public_repos || "—"}
+                {githubStats?.public_repos || '—'}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase text-center">
-                {t("repos")}
+                {t('repos')}
               </span>
             </Card>
             <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
               <Star className="w-4 h-4 text-yellow-500" />
               <span className="text-xl font-bold">
-                {githubStats?.total_stars || "—"}
+                {githubStats?.total_stars || '—'}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase text-center">
-                {t("stars")}
+                {t('stars')}
               </span>
             </Card>
             <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
               <Users className="w-4 h-4 text-blue-500" />
               <span className="text-xl font-bold">
-                {githubStats?.followers || "—"}
+                {githubStats?.followers || '—'}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase text-center">
-                {t("followers")}
+                {t('followers')}
               </span>
             </Card>
             <Card className="glass border-none p-3 flex flex-col items-center justify-center gap-1 group hover:bg-white/5 transition-all">
               <Code2 className="w-4 h-4 text-purple-500" />
               <span className="text-xl font-bold">
-                {githubStats?.top_repo?.stars || "—"}
+                {githubStats?.top_repo?.stars || '—'}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase text-center">
-                {t("topRepo")}
+                {t('topRepo')}
               </span>
             </Card>
           </div>
@@ -148,13 +148,13 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
           <Card className="glass border-none p-4 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Activity className="w-3 h-3" /> {t("annualActivity")}
+                <Activity className="w-3 h-3" /> {t('annualActivity')}
               </span>
               <Badge
                 variant="outline"
                 className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
               >
-                {t("online")}
+                {t('online')}
               </Badge>
             </div>
             <div className="w-full">
@@ -168,27 +168,27 @@ export function ProfileSidebar({ githubStats }: ProfileSidebarProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Code2 className="w-5 h-5 text-brand-secondary" />
-            {t("skills")}
+            {t('skills')}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {[
-            "React JS",
-            "Next JS",
-            "Vue JS",
-            "Flutter",
-            "React Native",
-            "Redux",
-            "Chakra UI",
-            "Vite",
-            "Shadcn",
-            "Zustand",
-            "Fabric JS",
-            "Moveable JS",
-            "DnD kit",
-            "Linux",
-            "JWT",
-            "Cortex XDR",
+            'React JS',
+            'Next JS',
+            'Vue JS',
+            'Flutter',
+            'React Native',
+            'Redux',
+            'Chakra UI',
+            'Vite',
+            'Shadcn',
+            'Zustand',
+            'Fabric JS',
+            'Moveable JS',
+            'DnD kit',
+            'Linux',
+            'JWT',
+            'Cortex XDR',
           ].map((skill, i) => (
             <Badge
               key={`${skill}-${i}`}

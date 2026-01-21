@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Separator } from "@/components/ui/separator";
-import { ModeToggle } from "@/components/mode-toggle";
-import { LanguageToggle } from "@/components/language-toggle";
-import type { GitHubStats } from "@/types/github";
+import { useEffect, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+import { ModeToggle } from '@/components/mode-toggle';
+import { LanguageToggle } from '@/components/language-toggle';
+import type { GitHubStats } from '@/types/github';
 
 // Sections
-import { ProfileSidebar } from "@/components/sections/profile-sidebar";
-import { ProjectsSection } from "@/components/sections/projects-section";
-import { ExperienceSection } from "@/components/sections/experience-section";
-import { EducationSection } from "@/components/sections/education-section";
-import { ReferencesSection } from "@/components/sections/references-section";
-import { Footer } from "@/components/sections/footer";
+import { ProfileSidebar } from '@/components/sections/profile-sidebar';
+import { ProjectsSection } from '@/components/sections/projects-section';
+import { ExperienceSection } from '@/components/sections/experience-section';
+import { EducationSection } from '@/components/sections/education-section';
+import { ReferencesSection } from '@/components/sections/references-section';
+import { Footer } from '@/components/sections/footer';
 
 export default function Home() {
   const [githubStats, setGithubStats] = useState<GitHubStats | null>(null);
@@ -20,13 +20,13 @@ export default function Home() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("/api/github/stats");
+        const res = await fetch('/api/github/stats');
         if (res.ok) {
           const data = await res.json();
           setGithubStats(data);
         }
       } catch (error) {
-        console.error("GitHub stats fetch failed:", error);
+        console.error('GitHub stats fetch failed:', error);
       }
     }
     fetchStats();

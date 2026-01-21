@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { GitHubCalendar } from "react-github-calendar";
-import { useTheme } from "next-themes";
-import { useLanguage } from "@/context/language-context";
+import { useEffect, useRef, useState } from 'react';
+import { GitHubCalendar } from 'react-github-calendar';
+import { useTheme } from 'next-themes';
+import { useLanguage } from '@/context/language-context';
 
 interface GitHubCalendarProps {
   username?: string;
@@ -16,7 +16,7 @@ export function GitHubCalendarComponent({
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const username =
-    propUsername || process.env.NEXT_PUBLIC_GITHUB_USERNAME || "";
+    propUsername || process.env.NEXT_PUBLIC_GITHUB_USERNAME || '';
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export function GitHubCalendarComponent({
           containerRef.current.scrollWidth - containerRef.current.clientWidth;
         containerRef.current.scrollTo({
           left: scrollAmount,
-          behavior: "smooth",
+          behavior: 'smooth',
         });
       }
     }, 500);
@@ -47,12 +47,12 @@ export function GitHubCalendarComponent({
       <div
         ref={containerRef}
         className="w-full overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing"
-        style={{ scrollBehavior: "smooth" }}
+        style={{ scrollBehavior: 'smooth' }}
       >
         <div className="flex justify-start min-w-max px-4">
           <GitHubCalendar
             username={username}
-            colorScheme={theme === "dark" ? "dark" : "light"}
+            colorScheme={theme === 'dark' ? 'dark' : 'light'}
             fontSize={12}
             blockSize={12}
             blockMargin={4}
@@ -62,10 +62,10 @@ export function GitHubCalendarComponent({
       </div>
       <div className="flex justify-between items-center px-4 mt-1">
         <p className="text-[10px] text-muted-foreground italic">
-          {t("historyHint")}
+          {t('historyHint')}
         </p>
         <p className="text-[10px] text-brand-primary font-medium">
-          {t("recentActivity")}
+          {t('recentActivity')}
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import type { GitHubRepo } from "@/types/github";
+import { NextResponse } from 'next/server';
+import type { GitHubRepo } from '@/types/github';
 
 export async function GET() {
   const username =
@@ -7,8 +7,8 @@ export async function GET() {
 
   if (!username) {
     return NextResponse.json(
-      { error: "GitHub username not configured" },
-      { status: 500 },
+      { error: 'GitHub username not configured' },
+      { status: 500 }
     );
   }
 
@@ -19,14 +19,14 @@ export async function GET() {
       }),
       fetch(
         `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
-        { next: { revalidate: 3600 } },
+        { next: { revalidate: 3600 } }
       ),
     ]);
 
     if (!userRes.ok || !reposRes.ok) {
       return NextResponse.json(
-        { error: "Failed to fetch GitHub data" },
-        { status: 500 },
+        { error: 'Failed to fetch GitHub data' },
+        { status: 500 }
       );
     }
 
@@ -35,10 +35,10 @@ export async function GET() {
 
     const totalStars = reposData.reduce(
       (acc: number, repo: GitHubRepo) => acc + (repo.stargazers_count || 0),
-      0,
+      0
     );
     const topRepo = reposData.sort(
-      (a: GitHubRepo, b: GitHubRepo) => b.stargazers_count - a.stargazers_count,
+      (a: GitHubRepo, b: GitHubRepo) => b.stargazers_count - a.stargazers_count
     )[0];
 
     return NextResponse.json({
@@ -54,8 +54,8 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
+      { error: 'Internal Server Error' },
+      { status: 500 }
     );
   }
 }

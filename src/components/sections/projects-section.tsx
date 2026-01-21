@@ -12,11 +12,25 @@ export function ProjectsSection() {
 
   const projects: Project[] = [
     {
-      title: "React Video Editor",
+      title: t("videoEditorV2Title"),
+      url: "/video-editor",
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}/profile`,
+      image: "/video-editor-v2.png",
+      desc: t("videoEditorV2Desc"),
+      techs: [
+        "Next JS",
+        "@designcombo/video",
+        "Fabric JS",
+        "Tailwind CSS",
+        "Zustand",
+      ],
+    },
+    {
+      title: t("videoEditorV1Title"),
       url: "https://react-video-editor-mu.vercel.app/",
       github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}/react-video-editor`,
       image: "/video-editor.png",
-      desc: t("videoEditorDesc"),
+      desc: t("videoEditorV1Desc"),
       techs: ["React", "Remotion", "TypeScript", "Tailwind CSS", "Zustand"],
     },
   ];
