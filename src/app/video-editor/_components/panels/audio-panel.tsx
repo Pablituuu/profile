@@ -12,7 +12,7 @@ const audioTracks = [
     duration: '02:11',
     cover:
       'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    src: 'https://raw.githubusercontent.com/mdn/learning-area/main/html/multimedia-and-embedding/video-and-audio-content/viper.mp3',
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ const audioTracks = [
     duration: '00:23',
     cover:
       'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    src: 'https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3',
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const audioTracks = [
     duration: '01:00',
     cover:
       'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    src: 'https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample2.mp3',
   },
   {
     id: 4,
@@ -39,7 +39,7 @@ const audioTracks = [
     duration: '01:25',
     cover:
       'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+    src: 'https://raw.githubusercontent.com/rafael-mancini/audio-samples/main/mp3/sample-1.mp3',
   },
   {
     id: 5,
@@ -48,7 +48,7 @@ const audioTracks = [
     duration: '03:11',
     cover:
       'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3',
+    src: 'https://raw.githubusercontent.com/rafael-mancini/audio-samples/main/mp3/sample-2.mp3',
   },
   {
     id: 6,
@@ -57,7 +57,7 @@ const audioTracks = [
     duration: '03:22',
     cover:
       'https://images.unsplash.com/photo-1619983081563-430f63602796?q=80&w=200&auto=format&fit=crop',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
+    src: 'https://raw.githubusercontent.com/rafael-mancini/audio-samples/main/mp3/sample-3.mp3',
   },
 ];
 

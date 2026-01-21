@@ -4,16 +4,16 @@ import {
   classRegistry,
   type TMat2D,
   type TPointerEventInfo,
-} from 'fabric';
-import type { FabricObject } from 'fabric';
-import * as Objects from './objects';
-import { TimelineScrollbars } from './scrollbar';
-import { ScrollbarOptions } from './scrollbar/types';
-import { constrainViewport, setupWheelControl } from './scrollbar/util';
-import { TIMELINE_CONSTANTS } from './constants';
-import { IClip } from '@designcombo/video';
-import * as DragHandlers from './handlers/drag-handler';
-import * as ModifyHandlers from './handlers/modify-handler';
+} from "fabric";
+import type { FabricObject } from "fabric";
+import * as Objects from "./objects";
+import { TimelineScrollbars } from "./scrollbar";
+import { ScrollbarOptions } from "./scrollbar/types";
+import { constrainViewport, setupWheelControl } from "./scrollbar/util";
+import { TIMELINE_CONSTANTS } from "./constants";
+import { IClip } from "@designcombo/video";
+import * as DragHandlers from "./handlers/drag-handler";
+import * as ModifyHandlers from "./handlers/modify-handler";
 
 export class TimelineEngine extends Canvas {
   public get tracks() {
@@ -35,14 +35,21 @@ export class TimelineEngine extends Canvas {
 
   public enableGuideRedraw: boolean = true;
   public activeSeparatorIndex: number | null = null;
+  public maxDuration: number = 0;
   private _scrollbars?: TimelineScrollbars;
   private _wheelHandler?: (
-    e: WheelEvent | TPointerEventInfo<WheelEvent>
+    e: WheelEvent | TPointerEventInfo<WheelEvent>,
   ) => void;
-  private _viewportChangeCallback?: (left: number) => void;
+  private _viewportChangeCallback?: (info: {
+    left: number;
+    scrollX: number;
+    scrollY: number;
+  }) => void;
   private _zoomChangeCallback?: (zoom: number) => void;
   private _tracks: any[] = [];
   private _clips: Record<string, IClip> = {};
+  private _isRefreshing: boolean = false;
+  private _isInternalSelection: boolean = false;
   private _trackRegions: Array<{ id: string; top: number; bottom: number }> =
     [];
   private _placeholderGuide?: Objects.Placeholder;
@@ -51,15 +58,16 @@ export class TimelineEngine extends Canvas {
   private _dragAutoScrollRaf: number | null = null;
   private _lastPointer: { x: number; y: number } | null = null;
   private _isSelectingArea: boolean = false;
+  private _clipObjects: Map<string, any> = new Map();
   private _scrollOptions?: ScrollbarOptions;
 
   constructor(
     canvasEl: HTMLCanvasElement,
-    options: Partial<CanvasOptions> = {}
+    options: Partial<CanvasOptions> = {},
   ) {
     super(canvasEl, {
       ...options,
-      backgroundColor: '#0a0a0a',
+      backgroundColor: "#0a0a0a",
       selection: true,
     });
     this._initPlaceholder();
@@ -71,7 +79,7 @@ export class TimelineEngine extends Canvas {
 
   private _initPlaceholder() {
     this._placeholderGuide = new Objects.Placeholder({
-      clipId: 'drag-guide',
+      clipId: "drag-guide",
       width: 0,
       height: 60,
       left: 0,
@@ -81,22 +89,22 @@ export class TimelineEngine extends Canvas {
   }
 
   private _initInteractionHandlers() {
-    this.on('object:moving', (opt) => {
+    this.on("object:moving", (opt) => {
       const e = opt.e as MouseEvent | PointerEvent | TouchEvent;
-      const pointer = 'clientX' in e ? e : (e as TouchEvent).touches[0];
+      const pointer = "clientX" in e ? e : (e as TouchEvent).touches[0];
       this._lastPointer = { x: pointer.clientX, y: pointer.clientY };
       this._startDragAutoScroll();
       DragHandlers.handleDragging(this, opt);
       this._handleObjectMoving(opt); // Keep existing tracking logic for now if needed, or merge
     });
 
-    this.on('mouse:up', () => {
+    this.on("mouse:up", () => {
       this._stopDragAutoScroll();
       this._handleMouseUp();
     });
 
     // ... inside _initInteractionHandlers
-    this.on('object:modified', (opt) => {
+    this.on("object:modified", (opt) => {
       // Block events during refresh to prevent recursion/crash
       if (!opt || this._isRefreshing) return;
 
@@ -105,12 +113,37 @@ export class TimelineEngine extends Canvas {
       ModifyHandlers.handleClipModification(this, opt);
     });
 
-    this.on('track:created', (opt) => {
+    this.on("track:created", (opt) => {
       this.addNewTrack(opt);
     });
 
-    this.on('clip:movedToTrack', (opt) => {
+    this.on("clip:movedToTrack", (opt) => {
       this.moveClipToTrack(opt);
+    });
+
+    this.on("selection:created", (opt) => {
+      if (this._isRefreshing || this._isInternalSelection) return;
+      const selectedIds = opt.selected
+        ?.map((obj: any) => obj.clipId)
+        .filter(Boolean);
+      (this as any).fire("selection:changed", {
+        selectedIds: selectedIds || [],
+      });
+    });
+
+    this.on("selection:updated", (opt) => {
+      if (this._isRefreshing || this._isInternalSelection) return;
+      const selectedIds = opt.selected
+        ?.map((obj: any) => obj.clipId)
+        .filter(Boolean);
+      (this as any).fire("selection:changed", {
+        selectedIds: selectedIds || [],
+      });
+    });
+
+    this.on("selection:cleared", () => {
+      if (this._isRefreshing || this._isInternalSelection) return;
+      (this as any).fire("selection:changed", { selectedIds: [] });
     });
   }
 
@@ -119,7 +152,6 @@ export class TimelineEngine extends Canvas {
     index: number;
     displayFrom: number;
   }) {
-    console.log('[TimelineEngine] addNewTrack', payload);
     const { clipId, index, displayFrom } = payload;
     const clip = this._clips[clipId];
     if (!clip) return;
@@ -128,7 +160,7 @@ export class TimelineEngine extends Canvas {
     const newTrackId = Math.random().toString(36).substr(2, 9);
     const newTrack = {
       id: newTrackId,
-      type: clip.type === 'Audio' ? 'Audio' : 'Video', // Simple type inference
+      type: clip.type === "Audio" ? "Audio" : "Video", // Simple type inference
       clipIds: [clipId],
       muted: false,
     };
@@ -152,7 +184,7 @@ export class TimelineEngine extends Canvas {
     this._tracks = tracks;
     this.refreshTimeline();
 
-    this.fire('timeline:updated', { tracks });
+    this.fire("timeline:updated", { tracks });
   }
 
   public moveClipToTrack(payload: {
@@ -160,7 +192,6 @@ export class TimelineEngine extends Canvas {
     trackId: string;
     displayFrom: number;
   }) {
-    console.log('[TimelineEngine] moveClipToTrack', payload);
     const { clipId, trackId, displayFrom } = payload;
     const clip = this._clips[clipId];
     if (!clip) return;
@@ -185,7 +216,7 @@ export class TimelineEngine extends Canvas {
     // Cleanup empty tracks
     this._tracks = this._tracks.filter((t) => t.clipIds.length > 0);
 
-    this.fire('timeline:updated', { tracks: this._tracks });
+    this.fire("timeline:updated", { tracks: this._tracks });
     this.refreshTimeline();
   }
 
@@ -195,13 +226,13 @@ export class TimelineEngine extends Canvas {
     if (
       !target ||
       target === this._placeholderGuide ||
-      target.type === 'track-bg'
+      target.type === "track-bg"
     )
       return;
 
     // If we have an active helper (inserting new track), hide placeholder
     const activeHelper = this.getObjects().find(
-      (obj: any) => obj.isHelper && obj.fill !== 'transparent'
+      (obj: any) => obj.isHelper && obj.fill !== "transparent",
     );
 
     if (activeHelper) {
@@ -213,7 +244,7 @@ export class TimelineEngine extends Canvas {
 
     const pointer = this.getPointer(e.e);
     const track = this._trackRegions.find(
-      (r) => pointer.y >= r.top && pointer.y <= r.bottom
+      (r) => pointer.y >= r.top && pointer.y <= r.bottom,
     );
 
     if (track && this._placeholderGuide) {
@@ -267,7 +298,6 @@ export class TimelineEngine extends Canvas {
     if (!this._lastPointer) return;
 
     const viewportWidth = this.width;
-    const viewportHeight = this.height;
     const threshold = 60;
     const maxSpeed = 30;
 
@@ -280,7 +310,10 @@ export class TimelineEngine extends Canvas {
     let deltaY = 0;
 
     if (x < threshold) {
-      deltaX = -maxSpeed * (1 - Math.max(0, x) / threshold);
+      // Don't autoscroll left if we are already at the beginning (vpt[4] >= 0)
+      if (this.viewportTransform[4] < 0) {
+        deltaX = -maxSpeed * (1 - Math.max(0, x) / threshold);
+      }
     } else if (x > viewportWidth - threshold) {
       deltaX = maxSpeed * (1 - Math.max(0, viewportWidth - x) / threshold);
     }
@@ -300,8 +333,8 @@ export class TimelineEngine extends Canvas {
       const limitedVpt = constrainViewport(this, vpt, {
         offsetX: this._scrollOptions?.initialOffsetX ?? 0,
         offsetY: this._scrollOptions?.initialOffsetY ?? 0,
-        marginRight: this._scrollOptions?.marginRight ?? 100,
-        marginBottom: this._scrollOptions?.marginBottom ?? 100,
+        extraMarginX: this._scrollOptions?.extraMarginX ?? 0,
+        extraMarginY: this._scrollOptions?.extraMarginY ?? 0,
       });
 
       this.setViewportTransform(limitedVpt);
@@ -313,29 +346,29 @@ export class TimelineEngine extends Canvas {
     this._scrollOptions = {
       initialOffsetX: options.initialOffsetX ?? 0,
       initialOffsetY: options.initialOffsetY ?? 0,
-      marginRight: options.marginRight ?? 100,
-      marginBottom: options.marginBottom ?? 100,
+      extraMarginX: options.extraMarginX ?? 0,
+      extraMarginY: options.extraMarginY ?? 0,
       barThickness: options.barThickness ?? 8,
-      barColor: options.barColor ?? 'rgba(255, 255, 255, 0.4)',
-      onScrollChanged: (left) => {
-        this._viewportChangeCallback?.(left);
+      barColor: options.barColor ?? "rgba(255, 255, 255, 0.4)",
+      onScrollChanged: (info) => {
+        this._viewportChangeCallback?.(info);
       },
       onZoom: (zoom) => {
         this._zoomChangeCallback?.(zoom);
       },
       ...options,
     };
-    const scrollOptions = this._scrollOptions;
+    const scrollOptions = this._scrollOptions!;
 
     // Setup wheel control (pan and zoom)
     this._wheelHandler = setupWheelControl(this, {
       offsetX: scrollOptions.initialOffsetX,
       offsetY: scrollOptions.initialOffsetY,
-      marginRight: scrollOptions.marginRight,
-      marginBottom: scrollOptions.marginBottom,
+      extraMarginX: scrollOptions.extraMarginX,
+      extraMarginY: scrollOptions.extraMarginY,
       onZoom: (zoom) => this._zoomChangeCallback?.(zoom),
     });
-    this.on('mouse:wheel', this._wheelHandler);
+    this.on("mouse:wheel", this._wheelHandler);
 
     // Initialize custom scrollbars
     this._scrollbars = new TimelineScrollbars(this, scrollOptions);
@@ -357,7 +390,13 @@ export class TimelineEngine extends Canvas {
     this._wheelHandler?.(e);
   }
 
-  public onViewportChange(callback: (left: number) => void) {
+  public onViewportChange(
+    callback: (info: {
+      left: number;
+      scrollX: number;
+      scrollY: number;
+    }) => void,
+  ) {
     this._viewportChangeCallback = callback;
   }
 
@@ -365,9 +404,30 @@ export class TimelineEngine extends Canvas {
     this._zoomChangeCallback = callback;
   }
 
+  public setScroll(scrollX?: number, scrollY?: number) {
+    const vpt = this.viewportTransform.slice(0) as TMat2D;
+    const zoom = vpt[0];
+    if (scrollX !== undefined) {
+      vpt[4] = -scrollX + (this._scrollOptions?.initialOffsetX ?? 0) * zoom;
+    }
+    if (scrollY !== undefined) {
+      vpt[5] = -scrollY + (this._scrollOptions?.initialOffsetY ?? 0) * zoom;
+    }
+
+    const limitedVpt = constrainViewport(this, vpt, {
+      offsetX: this._scrollOptions?.initialOffsetX ?? 0,
+      offsetY: this._scrollOptions?.initialOffsetY ?? 0,
+      extraMarginX: this._scrollOptions?.extraMarginX ?? 0,
+      extraMarginY: this._scrollOptions?.extraMarginY ?? 0,
+    });
+
+    this.setViewportTransform(limitedVpt);
+    this.requestRenderAll();
+  }
+
   public disposeScrollbars() {
     if (this._wheelHandler) {
-      this.off('mouse:wheel', this._wheelHandler);
+      this.off("mouse:wheel", this._wheelHandler);
       this._wheelHandler = undefined;
     }
     if (this._scrollbars) {
@@ -379,7 +439,7 @@ export class TimelineEngine extends Canvas {
   public clearSeparatorHighlights() {
     this.getObjects().forEach((obj: any) => {
       if (obj.isHelper) {
-        obj.set('fill', 'transparent');
+        obj.set("fill", "transparent");
       }
     });
     this.requestRenderAll();
@@ -389,7 +449,7 @@ export class TimelineEngine extends Canvas {
     this.activeSeparatorIndex = index;
   }
 
-  public setTimeline(tracks: any[], clips: any) {
+  public setTimeline(tracks: any[], clips: any, duration?: number) {
     this._tracks = tracks.map((t, i) => ({
       ...t,
       id: t.id || `track-${i}`,
@@ -404,25 +464,23 @@ export class TimelineEngine extends Canvas {
           }
           return acc;
         },
-        {} as Record<string, any>
+        {} as Record<string, any>,
       );
-    } else if (clips && typeof clips === 'object') {
+    } else if (clips && typeof clips === "object") {
       this._clips = clips;
     } else {
       this._clips = {};
     }
 
-    const availableClipIds = Object.keys(this._clips);
-    console.log(
-      `[TimelineEngine] setTimeline updated: ${tracks.length} tracks, ${availableClipIds.length} clips.`
-    );
-    if (availableClipIds.length > 0) {
-      console.log(
-        `[TimelineEngine] Available sample clip ID: ${availableClipIds[0]}`
-      );
-    }
-    if (tracks.length > 0 && tracks[0].clipIds) {
-      console.log(`[TimelineEngine] Sample track clip IDs:`, tracks[0].clipIds);
+    // Calculate max duration from clips or use provided duration
+    if (duration !== undefined) {
+      this.maxDuration = duration;
+    } else {
+      let max = 0;
+      Object.values(this._clips).forEach((clip) => {
+        if (clip.display.to > max) max = clip.display.to;
+      });
+      this.maxDuration = max;
     }
 
     this.refreshTimeline();
@@ -432,12 +490,17 @@ export class TimelineEngine extends Canvas {
     return this._trackRegions;
   }
 
-  private _isRefreshing: boolean = false;
-
   public refreshTimeline() {
+    // 0. Capture current selection
+    const activeObjects = this.getActiveObjects();
+    const selectedIds = activeObjects
+      .map((obj: any) => obj.clipId)
+      .filter(Boolean);
+
     this._isRefreshing = true;
     try {
       // 1. Clear current clip objects & helpers
+      this._clipObjects.clear();
       const objects = this.getObjects();
       objects.forEach((obj) => {
         if (
@@ -450,7 +513,7 @@ export class TimelineEngine extends Canvas {
 
       // 2. Clear tracks (if we draw them as objects)
       objects.forEach((obj) => {
-        if (obj.type === 'track-bg') {
+        if (obj.type === "track-bg") {
           this.remove(obj);
         }
       });
@@ -464,8 +527,8 @@ export class TimelineEngine extends Canvas {
 
       // Top Helper
       const topHelper = new Objects.Helper({
-        id: 'helper-top',
-        kind: 'top',
+        id: "helper-top",
+        kind: "top",
         separatorIndex: 0,
         left: 0,
         top: currentTop,
@@ -493,14 +556,14 @@ export class TimelineEngine extends Canvas {
           top: top,
           width: 100000,
           height: trackHeight,
-          fill: '#121212',
+          fill: "#121212",
           selectable: false,
           evented: false,
           hasControls: false,
           lockMovementX: true,
           lockMovementY: true,
         });
-        (trackBg as any).type = 'track-bg';
+        (trackBg as any).type = "track-bg";
         this.add(trackBg);
         this.sendObjectToBack(trackBg); // Ensure track bg is behind clips
 
@@ -509,8 +572,8 @@ export class TimelineEngine extends Canvas {
         // Center/Bottom Helper
         const isLast = index === this._tracks.length - 1;
         const helper = new Objects.Helper({
-          id: isLast ? 'helper-bottom' : `helper-${index}`,
-          kind: isLast ? 'bottom' : 'center',
+          id: isLast ? "helper-bottom" : `helper-${index}`,
+          kind: isLast ? "bottom" : "center",
           separatorIndex: index + 1,
           left: 0,
           top: currentTop,
@@ -528,7 +591,7 @@ export class TimelineEngine extends Canvas {
             if (!clipData) {
               console.warn(
                 `[TimelineEngine] Clip ${clipId} not found in store. Available keys:`,
-                Object.keys(this._clips)
+                Object.keys(this._clips),
               );
               return;
             }
@@ -537,59 +600,60 @@ export class TimelineEngine extends Canvas {
             const width =
               ((clipData.display.to - clipData.display.from) / 1_000_000) *
               pixelsPerSecond;
-            const type = (clipData.type || '').toLowerCase();
+            const type = (clipData.type || "").toLowerCase();
 
             let clipObj: any;
 
             switch (type) {
-              case 'text':
-              case 'caption':
+              case "text":
+              case "caption":
                 clipObj = new Objects.TextClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.text || clipData.name || 'Text',
+                  label: clipData.text || clipData.name || "Text",
                 });
                 break;
-              case 'audio':
+              case "audio":
                 clipObj = new Objects.AudioClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.name || 'Audio',
+                  label: clipData.name || "Audio",
+                  src: clipData.src,
                 });
                 break;
-              case 'image':
-              case 'video':
-              case 'placeholder':
+              case "image":
+              case "video":
+              case "placeholder":
                 clipObj = new Objects.ImageClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.name || 'Media',
-                  sourceUrl: clipData.src || '',
+                  label: clipData.name || "Media",
+                  sourceUrl: clipData.src || "",
                 });
                 break;
-              case 'transition':
+              case "transition":
                 clipObj = new Objects.TransitionClip({
                   clipId: clipData.id,
-                  label: 'Transition',
+                  label: "Transition",
                   left: left - 25,
                   top: top + (trackHeight - 50) / 2,
                   width: 50,
                   height: 50,
                 });
                 break;
-              case 'effect':
+              case "effect":
                 clipObj = new Objects.EffectClip({
                   clipId: clipData.id,
-                  label: clipData.name || 'Effect',
+                  label: clipData.name || "Effect",
                   left,
                   top,
                   width,
@@ -603,26 +667,70 @@ export class TimelineEngine extends Canvas {
                   top,
                   width,
                   height: trackHeight,
-                  fill: '#333',
-                  label: clipData.name || 'Clip',
+                  fill: "#333",
+                  label: clipData.name || "Clip",
                 });
             }
 
             if (clipObj) {
               this.add(clipObj);
+              this._clipObjects.set(clipData.id, clipObj);
             }
           });
         }
       });
     } finally {
       this._isRefreshing = false;
+      // 3. Restore selection
+      if (selectedIds.length > 0) {
+        this.selectClips(selectedIds);
+      }
       this.requestRenderAll();
+    }
+  }
+
+  public selectClips(clipIds: string[]) {
+    // Avoid redundant updates
+    const currentActive = this.getActiveObjects();
+    const currentIds = currentActive
+      .map((obj: any) => obj.clipId)
+      .filter(Boolean);
+
+    const isSame =
+      clipIds.length === currentIds.length &&
+      clipIds.every((id) => currentIds.includes(id));
+
+    if (isSame) return;
+
+    this.discardActiveObject();
+
+    if (clipIds.length === 0) {
+      this.requestRenderAll();
+      return;
+    }
+
+    this._isInternalSelection = true;
+    try {
+      const objectsToSelect: any[] = [];
+      for (const id of clipIds) {
+        const obj = this._clipObjects.get(id);
+        if (obj) objectsToSelect.push(obj);
+      }
+
+      if (objectsToSelect.length === 1) {
+        this.setActiveObject(objectsToSelect[0]);
+      } else if (objectsToSelect.length > 1) {
+        this.setActiveObject(objectsToSelect[0]); // Simple fallback - real implementation would use ActiveSelection
+      }
+    } finally {
+      this.requestRenderAll();
+      this._isInternalSelection = false;
     }
   }
 
   // Basic diagnostic method to verify initialization
   public getVersion() {
-    return '0.0.1-fabric-shell';
+    return "0.0.1-fabric-shell";
   }
 }
 

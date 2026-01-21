@@ -1,14 +1,23 @@
 import { type TMat2D, type TPointerEventInfo, util, Point } from 'fabric';
 import { TimelineEngine } from '../engine';
+import { TIMELINE_CONSTANTS } from '../constants';
 
 const calculateClipBounds = (canvas: TimelineEngine) => {
   const objects = canvas
     .getObjects()
     .filter(
       (obj) =>
-        !['Track', 'Playhead', 'Ruler', 'Helper', 'track-bg'].includes(
-          obj.type || (obj as any).type
-        )
+        (obj as any).clipId &&
+        !(obj as any).clipId.startsWith('track-') &&
+        !(obj as any).isHelper &&
+        ![
+          'Track',
+          'Playhead',
+          'Ruler',
+          'Helper',
+          'track-bg',
+          'Placeholder',
+        ].includes(obj.type || (obj as any).type)
     );
 
   if (objects.length === 0) {
@@ -18,7 +27,12 @@ const calculateClipBounds = (canvas: TimelineEngine) => {
   const { left, top, width, height } = util.makeBoundingBoxFromPoints(
     objects.map((obj) => obj.getCoords()).flat(1)
   );
-  return { left, top, right: left + width, bottom: top + height };
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height,
+  };
 };
 
 export const constrainViewport = (
@@ -27,8 +41,8 @@ export const constrainViewport = (
   config: {
     offsetX: number;
     offsetY: number;
-    marginRight: number;
-    marginBottom: number;
+    extraMarginX: number;
+    extraMarginY: number;
   }
 ): TMat2D => {
   const zoom = vpt[0];
@@ -36,8 +50,8 @@ export const constrainViewport = (
 
   const viewLeft = Math.min(bounds.left, -config.offsetX);
   const viewTop = Math.min(bounds.top, -config.offsetY);
-  const viewRight = bounds.right + config.marginRight;
-  const viewBottom = bounds.bottom + config.marginBottom;
+  const viewRight = bounds.right + config.extraMarginX;
+  const viewBottom = bounds.bottom + config.extraMarginY;
 
   const totalW = viewRight - viewLeft;
   const totalH = viewBottom - viewTop;
@@ -80,8 +94,8 @@ export const setupWheelControl =
     options: {
       offsetX?: number;
       offsetY?: number;
-      marginRight?: number;
-      marginBottom?: number;
+      extraMarginX?: number;
+      extraMarginY?: number;
       minZoom?: number;
       maxZoom?: number;
       onZoom?: (zoom: number) => void;
@@ -96,8 +110,8 @@ export const setupWheelControl =
 
     if (e.target === canvas.upperCanvasEl) e.preventDefault();
 
-    // Zooming
-    if (e.ctrlKey || e.metaKey) {
+    // Zooming (Alt or Meta)
+    if (e.altKey || (e.metaKey && !e.ctrlKey)) {
       const isPrecision = Math.floor(e.deltaY) !== Math.ceil(e.deltaY);
       const zoomFactor = isPrecision ? 0.99 : 0.995;
       let zoom = canvas.getZoom();
@@ -114,8 +128,8 @@ export const setupWheelControl =
       const limitedVpt = constrainViewport(canvas, vpt, {
         offsetX: options.offsetX ?? 0,
         offsetY: options.offsetY ?? 0,
-        marginRight: options.marginRight ?? 100,
-        marginBottom: options.marginBottom ?? 100,
+        extraMarginX: options.extraMarginX ?? 0,
+        extraMarginY: options.extraMarginY ?? 0,
       });
 
       canvas.setViewportTransform(limitedVpt);
@@ -126,8 +140,11 @@ export const setupWheelControl =
 
     // Panning
     const vpt = canvas.viewportTransform.slice(0) as TMat2D;
-    if (e.shiftKey) {
-      vpt[4] -= e.deltaY; // Scroll horizontally with shift+wheel
+
+    // Ctrl + Wheel = Horizontal Scroll (Requested by user)
+    // Shift + Wheel = Horizontal Scroll (Common standard)
+    if (e.ctrlKey || e.shiftKey) {
+      vpt[4] -= e.deltaY;
     } else {
       vpt[4] -= e.deltaX;
       vpt[5] -= e.deltaY;
@@ -136,8 +153,8 @@ export const setupWheelControl =
     const limitedVpt = constrainViewport(canvas, vpt, {
       offsetX: options.offsetX ?? 0,
       offsetY: options.offsetY ?? 0,
-      marginRight: options.marginRight ?? 200,
-      marginBottom: options.marginBottom ?? 200,
+      extraMarginX: options.extraMarginX ?? 0,
+      extraMarginY: options.extraMarginY ?? 0,
     });
 
     canvas.setViewportTransform(limitedVpt);

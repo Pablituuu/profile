@@ -4,4 +4,5 @@ export const TIMELINE_CONSTANTS = {
   PIXELS_PER_SECOND: 50,
   RULER_HEIGHT: 24,
   DEFAULT_ZOOM: 1,
+  DEFAULT_FPS: 30,
 } as const;

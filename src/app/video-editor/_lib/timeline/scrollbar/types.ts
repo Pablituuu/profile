@@ -1,3 +1,9 @@
+export interface ViewportChangeInfo {
+  left: number;
+  scrollX: number;
+  scrollY: number;
+}
+
 export interface ScrollbarOptions {
   barColor?: string;
   outlineColor?: string;
@@ -8,11 +14,11 @@ export interface ScrollbarOptions {
   barThickness?: number;
   barSpacing?: number;
   contentPadding?: number;
-  marginRight?: number;
-  marginBottom?: number;
+  extraMarginX?: number;
+  extraMarginY?: number;
   initialOffsetX?: number;
   initialOffsetY?: number;
-  onScrollChanged?: (scrollLeft: number) => void;
+  onScrollChanged?: (info: ViewportChangeInfo) => void;
   onZoom?: (zoom: number) => void;
 }
 

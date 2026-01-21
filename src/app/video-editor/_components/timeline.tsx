@@ -1,16 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { TimelineEngine } from '../_lib/timeline/engine';
-import { TimelineToolbar } from './timeline-toolbar';
-import { TimelineRuler } from './timeline-ruler';
-import { TimelinePlayhead } from './timeline-playhead';
-import { useTimelinePlayheadRuler } from '../_hooks/use-timeline-playhead';
-import { TIMELINE_CONSTANTS } from '../_lib/timeline/constants';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useRef } from "react";
+import { TimelineEngine } from "../_lib/timeline/engine";
+import { TimelineToolbar } from "./timeline-toolbar";
+import { TimelineRuler } from "./timeline-ruler";
+import { TimelinePlayhead } from "./timeline-playhead";
+import { useTimelinePlayheadRuler } from "../_hooks/use-timeline-playhead";
+import { TIMELINE_CONSTANTS } from "../_lib/timeline/constants";
+import { cn } from "@/lib/utils";
 
-import { useEditorStore } from '@/store/use-editor-store';
+import { useEditorStore } from "@/store/use-editor-store";
+import { IClip } from "@designcombo/video";
+
+const EXTRA_MARGIN_X = 50;
+const EXTRA_MARGIN_Y = 15;
 
 export function Timeline() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,8 +49,9 @@ export function Timeline() {
   });
 
   const dynamicTimelineWidth = Math.max(
-    duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel,
-    800
+    duration * TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel +
+      EXTRA_MARGIN_X,
+    800,
   );
 
   useEffect(() => {
@@ -55,10 +59,10 @@ export function Timeline() {
 
     // Check if the canvas is already initialized (e.g., from a quick re-mount)
     const existingContainer =
-      canvasRef.current.parentElement?.classList.contains('canvas-container');
+      canvasRef.current.parentElement?.classList.contains("canvas-container");
     if (existingContainer) {
       console.warn(
-        '[Timeline] Canvas already has a container, skipped re-init'
+        "[Timeline] Canvas already has a container, skipped re-init",
       );
       return;
     }
@@ -74,15 +78,18 @@ export function Timeline() {
 
     engine.initScrollbars({
       initialOffsetX: 0,
+      extraMarginX: EXTRA_MARGIN_X,
+      extraMarginY: EXTRA_MARGIN_Y,
       barThickness: 8,
-      barColor: 'rgba(255, 255, 255, 0.3)',
+      barColor: "rgba(255, 255, 255, 0.3)",
     });
 
-    engine.onViewportChange((left) => {
+    engine.onViewportChange((info) => {
       if (isUpdatingRef.current) return;
       isUpdatingRef.current = true;
       if (rulerScrollRef.current) {
-        rulerScrollRef.current.scrollLeft = left;
+        // Syncing the horizontal pixel offset
+        rulerScrollRef.current.scrollLeft = info.scrollX;
       }
       isUpdatingRef.current = false;
     });
@@ -92,7 +99,7 @@ export function Timeline() {
     });
 
     // Sync selection from Timeline -> Studio
-    engine.on('selection:created', (opt) => {
+    engine.on("selection:created", (opt) => {
       if (!studio) return;
       const selectedIds = opt.selected
         ?.map((obj: any) => obj.clipId)
@@ -102,7 +109,7 @@ export function Timeline() {
       }
     });
 
-    engine.on('selection:updated', (opt) => {
+    engine.on("selection:updated", (opt) => {
       if (!studio) return;
       const selectedIds = opt.selected
         ?.map((obj: any) => obj.clipId)
@@ -112,27 +119,22 @@ export function Timeline() {
       }
     });
 
-    engine.on('selection:cleared', () => {
+    engine.on("selection:cleared", () => {
       if (!studio) return;
       (studio as any).deselectClips?.();
     });
 
     // Debug Logs for Modify Events
-    (engine as any).on('track:created', (opt: any) => {
-      console.log('[Timeline] track:created', opt);
-    });
-    (engine as any).on('clip:movedToTrack', (opt: any) => {
-      console.log('[Timeline] clip:movedToTrack', opt);
-    });
+    (engine as any).on("track:created", (opt: any) => {});
+    (engine as any).on("clip:movedToTrack", (opt: any) => {});
     (engine as any).on(
-      'clip:modified',
+      "clip:modified",
       async (opt: {
         clipId: string;
         displayFrom?: number;
         duration?: number;
         trim?: any;
       }) => {
-        console.log('[Timeline] clip:modified', opt);
         const currentStudio = studioRef.current;
         if (!currentStudio) return;
 
@@ -159,12 +161,10 @@ export function Timeline() {
         if (opt.trim !== undefined) {
           updates.trim = opt.trim;
         }
-        console.log('[Timeline] clip:modified', updates);
         await currentStudio.updateClip(opt.clipId, updates);
-      }
+      },
     );
-    (engine as any).on('clips:modified', async (opt: { clips: any[] }) => {
-      console.log('[Timeline] clips:modified', opt);
+    (engine as any).on("clips:modified", async (opt: { clips: any[] }) => {
       const currentStudio = studioRef.current;
       if (!currentStudio || !opt.clips) return;
 
@@ -196,12 +196,11 @@ export function Timeline() {
           }
 
           await currentStudio.updateClip(clip.clipId, updates);
-        })
+        }),
       );
     });
 
-    (engine as any).on('timeline:updated', (opt: { tracks: any[] }) => {
-      console.log('[Timeline] timeline:updated', opt);
+    (engine as any).on("timeline:updated", (opt: { tracks: any[] }) => {
       const currentStudio = studioRef.current;
       if (!currentStudio || !opt.tracks) return;
 
@@ -254,30 +253,23 @@ export function Timeline() {
               : Object.values(clips || {});
         }
 
-        console.log('[Timeline] Syncing Data:', {
-          foundTracks: tracks.length,
-          foundClips: clips.length,
-          rawClipsType: typeof (s.getClips?.() || s.clips || s.design?.clips),
-        });
-
         if (
           clips.length === 0 &&
           tracks.length > 0 &&
           tracks[0].clipIds?.length > 0
         ) {
           console.warn(
-            '[Timeline] Tracks have clip IDs but no clips found! Checking for alternative properties...'
+            "[Timeline] Tracks have clip IDs but no clips found! Checking for alternative properties...",
           );
           // Last resort: check if clips are scattered in the studio
         }
 
-        timelineRef.current?.setTimeline(tracks, clips);
-
         const maxDuration =
           s.getMaxDuration?.() || s.timeline?.getMaxDuration?.() || 60_000_000;
+        timelineRef.current?.setTimeline(tracks, clips, maxDuration);
         setDuration(maxDuration / 1_000_000);
       } catch (err) {
-        console.error('Failed to sync timeline:', err);
+        console.error("Failed to sync timeline:", err);
       }
     };
 
@@ -285,12 +277,12 @@ export function Timeline() {
     syncTimeline();
 
     // Listen for changes
-    studio.on('clip:added', syncTimeline);
-    studio.on('clip:removed', syncTimeline);
-    studio.on('clip:moved', syncTimeline);
-    studio.on('clip:updated', syncTimeline);
-    studio.on('track:added', syncTimeline);
-    studio.on('track:removed', syncTimeline);
+    studio.on("clip:added", syncTimeline);
+    studio.on("clip:removed", syncTimeline);
+    studio.on("clip:moved", syncTimeline);
+    studio.on("clip:updated", syncTimeline);
+    studio.on("track:added", syncTimeline);
+    studio.on("track:removed", syncTimeline);
 
     const handleTimeUpdate = ({ currentTime }: { currentTime: number }) => {
       setCurrentTime(currentTime / 1_000_000);
@@ -299,9 +291,9 @@ export function Timeline() {
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
-    studio.on('currentTime', handleTimeUpdate);
-    studio.on('play', handlePlay);
-    studio.on('pause', handlePause);
+    studio.on("currentTime", handleTimeUpdate);
+    studio.on("play", handlePlay);
+    studio.on("pause", handlePause);
 
     // Initial sync
     setCurrentTime(studio.getCurrentTime() / 1_000_000);
@@ -309,39 +301,88 @@ export function Timeline() {
     setDuration(studio.getMaxDuration() / 1_000_000);
 
     return () => {
-      studio.off('clip:added', syncTimeline);
-      studio.off('clip:removed', syncTimeline);
-      studio.off('clip:moved', syncTimeline);
-      studio.off('clip:updated', syncTimeline);
-      studio.off('track:added', syncTimeline);
-      studio.off('track:removed', syncTimeline);
-      studio.off('currentTime', handleTimeUpdate);
-      studio.off('play', handlePlay);
-      studio.off('pause', handlePause);
+      studio.off("clip:added", syncTimeline);
+      studio.off("clip:removed", syncTimeline);
+      studio.off("clip:moved", syncTimeline);
+      studio.off("clip:updated", syncTimeline);
+      studio.off("track:added", syncTimeline);
+      studio.off("track:removed", syncTimeline);
+      studio.off("currentTime", handleTimeUpdate);
+      studio.off("play", handlePlay);
+      studio.off("pause", handlePause);
     };
   }, [studio, setCurrentTime, setIsPlaying]);
 
-  // Sync selection
-  const { selectedClips } = useEditorStore();
+  // Bidirectional Selection Sync
   useEffect(() => {
-    if (!timelineRef.current) return;
-    const selectedIds = new Set(selectedClips.map((c) => c.id));
+    if (!studio || !timelineRef.current) return;
 
-    const objects = timelineRef.current.getObjects();
-    objects.forEach((obj) => {
-      const clipId = (obj as any).clipId;
-      if (clipId) {
-        (obj as any).setSelectionActive?.(selectedIds.has(clipId));
-      }
-    });
-  }, [selectedClips]);
+    const engine = timelineRef.current;
+
+    // Studio -> Timeline
+    const handleStudioSelection = ({ selected }: { selected: IClip[] }) => {
+      const ids = selected.map((c) => c.id);
+      engine.selectClips(ids);
+    };
+
+    const handleStudioSelectionCleared = () => {
+      engine.selectClips([]);
+    };
+
+    // Timeline -> Studio
+    const handleTimelineSelection = ({
+      selectedIds,
+    }: {
+      selectedIds: string[];
+    }) => {
+      (studio as any).selectClipsByIds?.(selectedIds);
+    };
+
+    studio.on("selection:created", handleStudioSelection);
+    studio.on("selection:updated", handleStudioSelection);
+    studio.on("selection:cleared", handleStudioSelectionCleared);
+
+    (engine as any).on("selection:changed", handleTimelineSelection as any);
+
+    return () => {
+      studio.off("selection:created", handleStudioSelection);
+      studio.off("selection:updated", handleStudioSelection);
+      studio.off("selection:cleared", handleStudioSelectionCleared);
+
+      (engine as any).off("selection:changed", handleTimelineSelection as any);
+    };
+  }, [studio]);
+
+  const { selectedClips } = useEditorStore();
+
+  const handleDelete = () => {
+    if (!studio) return;
+    studio.deleteSelected();
+  };
+
+  const handleDuplicate = () => {
+    if (!studio) return;
+    studio.duplicateSelected();
+  };
+
+  const handleSplit = () => {
+    if (!studio) return;
+    studio.splitSelected(useEditorStore.getState().currentTime * 1_000_000);
+  };
 
   return (
     <div
       ref={timelineContainerRef}
       className="h-[300px] bg-[#0a0a0a] border-t border-white/5 flex flex-col shrink-0 z-40 relative overflow-hidden"
     >
-      <TimelineToolbar zoomLevel={zoomLevel} setZoomLevel={setZoomLevel} />
+      <TimelineToolbar
+        zoomLevel={zoomLevel}
+        setZoomLevel={setZoomLevel}
+        duration={duration}
+        onDelete={handleDelete}
+        onDuplicate={handleDuplicate}
+        onSplit={handleSplit}
+      />
 
       {/* Timeline Content Area (Ruler + Canvas) */}
       <div
@@ -373,18 +414,16 @@ export function Timeline() {
             }}
             data-ruler-area
           >
-            <ScrollArea
-              className="w-full h-full scrollbar-hidden"
+            <div
+              className="w-full h-full overflow-x-auto overflow-y-hidden"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               ref={rulerScrollRef}
               onScroll={(e) => {
                 if (isUpdatingRef.current) return;
                 isUpdatingRef.current = true;
                 const scrollX = (e.currentTarget as HTMLDivElement).scrollLeft;
                 if (timelineRef.current) {
-                  const vpt = timelineRef.current.viewportTransform.slice(0);
-                  vpt[4] = -scrollX;
-                  timelineRef.current.setViewportTransform(vpt as any);
-                  timelineRef.current.requestRenderAll();
+                  timelineRef.current.setScroll(scrollX);
                 }
                 isUpdatingRef.current = false;
               }}
@@ -401,7 +440,7 @@ export function Timeline() {
                   width={dynamicTimelineWidth}
                 />
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 

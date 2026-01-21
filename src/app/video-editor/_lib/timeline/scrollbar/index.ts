@@ -2,6 +2,7 @@ import type { TMat2D, TPointerEvent } from 'fabric';
 import { util } from 'fabric';
 import { TimelineEngine } from '../engine';
 import { RectDimensions, ScrollbarOptions } from './types';
+import { TIMELINE_CONSTANTS } from '../constants';
 
 export class TimelineScrollbars {
   private canvas: TimelineEngine;
@@ -14,11 +15,15 @@ export class TimelineScrollbars {
   private barThickness = 6;
   private barSpacing = 4;
   private contentPadding = 4;
-  private marginRight = 200;
-  private marginBottom = 200;
+  private extraMarginX = 0;
+  private extraMarginY = 0;
   private initialOffsetX = 0;
   private initialOffsetY = 0;
-  private onScrollChanged?: (scrollLeft: number) => void;
+  private onScrollChanged?: (info: {
+    left: number;
+    scrollX: number;
+    scrollY: number;
+  }) => void;
 
   private _dragState?: {
     type: 'x' | 'y';
@@ -154,8 +159,8 @@ export class TimelineScrollbars {
     const worldRect = {
       left: Math.min(contentBounds.left, -this.initialOffsetX),
       top: Math.min(contentBounds.top, -this.initialOffsetY),
-      right: contentBounds.right + this.marginRight,
-      bottom: contentBounds.bottom + this.marginBottom,
+      right: contentBounds.right + this.extraMarginX,
+      bottom: contentBounds.bottom + this.extraMarginY,
     };
 
     // Ensure world rect covers visible viewport
@@ -169,7 +174,15 @@ export class TimelineScrollbars {
     this.drawBars(this.canvas.contextTop, viewportRect, worldRect);
 
     if (this.onScrollChanged) {
-      this.onScrollChanged(tl.x);
+      const vpt = this.canvas.viewportTransform;
+      const scrollX = -vpt[4] + this.initialOffsetX * vpt[0];
+      const scrollY = -vpt[5] + this.initialOffsetY * vpt[0];
+
+      this.onScrollChanged({
+        left: tl.x,
+        scrollX,
+        scrollY,
+      });
     }
   }
 
@@ -287,20 +300,24 @@ export class TimelineScrollbars {
       .getObjects()
       .filter(
         (o) =>
-          !['Track', 'Playhead', 'Helper', 'track-bg'].includes(
+          (o as any).clipId &&
+          !(o as any).clipId.startsWith('track-') &&
+          !(o as any).isHelper &&
+          !['Track', 'Playhead', 'Helper', 'track-bg', 'Placeholder'].includes(
             o.type || (o as any).type
           )
       );
+
     if (objects.length === 0) return { left: 0, top: 0, right: 0, bottom: 0 };
 
-    const bounds = util.makeBoundingBoxFromPoints(
+    const { left, top, width, height } = util.makeBoundingBoxFromPoints(
       objects.map((o) => o.getCoords()).flat(1)
     );
     return {
-      left: bounds.left,
-      top: bounds.top,
-      right: bounds.left + bounds.width,
-      bottom: bounds.top + bounds.height,
+      left,
+      top,
+      right: left + width,
+      bottom: top + height,
     };
   }
 
@@ -310,8 +327,8 @@ export class TimelineScrollbars {
 
     const viewL = Math.min(bounds.left, -this.initialOffsetX);
     const viewT = Math.min(bounds.top, -this.initialOffsetY);
-    const viewR = bounds.right + this.marginRight;
-    const viewB = bounds.bottom + this.marginBottom;
+    const viewR = bounds.right + this.extraMarginX;
+    const viewB = bounds.bottom + this.extraMarginY;
 
     const canvasW = this.canvas.width / zoom;
     const canvasH = this.canvas.height / zoom;

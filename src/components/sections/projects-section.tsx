@@ -1,37 +1,37 @@
-"use client";
+'use client';
 
-import { FolderDot, ExternalLink, Github } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useLanguage } from "@/context/language-context";
-import type { Project } from "@/types/content";
+import { FolderDot, ExternalLink, Github } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { useLanguage } from '@/context/language-context';
+import type { Project } from '@/types/content';
 
 export function ProjectsSection() {
   const { t } = useLanguage();
 
   const projects: Project[] = [
     {
-      title: t("videoEditorV2Title"),
-      url: "/video-editor",
-      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}/profile`,
-      image: "/video-editor-v2.png",
-      desc: t("videoEditorV2Desc"),
+      title: t('videoEditorV2Title'),
+      url: '/video-editor',
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ''}/profile`,
+      image: '/video-editor-v2.png',
+      desc: t('videoEditorV2Desc'),
       techs: [
-        "Next JS",
-        "@designcombo/video",
-        "Fabric JS",
-        "Tailwind CSS",
-        "Zustand",
+        'Next JS',
+        '@designcombo/video',
+        'Fabric JS',
+        'Tailwind CSS',
+        'Zustand',
       ],
     },
     {
-      title: t("videoEditorV1Title"),
-      url: "https://react-video-editor-mu.vercel.app/",
-      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ""}/react-video-editor`,
-      image: "/video-editor.png",
-      desc: t("videoEditorV1Desc"),
-      techs: ["React", "Remotion", "TypeScript", "Tailwind CSS", "Zustand"],
+      title: t('videoEditorV1Title'),
+      url: 'https://react-video-editor-mu.vercel.app/',
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ''}/react-video-editor`,
+      image: '/video-editor.png',
+      desc: t('videoEditorV1Desc'),
+      techs: ['React', 'Remotion', 'TypeScript', 'Tailwind CSS', 'Zustand'],
     },
   ];
 
@@ -39,7 +39,7 @@ export function ProjectsSection() {
     <section className="space-y-6">
       <h2 className="text-3xl font-bold flex items-center gap-3">
         <FolderDot className="w-8 h-8 text-brand-secondary" />
-        {t("personalProjects")}
+        {t('personalProjects')}
       </h2>
       <div className="grid grid-cols-1 gap-8">
         {projects.map((project, i) => (
@@ -63,7 +63,7 @@ export function ProjectsSection() {
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                   <span className="px-6 py-2 bg-white text-black font-bold rounded-full shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
-                    {t("launchDemo")}
+                    {t('launchDemo')}
                   </span>
                 </div>
               </a>
@@ -110,7 +110,7 @@ export function ProjectsSection() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2"
                   >
-                    <ExternalLink className="w-4 h-4" /> {t("launchDemo")}
+                    <ExternalLink className="w-4 h-4" /> {t('launchDemo')}
                   </a>
                 </Button>
                 <Button
@@ -125,7 +125,7 @@ export function ProjectsSection() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2"
                   >
-                    <Github className="w-4 h-4" /> {t("viewCode")}
+                    <Github className="w-4 h-4" /> {t('viewCode')}
                   </a>
                 </Button>
               </div>

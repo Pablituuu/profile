@@ -1,88 +1,164 @@
-import { util } from 'fabric';
-import { TimelineClip, TimelineClipProps } from './base-clip';
+import { Control } from "fabric";
+import { TimelineClip, TimelineClipProps } from "./base-clip";
+
+export const SECONDARY_FONT_URL =
+  "https://cdn.designcombo.dev/fonts/Geist-SemiBold.ttf";
+export const SECONDARY_FONT = "geist-regular";
+
+export const editorFont = {
+  fontFamily: SECONDARY_FONT,
+  fontUrl: SECONDARY_FONT_URL,
+};
 
 export class ImageClip extends TimelineClip {
-  static type = 'ImageClip';
-  private imageElement: HTMLImageElement | null = null;
+  static type = "ImageClip";
+  private image: HTMLImageElement | null = null;
+  private isInitializing = false;
+  public isSelected: boolean = false;
 
   constructor(options: TimelineClipProps) {
     super(options);
     this.set({
-      fill: options.fill || '#164e63', // Cyan-900
+      fill: options.fill || "#164e63", // Cyan-900
     });
-    if (this.sourceUrl) {
-      this.preloadImage();
+    // Ensure src is synced if sourceUrl is provided
+    if (!this.src && options.sourceUrl) {
+      this.src = options.sourceUrl;
+    }
+    this.initialize();
+  }
+
+  public async initialize(): Promise<void> {
+    if (!this.src || this.image || this.isInitializing) return;
+    this.isInitializing = true;
+    try {
+      const img = new Image();
+      img.src = this.src;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      this.image = img;
+      this.set({ dirty: true });
+      if (this.canvas) this.canvas.requestRenderAll();
+    } catch (error) {
+      console.error("Failed to load image:", error);
+    } finally {
+      this.isInitializing = false;
     }
   }
 
-  private async preloadImage() {
-    if (!this.sourceUrl) return;
-    try {
-      this.imageElement = await util.loadImage(this.sourceUrl);
-      this.set({ dirty: true });
-      this.canvas?.requestRenderAll();
-    } catch (err) {
-      console.warn('Timeline: Failed to load preview image', err);
+  private renderPreview(ctx: CanvasRenderingContext2D) {
+    if (!this.image || !this.canvas) return;
+    const img = this.image;
+    const width = this.width || 0;
+    const height = this.height || 0;
+
+    // Scale image to fit height
+    const scale = height / img.height;
+    const scaledWidth = img.width * scale;
+
+    // Get viewport boundaries in "infinite" coordinate space
+    const vpt = this.canvas.viewportTransform;
+    if (!vpt) return;
+    const worldVisibleStart = -vpt[4] / vpt[0];
+    const worldVisibleEnd = (this.canvas.width - vpt[4]) / vpt[0];
+
+    ctx.save();
+    // Translate to top-left to work with 0..width
+    ctx.translate(-width / 2, -height / 2);
+
+    // Clip to the Rect bounds
+    ctx.beginPath();
+    ctx.roundRect(0, 0, width, height, 4);
+    ctx.clip();
+
+    // Draw repeating images only if visible
+    let currentX = 0;
+    while (currentX < width) {
+      const thumbWorldStart = this.left + currentX;
+      const thumbWorldEnd = thumbWorldStart + scaledWidth;
+
+      // Visibility check
+      const isVisible =
+        thumbWorldEnd > worldVisibleStart && thumbWorldStart < worldVisibleEnd;
+
+      if (isVisible) {
+        ctx.drawImage(img, currentX, 0, scaledWidth, height);
+      }
+      currentX += scaledWidth;
     }
+    ctx.restore();
+  }
+
+  public drawTextIdentity(ctx: CanvasRenderingContext2D) {
+    const text = this.label || "Image";
+    ctx.save();
+    ctx.font = `400 12px ${editorFont.fontFamily}`;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    const padding = 8;
+    // Align similar to AudioClip: ~top-left relative to untransformed coord
+    // But RenderPreview has reset context.
+    // Rect draws at 0,0 (center).
+    // Text should be relative to center.
+    // Top-left is -width/2, -height/2.
+    // Padding 8 -> -width/2 + 8.
+    // Vertical: Top + something. -height/2 + 10 ?
+    // Snippet had 1, but snippet translation context might have been different.
+    // Let's assume snippet was correct for its context.
+    // If I look at renderPreview, it does ctx.translate(-width / 2, -height / 2); then restores.
+    // So context is back at center.
+    // ctx.fillText(..., -this.width / 2 + padding, 1). 1 is near center vertically.
+    // If height is small (tracks are usually small), center is fine.
+    ctx.fillText("🖼 " + text, -this.width / 2 + padding, 1);
+    ctx.restore();
   }
 
   public _render(ctx: CanvasRenderingContext2D) {
-    super._render(ctx);
+    super._render(ctx); // Background (Rect)
+    this.renderPreview(ctx);
+    this.drawTextIdentity(ctx);
+    this.updateSelected(ctx);
+  }
+
+  public updateSelected(ctx: CanvasRenderingContext2D) {
+    const borderColor = this.isSelected
+      ? "rgba(255, 255, 255,1.0)"
+      : "rgba(255, 255, 255,0.05)";
+    const borderWidth = 1;
+    const radius = 6;
 
     ctx.save();
-    ctx.translate(-this.width / 2, -this.height / 2);
+    ctx.fillStyle = borderColor;
 
-    // Clip to rounded rect
-    ctx.beginPath();
-    ctx.roundRect(0, 0, this.width, this.height, 5);
-    ctx.clip();
-
-    if (this.imageElement) {
-      this.renderFilmstrip(ctx);
-    }
-
-    this.renderOverlay(ctx);
-    ctx.restore();
-
-    if (this.isActive) {
-      this.renderSelection(ctx);
-    }
-  }
-
-  private renderFilmstrip(ctx: CanvasRenderingContext2D) {
-    if (!this.imageElement) return;
-    const h = this.height;
-    const aspect = this.imageElement.width / this.imageElement.height;
-    const thumbW = h * aspect;
-    const tiles = Math.ceil(this.width / thumbW);
-
-    for (let i = 0; i < tiles; i++) {
-      ctx.drawImage(this.imageElement, i * thumbW, 0, thumbW, h);
-    }
-  }
-
-  private renderOverlay(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(0, 0, this.width, 20);
-
-    ctx.font = '600 11px system-ui';
-    ctx.fillStyle = 'white';
-    ctx.fillText(this.label, 8, 14);
-  }
-
-  private renderSelection(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
+    // Create a path for the outer rectangle
     ctx.beginPath();
     ctx.roundRect(
       -this.width / 2,
       -this.height / 2,
       this.width,
       this.height,
-      5
+      radius,
     );
-    ctx.stroke();
+
+    // Create a path for the inner rectangle (the hole)
+    ctx.roundRect(
+      -this.width / 2 + borderWidth,
+      -this.height / 2 + borderWidth,
+      this.width - borderWidth * 2,
+      this.height - borderWidth * 2,
+      radius - borderWidth,
+    );
+
+    // Use even-odd fill rule to create the border effect
+    ctx.fill("evenodd");
     ctx.restore();
+  }
+
+  public setSelected(selected: boolean) {
+    this.isSelected = selected;
+    this.set({ dirty: true });
   }
 }
