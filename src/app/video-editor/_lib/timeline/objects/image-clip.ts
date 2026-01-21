@@ -1,17 +1,14 @@
-import { Control } from "fabric";
-import { TimelineClip, TimelineClipProps } from "./base-clip";
+import { Control } from 'fabric';
+import { createResizeControls } from '../controls';
+import { TimelineClip, TimelineClipProps } from './base-clip';
 
-export const SECONDARY_FONT_URL =
-  "https://cdn.designcombo.dev/fonts/Geist-SemiBold.ttf";
-export const SECONDARY_FONT = "geist-regular";
-
-export const editorFont = {
-  fontFamily: SECONDARY_FONT,
-  fontUrl: SECONDARY_FONT_URL,
-};
+import { editorFont } from './objects-constants';
 
 export class ImageClip extends TimelineClip {
-  static type = "ImageClip";
+  static type = 'ImageClip';
+  static createControls(): { controls: Record<string, Control> } {
+    return { controls: createResizeControls() };
+  }
   private image: HTMLImageElement | null = null;
   private isInitializing = false;
   public isSelected: boolean = false;
@@ -19,7 +16,7 @@ export class ImageClip extends TimelineClip {
   constructor(options: TimelineClipProps) {
     super(options);
     this.set({
-      fill: options.fill || "#164e63", // Cyan-900
+      fill: options.fill || '#164e63', // Cyan-900
     });
     // Ensure src is synced if sourceUrl is provided
     if (!this.src && options.sourceUrl) {
@@ -42,7 +39,7 @@ export class ImageClip extends TimelineClip {
       this.set({ dirty: true });
       if (this.canvas) this.canvas.requestRenderAll();
     } catch (error) {
-      console.error("Failed to load image:", error);
+      console.error('Failed to load image:', error);
     } finally {
       this.isInitializing = false;
     }
@@ -92,12 +89,12 @@ export class ImageClip extends TimelineClip {
   }
 
   public drawTextIdentity(ctx: CanvasRenderingContext2D) {
-    const text = this.label || "Image";
+    const text = this.label || 'Image';
     ctx.save();
     ctx.font = `400 12px ${editorFont.fontFamily}`;
-    ctx.fillStyle = "white";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
     const padding = 8;
     // Align similar to AudioClip: ~top-left relative to untransformed coord
     // But RenderPreview has reset context.
@@ -112,7 +109,7 @@ export class ImageClip extends TimelineClip {
     // So context is back at center.
     // ctx.fillText(..., -this.width / 2 + padding, 1). 1 is near center vertically.
     // If height is small (tracks are usually small), center is fine.
-    ctx.fillText("🖼 " + text, -this.width / 2 + padding, 1);
+    ctx.fillText('🖼 ' + text, -this.width / 2 + padding, 1);
     ctx.restore();
   }
 
@@ -125,8 +122,8 @@ export class ImageClip extends TimelineClip {
 
   public updateSelected(ctx: CanvasRenderingContext2D) {
     const borderColor = this.isSelected
-      ? "rgba(255, 255, 255,1.0)"
-      : "rgba(255, 255, 255,0.05)";
+      ? 'rgba(255, 255, 255,1.0)'
+      : 'rgba(255, 255, 255,0.05)';
     const borderWidth = 1;
     const radius = 6;
 
@@ -140,7 +137,7 @@ export class ImageClip extends TimelineClip {
       -this.height / 2,
       this.width,
       this.height,
-      radius,
+      radius
     );
 
     // Create a path for the inner rectangle (the hole)
@@ -149,11 +146,11 @@ export class ImageClip extends TimelineClip {
       -this.height / 2 + borderWidth,
       this.width - borderWidth * 2,
       this.height - borderWidth * 2,
-      radius - borderWidth,
+      radius - borderWidth
     );
 
     // Use even-odd fill rule to create the border effect
-    ctx.fill("evenodd");
+    ctx.fill('evenodd');
     ctx.restore();
   }
 

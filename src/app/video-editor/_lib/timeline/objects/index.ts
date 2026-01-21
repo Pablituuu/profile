@@ -6,3 +6,4 @@ export * from './transition-clip';
 export * from './effect-clip';
 export * from './placeholder';
 export * from './helper';
+export * from './video-clip';

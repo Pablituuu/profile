@@ -1,4 +1,4 @@
-import { Path } from 'fabric';
+import { Path, Control } from 'fabric';
 import { TimelineClip, TimelineClipProps } from './base-clip';
 
 const TRANSITION_ICON_SVG =
@@ -6,6 +6,9 @@ const TRANSITION_ICON_SVG =
 
 export class TransitionClip extends TimelineClip {
   static type = 'TransitionClip';
+  static createControls(): { controls: Record<string, Control> } {
+    return { controls: {} };
+  }
   private icon: Path;
 
   constructor(options: TimelineClipProps) {

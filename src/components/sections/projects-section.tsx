@@ -14,7 +14,7 @@ export function ProjectsSection() {
     {
       title: t('videoEditorV2Title'),
       url: '/video-editor',
-      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ''}/profile`,
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || 'pablituuu'}/profile`,
       image: '/video-editor-v2.png',
       desc: t('videoEditorV2Desc'),
       techs: [
@@ -28,7 +28,7 @@ export function ProjectsSection() {
     {
       title: t('videoEditorV1Title'),
       url: 'https://react-video-editor-mu.vercel.app/',
-      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || ''}/react-video-editor`,
+      github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || 'pablituuu'}/react-video-editor`,
       image: '/video-editor.png',
       desc: t('videoEditorV1Desc'),
       techs: ['React', 'Remotion', 'TypeScript', 'Tailwind CSS', 'Zustand'],

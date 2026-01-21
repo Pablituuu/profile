@@ -1,7 +1,7 @@
-import { type FabricObject } from "fabric";
-import type { TimelineEngine } from "../engine";
-import { clearAuxiliaryObjects } from "../guidelines/utils";
-import { TIMELINE_CONSTANTS } from "../constants";
+import { type FabricObject } from 'fabric';
+import type { TimelineEngine } from '../engine';
+import { clearAuxiliaryObjects } from '../guidelines/utils';
+import { TIMELINE_CONSTANTS } from '../constants';
 
 const MICROSECONDS_PER_SECOND = 1_000_000;
 
@@ -14,7 +14,7 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
   const pointer = timeline.getPointer(options.e);
   const droppables = timeline
     .getObjects()
-    .filter((obj: any) => obj.isHelper || obj.type === "track-bg");
+    .filter((obj: any) => obj.isHelper || obj.type === 'track-bg');
 
   const droppedTarget = droppables.find((obj) => {
     const objRect = obj.getBoundingRect();
@@ -46,20 +46,20 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
 
     let newDisplayFrom = Math.round(
       (left / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-        MICROSECONDS_PER_SECOND,
+        MICROSECONDS_PER_SECOND
     );
     if (newDisplayFrom < 0) newDisplayFrom = 0;
 
     // Visual Snap
-    target?.set("top", helper.top);
+    target?.set('top', helper.top);
     target?.setCoords();
 
-    (timeline as any).fire("track:created", {
+    (timeline as any).fire('track:created', {
       clipId,
       index,
       displayFrom: newDisplayFrom,
     });
-  } else if (droppedTarget && droppedTarget.type === "track-bg") {
+  } else if (droppedTarget && droppedTarget.type === 'track-bg') {
     // Dropped on a Track
     // We already have trackRegions logic, but using the object is safer if layout changes
     // But we need the track ID. In engine.ts, track-bg has clipId = `track-${index}` or similar?
@@ -80,8 +80,7 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
     // Let's use the layout data (trackRegions) which is reliable for Y-lookup.
     const centerPoint = target?.getCenterPoint();
     const trackRegion = timeline.trackRegions.find(
-      (r) =>
-        (centerPoint?.y || 0) >= r.top && (centerPoint?.y || 0) <= r.bottom,
+      (r) => (centerPoint?.y || 0) >= r.top && (centerPoint?.y || 0) <= r.bottom
     );
 
     if (trackRegion) {
@@ -92,17 +91,17 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
       const timeScale = timeline.timeScale || 1;
       const proposedStart = Math.round(
         (left / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-          MICROSECONDS_PER_SECOND,
+          MICROSECONDS_PER_SECOND
       );
       const proposedDuration = Math.round(
         (width / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-          MICROSECONDS_PER_SECOND,
+          MICROSECONDS_PER_SECOND
       );
       const proposedEnd = proposedStart + proposedDuration;
 
       // Overlap Check
       const targetTrack = timeline.tracks.find(
-        (t: any) => t.id === trackRegion.id,
+        (t: any) => t.id === trackRegion.id
       );
       let hasOverlap = false;
 
@@ -123,12 +122,12 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
       if (hasOverlap) {
         // Insert AFTER this track
         const trackIndex = timeline.tracks.findIndex(
-          (t: any) => t.id === trackRegion.id,
+          (t: any) => t.id === trackRegion.id
         );
         const insertIndex =
           trackIndex !== -1 ? trackIndex + 1 : timeline.tracks.length;
 
-        (timeline as any).fire("track:created", {
+        (timeline as any).fire('track:created', {
           clipId,
           index: insertIndex,
           displayFrom: proposedStart,
@@ -143,7 +142,7 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
           target.setCoords();
         }
 
-        (timeline as any).fire("clip:movedToTrack", {
+        (timeline as any).fire('clip:movedToTrack', {
           clipId,
           trackId: trackRegion.id,
           displayFrom: proposedStart,
@@ -155,7 +154,7 @@ export function handleTrackRelocation(timeline: TimelineEngine, options: any) {
     }
   } else {
     // Dropped in empty space
-    (timeline as any).fire("clip:droppedEmpty", { clipId });
+    (timeline as any).fire('clip:droppedEmpty', { clipId });
   }
 
   timeline.clearSeparatorHighlights();
@@ -173,7 +172,7 @@ export function handleClipModification(timeline: TimelineEngine, options: any) {
   // @ts-ignore
   const timeScale = timeline.timeScale || 1;
 
-  if (targetAny.type === "activeSelection" && targetAny._objects) {
+  if (targetAny.type === 'activeSelection' && targetAny._objects) {
     const clips: Array<{ clipId: string; displayFrom: number }> = [];
 
     for (const obj of targetAny._objects) {
@@ -184,7 +183,7 @@ export function handleClipModification(timeline: TimelineEngine, options: any) {
 
       let displayFrom = Math.round(
         (left / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-          MICROSECONDS_PER_SECOND,
+          MICROSECONDS_PER_SECOND
       );
 
       if (displayFrom < 0) displayFrom = 0;
@@ -196,7 +195,7 @@ export function handleClipModification(timeline: TimelineEngine, options: any) {
     }
 
     if (clips.length > 0) {
-      (timeline as any).fire("clips:modified", { clips });
+      (timeline as any).fire('clips:modified', { clips });
     }
   } else {
     const clipId = targetAny.clipId;
@@ -210,35 +209,35 @@ export function handleClipModification(timeline: TimelineEngine, options: any) {
     const trackRegion = timeline.trackRegions.find(
       (r) =>
         (target.top || 0) + (target.height || 0) / 2 >= r.top &&
-        (target.top || 0) + (target.height || 0) / 2 <= r.bottom,
+        (target.top || 0) + (target.height || 0) / 2 <= r.bottom
     );
     if (trackRegion) {
-      target.set("top", trackRegion.top);
+      target.set('top', trackRegion.top);
       target.setCoords();
     }
     // --- Y-AXIS SNAP LOGIC END ---
 
     if (left < 0) {
       left = 0;
-      target.set("left", 0);
+      target.set('left', 0);
       target.setCoords();
     }
 
     let displayFrom = Math.round(
       (left / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-        MICROSECONDS_PER_SECOND,
+        MICROSECONDS_PER_SECOND
     );
 
     if (displayFrom < 0) displayFrom = 0;
 
     const duration = Math.round(
       (width / (TIMELINE_CONSTANTS.PIXELS_PER_SECOND * timeScale)) *
-        MICROSECONDS_PER_SECOND,
+        MICROSECONDS_PER_SECOND
     );
 
     const trim = targetAny.trim;
 
-    (timeline as any).fire("clip:modified", {
+    (timeline as any).fire('clip:modified', {
       clipId,
       displayFrom,
       duration,

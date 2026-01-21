@@ -4,16 +4,16 @@ import {
   classRegistry,
   type TMat2D,
   type TPointerEventInfo,
-} from "fabric";
-import type { FabricObject } from "fabric";
-import * as Objects from "./objects";
-import { TimelineScrollbars } from "./scrollbar";
-import { ScrollbarOptions } from "./scrollbar/types";
-import { constrainViewport, setupWheelControl } from "./scrollbar/util";
-import { TIMELINE_CONSTANTS } from "./constants";
-import { IClip } from "@designcombo/video";
-import * as DragHandlers from "./handlers/drag-handler";
-import * as ModifyHandlers from "./handlers/modify-handler";
+} from 'fabric';
+import type { FabricObject } from 'fabric';
+import * as Objects from './objects';
+import { TimelineScrollbars } from './scrollbar';
+import { ScrollbarOptions } from './scrollbar/types';
+import { constrainViewport, setupWheelControl } from './scrollbar/util';
+import { TIMELINE_CONSTANTS } from './constants';
+import { IClip } from '@designcombo/video';
+import * as DragHandlers from './handlers/drag-handler';
+import * as ModifyHandlers from './handlers/modify-handler';
 
 export class TimelineEngine extends Canvas {
   public get tracks() {
@@ -31,6 +31,7 @@ export class TimelineEngine extends Canvas {
     classRegistry.setClass(Objects.TransitionClip, Objects.TransitionClip.type);
     classRegistry.setClass(Objects.EffectClip, Objects.EffectClip.type);
     classRegistry.setClass(Objects.Placeholder, Objects.Placeholder.type);
+    classRegistry.setClass(Objects.VideoClip, Objects.VideoClip.type);
   }
 
   public enableGuideRedraw: boolean = true;
@@ -38,7 +39,7 @@ export class TimelineEngine extends Canvas {
   public maxDuration: number = 0;
   private _scrollbars?: TimelineScrollbars;
   private _wheelHandler?: (
-    e: WheelEvent | TPointerEventInfo<WheelEvent>,
+    e: WheelEvent | TPointerEventInfo<WheelEvent>
   ) => void;
   private _viewportChangeCallback?: (info: {
     left: number;
@@ -63,11 +64,11 @@ export class TimelineEngine extends Canvas {
 
   constructor(
     canvasEl: HTMLCanvasElement,
-    options: Partial<CanvasOptions> = {},
+    options: Partial<CanvasOptions> = {}
   ) {
     super(canvasEl, {
       ...options,
-      backgroundColor: "#0a0a0a",
+      backgroundColor: '#0a0a0a',
       selection: true,
     });
     this._initPlaceholder();
@@ -79,7 +80,7 @@ export class TimelineEngine extends Canvas {
 
   private _initPlaceholder() {
     this._placeholderGuide = new Objects.Placeholder({
-      clipId: "drag-guide",
+      clipId: 'drag-guide',
       width: 0,
       height: 60,
       left: 0,
@@ -89,22 +90,22 @@ export class TimelineEngine extends Canvas {
   }
 
   private _initInteractionHandlers() {
-    this.on("object:moving", (opt) => {
+    this.on('object:moving', (opt) => {
       const e = opt.e as MouseEvent | PointerEvent | TouchEvent;
-      const pointer = "clientX" in e ? e : (e as TouchEvent).touches[0];
+      const pointer = 'clientX' in e ? e : (e as TouchEvent).touches[0];
       this._lastPointer = { x: pointer.clientX, y: pointer.clientY };
       this._startDragAutoScroll();
       DragHandlers.handleDragging(this, opt);
       this._handleObjectMoving(opt); // Keep existing tracking logic for now if needed, or merge
     });
 
-    this.on("mouse:up", () => {
+    this.on('mouse:up', () => {
       this._stopDragAutoScroll();
       this._handleMouseUp();
     });
 
     // ... inside _initInteractionHandlers
-    this.on("object:modified", (opt) => {
+    this.on('object:modified', (opt) => {
       // Block events during refresh to prevent recursion/crash
       if (!opt || this._isRefreshing) return;
 
@@ -113,37 +114,37 @@ export class TimelineEngine extends Canvas {
       ModifyHandlers.handleClipModification(this, opt);
     });
 
-    this.on("track:created", (opt) => {
+    this.on('track:created', (opt) => {
       this.addNewTrack(opt);
     });
 
-    this.on("clip:movedToTrack", (opt) => {
+    this.on('clip:movedToTrack', (opt) => {
       this.moveClipToTrack(opt);
     });
 
-    this.on("selection:created", (opt) => {
+    this.on('selection:created', (opt) => {
       if (this._isRefreshing || this._isInternalSelection) return;
       const selectedIds = opt.selected
         ?.map((obj: any) => obj.clipId)
         .filter(Boolean);
-      (this as any).fire("selection:changed", {
+      (this as any).fire('selection:changed', {
         selectedIds: selectedIds || [],
       });
     });
 
-    this.on("selection:updated", (opt) => {
+    this.on('selection:updated', (opt) => {
       if (this._isRefreshing || this._isInternalSelection) return;
       const selectedIds = opt.selected
         ?.map((obj: any) => obj.clipId)
         .filter(Boolean);
-      (this as any).fire("selection:changed", {
+      (this as any).fire('selection:changed', {
         selectedIds: selectedIds || [],
       });
     });
 
-    this.on("selection:cleared", () => {
+    this.on('selection:cleared', () => {
       if (this._isRefreshing || this._isInternalSelection) return;
-      (this as any).fire("selection:changed", { selectedIds: [] });
+      (this as any).fire('selection:changed', { selectedIds: [] });
     });
   }
 
@@ -160,7 +161,7 @@ export class TimelineEngine extends Canvas {
     const newTrackId = Math.random().toString(36).substr(2, 9);
     const newTrack = {
       id: newTrackId,
-      type: clip.type === "Audio" ? "Audio" : "Video", // Simple type inference
+      type: clip.type === 'Audio' ? 'Audio' : 'Video', // Simple type inference
       clipIds: [clipId],
       muted: false,
     };
@@ -184,7 +185,7 @@ export class TimelineEngine extends Canvas {
     this._tracks = tracks;
     this.refreshTimeline();
 
-    this.fire("timeline:updated", { tracks });
+    this.fire('timeline:updated', { tracks });
   }
 
   public moveClipToTrack(payload: {
@@ -216,7 +217,7 @@ export class TimelineEngine extends Canvas {
     // Cleanup empty tracks
     this._tracks = this._tracks.filter((t) => t.clipIds.length > 0);
 
-    this.fire("timeline:updated", { tracks: this._tracks });
+    this.fire('timeline:updated', { tracks: this._tracks });
     this.refreshTimeline();
   }
 
@@ -226,13 +227,13 @@ export class TimelineEngine extends Canvas {
     if (
       !target ||
       target === this._placeholderGuide ||
-      target.type === "track-bg"
+      target.type === 'track-bg'
     )
       return;
 
     // If we have an active helper (inserting new track), hide placeholder
     const activeHelper = this.getObjects().find(
-      (obj: any) => obj.isHelper && obj.fill !== "transparent",
+      (obj: any) => obj.isHelper && obj.fill !== 'transparent'
     );
 
     if (activeHelper) {
@@ -244,7 +245,7 @@ export class TimelineEngine extends Canvas {
 
     const pointer = this.getPointer(e.e);
     const track = this._trackRegions.find(
-      (r) => pointer.y >= r.top && pointer.y <= r.bottom,
+      (r) => pointer.y >= r.top && pointer.y <= r.bottom
     );
 
     if (track && this._placeholderGuide) {
@@ -349,7 +350,7 @@ export class TimelineEngine extends Canvas {
       extraMarginX: options.extraMarginX ?? 0,
       extraMarginY: options.extraMarginY ?? 0,
       barThickness: options.barThickness ?? 8,
-      barColor: options.barColor ?? "rgba(255, 255, 255, 0.4)",
+      barColor: options.barColor ?? 'rgba(255, 255, 255, 0.4)',
       onScrollChanged: (info) => {
         this._viewportChangeCallback?.(info);
       },
@@ -368,7 +369,7 @@ export class TimelineEngine extends Canvas {
       extraMarginY: scrollOptions.extraMarginY,
       onZoom: (zoom) => this._zoomChangeCallback?.(zoom),
     });
-    this.on("mouse:wheel", this._wheelHandler);
+    this.on('mouse:wheel', this._wheelHandler);
 
     // Initialize custom scrollbars
     this._scrollbars = new TimelineScrollbars(this, scrollOptions);
@@ -391,11 +392,7 @@ export class TimelineEngine extends Canvas {
   }
 
   public onViewportChange(
-    callback: (info: {
-      left: number;
-      scrollX: number;
-      scrollY: number;
-    }) => void,
+    callback: (info: { left: number; scrollX: number; scrollY: number }) => void
   ) {
     this._viewportChangeCallback = callback;
   }
@@ -427,7 +424,7 @@ export class TimelineEngine extends Canvas {
 
   public disposeScrollbars() {
     if (this._wheelHandler) {
-      this.off("mouse:wheel", this._wheelHandler);
+      this.off('mouse:wheel', this._wheelHandler);
       this._wheelHandler = undefined;
     }
     if (this._scrollbars) {
@@ -439,7 +436,7 @@ export class TimelineEngine extends Canvas {
   public clearSeparatorHighlights() {
     this.getObjects().forEach((obj: any) => {
       if (obj.isHelper) {
-        obj.set("fill", "transparent");
+        obj.set('fill', 'transparent');
       }
     });
     this.requestRenderAll();
@@ -464,9 +461,9 @@ export class TimelineEngine extends Canvas {
           }
           return acc;
         },
-        {} as Record<string, any>,
+        {} as Record<string, any>
       );
-    } else if (clips && typeof clips === "object") {
+    } else if (clips && typeof clips === 'object') {
       this._clips = clips;
     } else {
       this._clips = {};
@@ -513,7 +510,7 @@ export class TimelineEngine extends Canvas {
 
       // 2. Clear tracks (if we draw them as objects)
       objects.forEach((obj) => {
-        if (obj.type === "track-bg") {
+        if (obj.type === 'track-bg') {
           this.remove(obj);
         }
       });
@@ -527,8 +524,8 @@ export class TimelineEngine extends Canvas {
 
       // Top Helper
       const topHelper = new Objects.Helper({
-        id: "helper-top",
-        kind: "top",
+        id: 'helper-top',
+        kind: 'top',
         separatorIndex: 0,
         left: 0,
         top: currentTop,
@@ -556,14 +553,14 @@ export class TimelineEngine extends Canvas {
           top: top,
           width: 100000,
           height: trackHeight,
-          fill: "#121212",
+          fill: '#121212',
           selectable: false,
           evented: false,
           hasControls: false,
           lockMovementX: true,
           lockMovementY: true,
         });
-        (trackBg as any).type = "track-bg";
+        (trackBg as any).type = 'track-bg';
         this.add(trackBg);
         this.sendObjectToBack(trackBg); // Ensure track bg is behind clips
 
@@ -572,8 +569,8 @@ export class TimelineEngine extends Canvas {
         // Center/Bottom Helper
         const isLast = index === this._tracks.length - 1;
         const helper = new Objects.Helper({
-          id: isLast ? "helper-bottom" : `helper-${index}`,
-          kind: isLast ? "bottom" : "center",
+          id: isLast ? 'helper-bottom' : `helper-${index}`,
+          kind: isLast ? 'bottom' : 'center',
           separatorIndex: index + 1,
           left: 0,
           top: currentTop,
@@ -591,7 +588,7 @@ export class TimelineEngine extends Canvas {
             if (!clipData) {
               console.warn(
                 `[TimelineEngine] Clip ${clipId} not found in store. Available keys:`,
-                Object.keys(this._clips),
+                Object.keys(this._clips)
               );
               return;
             }
@@ -600,64 +597,83 @@ export class TimelineEngine extends Canvas {
             const width =
               ((clipData.display.to - clipData.display.from) / 1_000_000) *
               pixelsPerSecond;
-            const type = (clipData.type || "").toLowerCase();
+            const type = (clipData.type || '').toLowerCase();
 
             let clipObj: any;
 
             switch (type) {
-              case "text":
-              case "caption":
+              case 'text':
+              case 'caption':
                 clipObj = new Objects.TextClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.text || clipData.name || "Text",
+                  label: clipData.text || clipData.name || 'Text',
                 });
                 break;
-              case "audio":
+              case 'audio':
                 clipObj = new Objects.AudioClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.name || "Audio",
+                  label: clipData.name || 'Audio',
                   src: clipData.src,
+                  trim: {
+                    from: 0,
+                    to: clipData.display.to - clipData.display.from,
+                  },
                 });
                 break;
-              case "image":
-              case "video":
-              case "placeholder":
+              case 'image':
+              case 'placeholder':
                 clipObj = new Objects.ImageClip({
                   clipId: clipData.id,
                   left,
                   top,
                   width,
                   height: trackHeight,
-                  label: clipData.name || "Media",
-                  sourceUrl: clipData.src || "",
+                  label: clipData.name || 'Media',
+                  sourceUrl: clipData.src || '',
                 });
                 break;
-              case "transition":
+              case 'transition':
                 clipObj = new Objects.TransitionClip({
                   clipId: clipData.id,
-                  label: "Transition",
+                  label: 'Transition',
                   left: left - 25,
                   top: top + (trackHeight - 50) / 2,
                   width: 50,
                   height: 50,
                 });
                 break;
-              case "effect":
+              case 'effect':
                 clipObj = new Objects.EffectClip({
                   clipId: clipData.id,
-                  label: clipData.name || "Effect",
+                  label: clipData.name || 'Effect',
                   left,
                   top,
                   width,
                   height: trackHeight,
+                });
+                break;
+
+              case 'video':
+                clipObj = new Objects.VideoClip({
+                  clipId: clipData.id,
+                  left,
+                  top,
+                  width,
+                  height: trackHeight,
+                  label: clipData.name || 'Video',
+                  sourceUrl: clipData.src || '',
+                  trim: {
+                    from: 0,
+                    to: clipData.display.to - clipData.display.from,
+                  },
                 });
                 break;
               default:
@@ -667,8 +683,8 @@ export class TimelineEngine extends Canvas {
                   top,
                   width,
                   height: trackHeight,
-                  fill: "#333",
-                  label: clipData.name || "Clip",
+                  fill: '#333',
+                  label: clipData.name || 'Clip',
                 });
             }
 
@@ -730,7 +746,7 @@ export class TimelineEngine extends Canvas {
 
   // Basic diagnostic method to verify initialization
   public getVersion() {
-    return "0.0.1-fabric-shell";
+    return '0.0.1-fabric-shell';
   }
 }
 
