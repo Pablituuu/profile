@@ -47,6 +47,7 @@ export class TimelineClip extends Rect {
       cornerSize: 8,
       selectable: true,
       hasControls: true,
+      borderColor: 'transparent',
       lockRotation: true,
       lockScalingY: true,
     };

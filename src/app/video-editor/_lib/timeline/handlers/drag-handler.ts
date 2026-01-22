@@ -45,20 +45,30 @@ export function handleDragging(timeline: TimelineEngine, options: any) {
   // ---------------------------
 
   // --- Helper Highlights ---
+  let highlightedSeparator = false;
   timeline.getObjects().forEach((obj: any) => {
     if (obj.isHelper) {
-      // Check if pointer is over the helper (with some tolerance if needed)
+      // Check if pointer is over the helper
       if (pointer.y >= obj.top && pointer.y <= obj.top + obj.height) {
         obj.set('fill', 'rgba(255, 255, 255, 0.5)');
         obj.set('visible', true);
         if (obj.separatorIndex !== undefined) {
           timeline.setActiveSeparatorIndex(obj.separatorIndex);
+          highlightedSeparator = true;
         }
       } else {
         obj.set('fill', 'transparent');
       }
     }
   });
+
+  if (!highlightedSeparator) {
+    // If not over any separator, check if we are over a track to clear highlights
+    const track = timeline.getTrackAt(pointer.y);
+    if (track) {
+      timeline.setActiveSeparatorIndex(null);
+    }
+  }
   // -------------------------
 
   timeline.requestRenderAll();

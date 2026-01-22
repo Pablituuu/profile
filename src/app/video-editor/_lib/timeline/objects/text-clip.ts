@@ -22,7 +22,6 @@ export class TextClip extends TimelineClip {
   public _render(ctx: CanvasRenderingContext2D) {
     super._render(ctx);
     this.renderLabel(ctx);
-    this.renderSelectionBorder(ctx);
   }
 
   private renderLabel(ctx: CanvasRenderingContext2D) {
@@ -44,23 +43,6 @@ export class TextClip extends TimelineClip {
     ctx.textBaseline = 'middle';
     ctx.fillText(this.label, 32, this.height / 2);
 
-    ctx.restore();
-  }
-
-  private renderSelectionBorder(ctx: CanvasRenderingContext2D) {
-    if (!this.isActive) return;
-    ctx.save();
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(
-      -this.width / 2,
-      -this.height / 2,
-      this.width,
-      this.height,
-      5
-    );
-    ctx.stroke();
     ctx.restore();
   }
 }

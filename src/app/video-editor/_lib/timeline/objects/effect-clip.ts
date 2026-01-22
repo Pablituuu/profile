@@ -21,7 +21,6 @@ export class EffectClip extends TimelineClip {
   public _render(ctx: CanvasRenderingContext2D) {
     super._render(ctx);
     this.renderInfo(ctx);
-    this.renderSelection(ctx);
   }
 
   private renderInfo(ctx: CanvasRenderingContext2D) {
@@ -41,23 +40,6 @@ export class EffectClip extends TimelineClip {
     ctx.fillStyle = 'white';
     ctx.fillText('FX: ' + this.label, 32, 18);
 
-    ctx.restore();
-  }
-
-  private renderSelection(ctx: CanvasRenderingContext2D) {
-    if (!this.isActive) return;
-    ctx.save();
-    ctx.strokeStyle = '#f97316'; // Orange-500
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(
-      -this.width / 2,
-      -this.height / 2,
-      this.width,
-      this.height,
-      5
-    );
-    ctx.stroke();
     ctx.restore();
   }
 }

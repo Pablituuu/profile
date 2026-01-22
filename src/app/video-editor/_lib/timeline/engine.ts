@@ -24,6 +24,37 @@ export class TimelineEngine extends Canvas {
     return this._clips;
   }
 
+  /**
+   * Returns total tracks height from the top of the first track to the bottom of the last track.
+   */
+  public get totalTracksHeight() {
+    if (this._trackRegions.length === 0) return 0;
+    return this._trackRegions[this._trackRegions.length - 1].bottom;
+  }
+
+  /**
+   * Helper to find which track is at a given Y canvas coordinate.
+   */
+  public getTrackAt(canvasY: number) {
+    return this._trackRegions.find(
+      (r) => canvasY >= r.top && canvasY <= r.bottom
+    );
+  }
+
+  /**
+   * Converts world X (infinite X) to time in seconds.
+   */
+  public getTimeFromInfiniteX(worldX: number) {
+    return worldX / TIMELINE_CONSTANTS.PIXELS_PER_SECOND;
+  }
+
+  /**
+   * Converts time in seconds to world X (infinite X).
+   */
+  public getInfiniteX(timeInSeconds: number) {
+    return timeInSeconds * TIMELINE_CONSTANTS.PIXELS_PER_SECOND;
+  }
+
   public static registerObjects() {
     classRegistry.setClass(Objects.TextClip, Objects.TextClip.type);
     classRegistry.setClass(Objects.AudioClip, Objects.AudioClip.type);
@@ -110,8 +141,20 @@ export class TimelineEngine extends Canvas {
       if (!opt || this._isRefreshing) return;
 
       this._stopDragAutoScroll();
-      ModifyHandlers.handleTrackRelocation(this, opt);
-      ModifyHandlers.handleClipModification(this, opt);
+
+      const action = (opt as any).transform?.action;
+      let handled = false;
+
+      if (action !== 'resizing') {
+        handled = ModifyHandlers.handleTrackRelocation(this, opt);
+      }
+
+      // If relocation was handled (especially for groups), or if it's an active selection,
+      // we might skip standard clip modification.
+      const isSelection = opt.target?.type?.toLowerCase() === 'activeselection';
+      if (!handled && !isSelection) {
+        ModifyHandlers.handleClipModification(this, opt);
+      }
     });
 
     this.on('track:created', (opt) => {

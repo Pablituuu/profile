@@ -42,19 +42,5 @@ export class TransitionClip extends TimelineClip {
     // Icon (Fabric internal render)
     this.icon.render(ctx);
     ctx.restore();
-
-    if (this.isActive) {
-      this.renderSelection(ctx, boxSize);
-    }
-  }
-
-  private renderSelection(ctx: CanvasRenderingContext2D, size: number) {
-    ctx.save();
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(-size / 2 - 2, -size / 2 - 2, size + 4, size + 4, 6);
-    ctx.stroke();
-    ctx.restore();
   }
 }

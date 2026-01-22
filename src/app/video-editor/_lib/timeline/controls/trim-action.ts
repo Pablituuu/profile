@@ -73,10 +73,8 @@ export const changeObjectWidth: TransformActionHandler = (
       const sourceDuration = target.sourceDuration;
 
       const newTo = target.trim.to + diffUs;
-      console.log(sourceDuration, newTo);
 
       if (newTo > sourceDuration) {
-        console.log('trim.to exceeded sourceDuration');
         const maxDiffUs = sourceDuration - target.trim.to;
         const maxDiffSize =
           (maxDiffUs / microsecondsPerSecond / playbackRate) *
@@ -86,13 +84,11 @@ export const changeObjectWidth: TransformActionHandler = (
         target.set('width', Math.max(newWidth, 0));
         target.trim.to = sourceDuration;
       } else {
-        console.log('trim.to within bounds');
         target.set('width', Math.max(newWidth, 0));
         target.trim.to = newTo;
       }
       return true;
     }
-
     if (fromLeft) {
       const diffPos = oldWidth - newWidth;
       const nextLeft = target.left + diffPos;
@@ -106,7 +102,6 @@ export const changeObjectWidth: TransformActionHandler = (
       const diffSize = newWidth - oldWidth;
       const diffUs = pixelsToContentUs(diffSize);
       const newFrom = target.trim.from - diffUs;
-
       if (newFrom < 0) {
         const maxDiffUs = target.trim.from;
         const maxDiffSize =
@@ -124,6 +119,7 @@ export const changeObjectWidth: TransformActionHandler = (
         target.set('left', target.left + finalDiffPos);
         target.trim.from = newFrom;
       }
+      return true;
     }
 
     target.setCoords();
