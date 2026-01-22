@@ -1,55 +1,55 @@
-'use client';
+"use client";
 
-import { CloudUpload, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Placeholder, Video as VideoClip } from '@designcombo/video';
-import { useEditorStore } from '@/store/use-editor-store';
-import { useEffect, useRef, useState } from 'react';
+import { CloudUpload, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Placeholder, Video as VideoClip } from "@designcombo/video";
+import { useEditorStore } from "@/store/use-editor-store";
+import { useEffect, useRef, useState } from "react";
 
 const mediaAssets = [
   {
     id: 2,
-    title: 'Nature River.mp4',
-    type: 'video',
-    src: 'https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4',
-    duration: '02:11',
+    title: "Nature River.mp4",
+    type: "video",
+    src: "https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4",
+    duration: "02:11",
     thumbnail:
-      'https://images.pexels.com/videos/3571264/free-video-3571264.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+      "https://images.pexels.com/videos/3571264/free-video-3571264.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500",
   },
   {
     id: 3,
-    title: 'City Time Lapse.mp4',
-    type: 'video',
-    src: 'https://videos.pexels.com/video-files/855564/855564-hd_1920_1080_24fps.mp4',
-    duration: '01:01',
+    title: "City Time Lapse.mp4",
+    type: "video",
+    src: "https://videos.pexels.com/video-files/855564/855564-hd_1920_1080_24fps.mp4",
+    duration: "01:01",
     thumbnail:
-      'https://images.pexels.com/videos/855564/free-video-855564.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+      "https://images.pexels.com/videos/855564/free-video-855564.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500",
   },
   {
     id: 4,
-    title: 'Ocean Waves.mp4',
-    type: 'video',
-    src: 'https://videos.pexels.com/video-files/1409899/1409899-hd_1920_1080_25fps.mp4',
-    duration: '00:04',
+    title: "Ocean Waves.mp4",
+    type: "video",
+    src: "https://videos.pexels.com/video-files/1409899/1409899-hd_1920_1080_25fps.mp4",
+    duration: "00:04",
     thumbnail:
-      'https://images.pexels.com/videos/1409899/free-video-1409899.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+      "https://images.pexels.com/videos/1409899/free-video-1409899.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500",
   },
   {
     id: 5,
-    title: 'Abstract Tech.mp4',
-    type: 'video',
-    src: 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-    duration: '00:15',
+    title: "Abstract Tech.mp4",
+    type: "video",
+    src: "https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4",
+    duration: "00:15",
     thumbnail:
-      'https://images.pexels.com/videos/3129671/free-video-3129671.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+      "https://images.pexels.com/videos/3129671/free-video-3129671.jpg?auto=compress&cs=tinysrgb&dpr=1&w=500",
   },
   {
     id: 6,
-    title: 'Great Quote Shorts.mp4',
-    type: 'video',
-    src: 'https://ik.imagekit.io/pablituuu/YTDown.com_Shorts_Such-a-great-quote-shorts_Media_Q0BOH_s9gSU_001_1080p.mp4?updatedAt=1768867623090',
-    duration: '00:00', // Will be calculated dynamically
-    thumbnail: '', // Will be generated dynamically
+    title: "Great Quote Shorts.mp4",
+    type: "video",
+    src: "https://ik.imagekit.io/pablituuu/YTDown.com_Shorts_Such-a-great-quote-shorts_Media_Q0BOH_s9gSU_001_1080p.mp4?updatedAt=1768867623090",
+    duration: "00:00", // Will be calculated dynamically
+    thumbnail: "", // Will be generated dynamically
   },
 ];
 
@@ -58,7 +58,7 @@ interface VideoAssetPreviewProps {
   onClick: (
     asset: (typeof mediaAssets)[0],
     realDuration?: number,
-    dimensions?: { width: number; height: number }
+    dimensions?: { width: number; height: number },
   ) => void;
 }
 
@@ -83,7 +83,7 @@ function VideoAssetPreview({ asset, onClick }: VideoAssetPreviewProps) {
       const min = Math.floor(seconds / 60);
       const sec = Math.floor(seconds % 60);
       setDurationStr(
-        `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+        `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`,
       );
 
       // Set dimensions
@@ -99,7 +99,7 @@ function VideoAssetPreview({ asset, onClick }: VideoAssetPreviewProps) {
       if (!canvasRef.current || !video || asset.thumbnail) return;
 
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       canvas.width = video.videoWidth;
@@ -107,21 +107,21 @@ function VideoAssetPreview({ asset, onClick }: VideoAssetPreviewProps) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       try {
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
         setThumbnail(dataUrl);
       } catch (e) {
-        console.error('Failed to generate thumbnail', e);
+        console.error("Failed to generate thumbnail", e);
       }
     };
 
-    video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('seeked', onSeeked);
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    video.addEventListener("seeked", onSeeked);
     video.src = asset.src;
     video.load();
 
     return () => {
-      video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("seeked", onSeeked);
     };
   }, [asset.src, asset.thumbnail, asset.duration]);
 
@@ -132,7 +132,7 @@ function VideoAssetPreview({ asset, onClick }: VideoAssetPreviewProps) {
     >
       <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-transparent group-hover:border-brand-primary/50">
         <img
-          src={thumbnail || '/placeholder-image.jpg'}
+          src={thumbnail || "/placeholder-image.jpg"}
           alt={asset.title}
           className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
         />
@@ -160,18 +160,21 @@ function VideoAssetPreview({ asset, onClick }: VideoAssetPreviewProps) {
   );
 }
 
+import { useLanguageStore } from "@/store/use-language-store";
+
 export function MediaPanel() {
   const { studio } = useEditorStore();
+  const { t } = useLanguageStore();
 
   const parseDurationToSeconds = (duration: string) => {
-    const [minutes, seconds] = duration.split(':').map(Number);
+    const [minutes, seconds] = duration.split(":").map(Number);
     return minutes * 60 + seconds;
   };
 
   const addItemToCanvas = async (
     asset: (typeof mediaAssets)[0],
     realDurationSec?: number,
-    dimensions?: { width: number; height: number }
+    dimensions?: { width: number; height: number },
   ) => {
     if (!studio) return;
 
@@ -191,7 +194,7 @@ export function MediaPanel() {
           height: height,
           duration: durationInSeconds * 1e6, // microseconds
         },
-        'Video'
+        "Video",
       );
 
       // Scale to fit and center in scene (1080x1920)
@@ -224,11 +227,11 @@ export function MediaPanel() {
               clone.duration = oldClip.duration;
               clone.zIndex = oldClip.zIndex;
               return clone;
-            }
+            },
           );
         })
         .catch((err) => {
-          console.error('Failed to load video in background:', err);
+          console.error("Failed to load video in background:", err);
         });
     } catch (error) {
       console.error(`Failed to add video:`, error);
@@ -241,7 +244,7 @@ export function MediaPanel() {
       <div className="p-4 flex flex-col gap-3 shrink-0">
         <Button className="w-full bg-[#3F3F3F] hover:bg-[#4F4F4F] text-white flex items-center gap-2 h-10 border-none shadow-none rounded-md">
           <CloudUpload className="h-4 w-4" />
-          <span>Cargar</span>
+          <span>{t("media.upload")}</span>
         </Button>
       </div>
 
@@ -252,10 +255,10 @@ export function MediaPanel() {
         </div>
         <div>
           <div className="text-xs font-semibold text-indigo-100">
-            Crear assets AI
+            {t("media.create_ai")}
           </div>
           <div className="text-[10px] text-indigo-200/70">
-            Genera contenido único
+            {t("media.generate_unique")}
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { PlayerPreview } from './_components/player-preview';
 import { Header } from './_components/header';
 import { PropertiesPanel } from './_components/properties-panel';
 import { Timeline } from './_components/timeline';
+import { AIChat } from './_components/ai-chat';
 import { cn } from '@/lib/utils';
 
 export default function VideoEditorPage() {
@@ -39,6 +40,9 @@ export default function VideoEditorPage() {
           <Timeline />
         </div>
       </div>
+
+      {/* 4. AI Chat Assistant */}
+      <AIChat />
     </div>
   );
 }
