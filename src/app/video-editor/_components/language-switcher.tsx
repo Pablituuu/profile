@@ -1,14 +1,14 @@
-"use client";
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { useLanguageStore } from "@/store/use-language-store";
-import { Languages } from "lucide-react";
+'use client';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { useLanguageStore } from '@/store/use-language-store';
+import { Languages } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguageStore();
@@ -22,14 +22,14 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => setLanguage("es")}
-          className={language === "es" ? "bg-accent" : ""}
+          onClick={() => setLanguage('es')}
+          className={language === 'es' ? 'bg-accent' : ''}
         >
           Español
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => setLanguage("en")}
-          className={language === "en" ? "bg-accent" : ""}
+          onClick={() => setLanguage('en')}
+          className={language === 'en' ? 'bg-accent' : ''}
         >
           English
         </DropdownMenuItem>

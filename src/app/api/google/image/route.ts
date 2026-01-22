@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: Request) {
   try {
@@ -8,15 +8,15 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Server Configuration Error: Missing GOOGLE_KI" },
-        { status: 500 },
+        { error: 'Server Configuration Error: Missing GOOGLE_KI' },
+        { status: 500 }
       );
     }
 
     if (!prompt) {
       return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 },
+        { error: 'Prompt is required' },
+        { status: 400 }
       );
     }
 
@@ -24,10 +24,10 @@ export async function POST(req: Request) {
 
     // Using the exact model name from the user's screenshot: Nano Banana
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
+      model: 'gemini-2.5-flash-image',
       contents: [
         {
-          role: "user",
+          role: 'user',
           parts: [{ text: prompt }],
         },
       ],
@@ -41,8 +41,8 @@ export async function POST(req: Request) {
     const candidates = response.candidates;
     if (!candidates || candidates.length === 0) {
       return NextResponse.json(
-        { error: "No image generated" },
-        { status: 500 },
+        { error: 'No image generated' },
+        { status: 500 }
       );
     }
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     if (parts) {
       for (const part of parts) {
-        if (part.inlineData && part.inlineData.mimeType?.startsWith("image/")) {
+        if (part.inlineData && part.inlineData.mimeType?.startsWith('image/')) {
           base64Image = part.inlineData.data;
           break;
         }
@@ -66,28 +66,28 @@ export async function POST(req: Request) {
       // Fallback: check if it returned text saying it can't do it
       const textPart = parts?.find((p: any) => p.text);
       if (textPart) {
-        console.error("Gemini returned text instead of image:", textPart.text);
+        console.error('Gemini returned text instead of image:', textPart.text);
         return NextResponse.json(
           {
-            error: "Model returned text instead of image",
+            error: 'Model returned text instead of image',
             details: textPart.text,
           },
-          { status: 500 },
+          { status: 500 }
         );
       }
       return NextResponse.json(
-        { error: "No image data found in response" },
-        { status: 500 },
+        { error: 'No image data found in response' },
+        { status: 500 }
       );
     }
 
     const dataUrl = `data:image/jpeg;base64,${base64Image}`;
     return NextResponse.json({ url: dataUrl });
   } catch (error: any) {
-    console.error("Gemini Image Gen Error:", error);
+    console.error('Gemini Image Gen Error:', error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
-      { status: 500 },
+      { error: 'Internal Server Error', details: error.message },
+      { status: 500 }
     );
   }
 }

@@ -1,44 +1,44 @@
-"use client";
+'use client';
 
-import { CloudUpload, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Image } from "@designcombo/video";
-import { useEditorStore } from "@/store/use-editor-store";
+import { CloudUpload, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Image } from '@designcombo/video';
+import { useEditorStore } from '@/store/use-editor-store';
 
 const imageAssets = [
   {
     id: 1,
-    title: "Mountain Landscape",
-    src: "https://images.pexels.com/photos/1770809/pexels-photo-1770809.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Mountain Landscape',
+    src: 'https://images.pexels.com/photos/1770809/pexels-photo-1770809.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
   {
     id: 2,
-    title: "Urban Architecture",
-    src: "https://images.pexels.com/photos/169647/pexels-photo-169647.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Urban Architecture',
+    src: 'https://images.pexels.com/photos/169647/pexels-photo-169647.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
   {
     id: 3,
-    title: "Abstract Gradient",
-    src: "https://images.pexels.com/photos/2085776/pexels-photo-2085776.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Abstract Gradient',
+    src: 'https://images.pexels.com/photos/2085776/pexels-photo-2085776.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
   {
     id: 4,
-    title: "Cozy Coffee",
-    src: "https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Cozy Coffee',
+    src: 'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
   {
     id: 5,
-    title: "Neon City",
-    src: "https://images.pexels.com/photos/1519192/pexels-photo-1519192.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Neon City',
+    src: 'https://images.pexels.com/photos/1519192/pexels-photo-1519192.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
   {
     id: 6,
-    title: "Minimal Plant",
-    src: "https://images.pexels.com/photos/1022923/pexels-photo-1022923.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    title: 'Minimal Plant',
+    src: 'https://images.pexels.com/photos/1022923/pexels-photo-1022923.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
   },
 ];
 
-import { useLanguageStore } from "@/store/use-language-store";
+import { useLanguageStore } from '@/store/use-language-store';
 
 export function ImagePanel() {
   const { studio } = useEditorStore();
@@ -58,7 +58,7 @@ export function ImagePanel() {
 
       await studio.addClip(imageClip);
     } catch (error) {
-      console.error("Failed to add image:", error);
+      console.error('Failed to add image:', error);
     }
   };
 
@@ -68,7 +68,7 @@ export function ImagePanel() {
       <div className="p-4 flex flex-col gap-3 shrink-0">
         <Button className="w-full bg-[#3F3F3F] hover:bg-[#4F4F4F] text-white flex items-center gap-2 h-10 border-none shadow-none rounded-md">
           <CloudUpload className="h-4 w-4" />
-          <span>{t("image.upload")}</span>
+          <span>{t('image.upload')}</span>
         </Button>
       </div>
 
@@ -79,10 +79,10 @@ export function ImagePanel() {
         </div>
         <div>
           <div className="text-xs font-semibold text-pink-100">
-            {t("image.generate_ai")}
+            {t('image.generate_ai')}
           </div>
           <div className="text-[10px] text-pink-200/70">
-            {t("image.create_unique")}
+            {t('image.create_unique')}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: Request) {
   try {
@@ -10,16 +10,16 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "Server Configuration Error: Missing GOOGLE_GENERATIVE_AI_API_KEY",
+            'Server Configuration Error: Missing GOOGLE_GENERATIVE_AI_API_KEY',
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
     if (!prompt) {
       return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 },
+        { error: 'Prompt is required' },
+        { status: 400 }
       );
     }
 
@@ -28,15 +28,15 @@ export async function POST(req: Request) {
     // Using veo-3.1-generate-preview as requested (cost effective, fast)
     // Note: generateVideos returns an operation that needs polling
     let operation = await ai.models.generateVideos({
-      model: "veo-3.1-generate-preview",
+      model: 'veo-3.1-generate-preview',
       prompt: prompt,
     });
 
     // Validating operation structure
     if (!operation || !operation.name) {
       return NextResponse.json(
-        { error: "Failed to initiate video generation" },
-        { status: 500 },
+        { error: 'Failed to initiate video generation' },
+        { status: 500 }
       );
     }
 
@@ -47,15 +47,15 @@ export async function POST(req: Request) {
     while (!operation.done) {
       if (Date.now() - startTime > timeout) {
         return NextResponse.json(
-          { error: "Video generation timed out" },
-          { status: 504 },
+          { error: 'Video generation timed out' },
+          { status: 504 }
         );
       }
 
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log(
-        `Polling for video... ${Math.round((Date.now() - startTime) / 1000)}s`,
+        `Polling for video... ${Math.round((Date.now() - startTime) / 1000)}s`
       );
 
       // Refresh operation status
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
           operation: operation,
         });
       } catch (e) {
-        console.log("Polling error, maybe operation object updates itself?", e);
+        console.log('Polling error, maybe operation object updates itself?', e);
       }
 
       // Re-check done status
@@ -98,8 +98,8 @@ export async function POST(req: Request) {
     const result = (operation as any).result || (operation as any).response;
     if (!result) {
       return NextResponse.json(
-        { error: "No result in operation" },
-        { status: 500 },
+        { error: 'No result in operation' },
+        { status: 500 }
       );
     }
 
@@ -121,14 +121,14 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { error: "Video URI not found in response", details: result },
-      { status: 500 },
+      { error: 'Video URI not found in response', details: result },
+      { status: 500 }
     );
   } catch (error: any) {
-    console.error("Veo Video Gen Error:", error);
+    console.error('Veo Video Gen Error:', error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
-      { status: 500 },
+      { error: 'Internal Server Error', details: error.message },
+      { status: 500 }
     );
   }
 }

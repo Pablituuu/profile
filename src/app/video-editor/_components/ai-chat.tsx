@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
+import React, { useState } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
 import {
   ThreadPrimitive,
   MessagePrimitive,
   ComposerPrimitive,
   AssistantRuntimeProvider,
-} from "@assistant-ui/react";
-import { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
+} from '@assistant-ui/react';
+import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown';
 import {
   Sparkles,
   X,
@@ -22,11 +22,11 @@ import {
   Mail,
   Phone,
   MessageCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useEditorStore } from "@/store/use-editor-store";
-import { Text, IClip } from "@designcombo/video";
-import { useAiHandlers } from "../_hooks/use-ai-handlers";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useEditorStore } from '@/store/use-editor-store';
+import { Text, IClip } from '@designcombo/video';
+import { useAiHandlers } from '../_hooks/use-ai-handlers';
 
 /**
  * Custom Message component with role-based styling using local variables
@@ -82,7 +82,7 @@ const CustomMessage = () => {
   );
 };
 
-import { checkGeminiApiKey } from "@/app/actions/check-api-key";
+import { checkGeminiApiKey } from '@/app/actions/check-api-key';
 
 // ... (keep CustomMessage component as is)
 
@@ -103,7 +103,7 @@ export function AIChat() {
   // Initialize chat only if key exists (or while checking to avoid hook errors, though we won't render it)
   // We can always initialize it but obscure the UI.
   const chat = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
     onToolCall: async ({ toolCall }) => {
       await handleToolCall(toolCall);
     },
@@ -138,18 +138,18 @@ export function AIChat() {
                   {[
                     {
                       icon: Github,
-                      href: "https://github.com/Pablituuu",
-                      title: "GitHub",
+                      href: 'https://github.com/Pablituuu',
+                      title: 'GitHub',
                     },
                     {
                       icon: Linkedin,
-                      href: "https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/",
-                      title: "LinkedIn",
+                      href: 'https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/',
+                      title: 'LinkedIn',
                     },
                     {
                       icon: Mail,
-                      href: "mailto:pablito.silvainca@gmail.com",
-                      title: "Email",
+                      href: 'mailto:pablito.silvainca@gmail.com',
+                      title: 'Email',
                     },
                   ].map((social, i) => (
                     <a
@@ -221,11 +221,11 @@ export function AIChat() {
                 </p>
                 <ul className="space-y-1.5">
                   {[
-                    "Intelligent Chat & Reasoning",
-                    "AI Video Generation (Veo)",
-                    "AI Image Generation",
-                    "Smart Text Editing",
-                    "Bilingual (EN/ES)",
+                    'Intelligent Chat & Reasoning',
+                    'AI Video Generation (Veo)',
+                    'AI Image Generation',
+                    'Smart Text Editing',
+                    'Bilingual (EN/ES)',
                   ].map((feat, i) => (
                     <li
                       key={i}
@@ -245,9 +245,9 @@ export function AIChat() {
                 </p>
                 <ul className="space-y-1.5">
                   {[
-                    "Speech to Text",
-                    "Video Subtitles Generation",
-                    "Shader Applications",
+                    'Speech to Text',
+                    'Video Subtitles Generation',
+                    'Shader Applications',
                   ].map((feat, i) => (
                     <li
                       key={i}
@@ -336,12 +336,12 @@ export function AIChat() {
         {/* Modal Window */}
         <div
           className={cn(
-            "w-[400px] h-[640px] bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ease-out pointer-events-auto origin-bottom-right mb-4",
+            'w-[400px] h-[640px] bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ease-out pointer-events-auto origin-bottom-right mb-4',
             isOpen
-              ? "scale-100 opacity-100 translate-y-0"
-              : "scale-90 opacity-0 translate-y-10",
+              ? 'scale-100 opacity-100 translate-y-0'
+              : 'scale-90 opacity-0 translate-y-10'
           )}
-          style={{ visibility: isOpen ? "visible" : "hidden" }}
+          style={{ visibility: isOpen ? 'visible' : 'hidden' }}
         >
           {/* Header */}
           <div className="p-6 border-b border-white/10 flex items-center justify-between bg-linear-to-r from-indigo-500/10 to-purple-500/10 backdrop-blur-md shrink-0">
@@ -356,10 +356,10 @@ export function AIChat() {
                 </h3>
                 <div className="flex items-center gap-1.5">
                   <div
-                    className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] ${hasKey ? "bg-green-500 animate-pulse" : "bg-yellow-500"}`}
+                    className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] ${hasKey ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}
                   />
                   <span className="text-[10px] text-white/40 uppercase tracking-[0.15em] font-black">
-                    {hasKey === false ? "Demo Mode" : "Powered by Gemini"}
+                    {hasKey === false ? 'Demo Mode' : 'Powered by Gemini'}
                   </span>
                 </div>
               </div>
@@ -381,8 +381,8 @@ export function AIChat() {
           // ... (same button)
           onClick={() => setIsOpen((prev) => !prev)}
           className={cn(
-            "w-14 h-14 rounded-full bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 border border-white/20 shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95 group overflow-hidden pointer-events-auto",
-            isOpen && "scale-0 opacity-0",
+            'w-14 h-14 rounded-full bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 border border-white/20 shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95 group overflow-hidden pointer-events-auto',
+            isOpen && 'scale-0 opacity-0'
           )}
         >
           {/* ... icon */}

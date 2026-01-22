@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { translations, Language, TranslationKey } from "@/i18n/translations";
+import { create } from 'zustand';
+import { translations, Language, TranslationKey } from '@/i18n/translations';
 
 interface LanguageState {
   language: Language;
@@ -8,7 +8,7 @@ interface LanguageState {
 }
 
 export const useLanguageStore = create<LanguageState>((set, get) => ({
-  language: "en", // Default to English
+  language: 'en', // Default to English
   setLanguage: (language) => set({ language }),
   t: (key) => {
     const lang = get().language;
