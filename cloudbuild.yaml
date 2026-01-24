@@ -32,5 +32,8 @@ steps:
       - "GITHUB_USERNAME=${_GITHUB_USERNAME}"
       - "NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID}"
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 images:
   - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
