@@ -5,8 +5,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm install
+COPY package.json pnpm-lock.yaml* ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
@@ -24,7 +24,7 @@ ENV NEXT_PUBLIC_GITHUB_USERNAME=$NEXT_PUBLIC_GITHUB_USERNAME
 ARG NEXT_PUBLIC_CLARITY_PROJECT_ID
 ENV NEXT_PUBLIC_CLARITY_PROJECT_ID=$NEXT_PUBLIC_CLARITY_PROJECT_ID
 
-RUN npm run build
+RUN pnpm run build
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
