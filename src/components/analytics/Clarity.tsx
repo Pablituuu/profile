@@ -5,7 +5,7 @@ import Script from "next/script";
 export default function Clarity() {
   const projectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
 
-  console.log("App Version: 0.1.0");
+  console.log("App Version: 0.1.1");
 
   if (!projectId) {
     console.warn(
