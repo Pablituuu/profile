@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ExportModal } from "./export-modal";
-import { LanguageSwitcher } from "./language-switcher";
+import { useState } from 'react';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { ExportModal } from './export-modal';
+import { LanguageSwitcher } from './language-switcher';
 
 export function Header() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function TabManager() {
   useEffect(() => {
@@ -8,16 +8,16 @@ export default function TabManager() {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        document.title = "¡Regresa! Sigue creando ✨";
+        document.title = '¡Regresa! Sigue creando ✨';
       } else {
         document.title = originalTitle;
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

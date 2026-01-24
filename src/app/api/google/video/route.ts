@@ -26,10 +26,10 @@ export async function POST(req: Request) {
     const ai = new GoogleGenAI({ apiKey });
 
     // Using veo-3.1-generate-preview as requested (cost effective, fast)
-    // Note: generateVideos returns an operation that needs polling
+    // Enforcing short duration and low resolution for cost optimization
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-generate-preview',
-      prompt: prompt,
+      prompt: prompt + ' (short video, 5 seconds)',
     });
 
     // Validating operation structure

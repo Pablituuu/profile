@@ -23,19 +23,15 @@ export async function POST(req: Request) {
     const ai = new GoogleGenAI({ apiKey });
 
     // Using the exact model name from the user's screenshot: Nano Banana
+    // Optimized for cost: Single small image
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: [
         {
           role: 'user',
-          parts: [{ text: prompt }],
+          parts: [{ text: prompt + ' (small, simple, low-res image)' }],
         },
       ],
-      config: {
-        // Optional: You can specify aspect ratio here if supported by this specific model/SDK version
-        // Screenshot didn't explicitly show config for aspect ratio but implied control.
-        // Defaulting to just prompt for now.
-      },
     });
 
     const candidates = response.candidates;

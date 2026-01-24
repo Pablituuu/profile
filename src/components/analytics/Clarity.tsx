@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import Script from "next/script";
+import Script from 'next/script';
 
 export default function Clarity() {
   const projectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
 
-  console.log("App Version: 0.1.1");
+  console.log('App Version: 0.1.1');
 
   if (!projectId) {
     console.warn(
-      "Clarity Analytics: NEXT_PUBLIC_CLARITY_PROJECT_ID not found.",
+      'Clarity Analytics: NEXT_PUBLIC_CLARITY_PROJECT_ID not found.'
     );
     return null;
   }
 
-  console.log("Clarity Analytics: ID detected successfully.");
+  console.log('Clarity Analytics: ID detected successfully.');
 
   return (
     <Script
