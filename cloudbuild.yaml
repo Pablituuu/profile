@@ -5,6 +5,8 @@ steps:
       - "build"
       - "--build-arg"
       - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID}"
       - "-t"
       - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
       - "."
@@ -28,6 +30,7 @@ steps:
       - "--set-env-vars"
       - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME}"
       - "GITHUB_USERNAME=${_GITHUB_USERNAME}"
+      - "NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID}"
 
 images:
   - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
