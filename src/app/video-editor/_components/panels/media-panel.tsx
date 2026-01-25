@@ -1,5 +1,7 @@
 'use client';
 
+import { AIAssetsModal } from '../modals/ai-assets-modal';
+
 import { CloudUpload, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Placeholder, Video as VideoClip } from '@designcombo/video';
@@ -53,10 +55,19 @@ const mediaAssets = [
   },
 ];
 
+interface VideoAsset {
+  id: string | number;
+  title: string;
+  type: string;
+  src: string;
+  duration: string;
+  thumbnail?: string;
+}
+
 interface VideoAssetPreviewProps {
-  asset: (typeof mediaAssets)[0];
+  asset: VideoAsset;
   onClick: (
-    asset: (typeof mediaAssets)[0],
+    asset: VideoAsset,
     realDuration?: number,
     dimensions?: { width: number; height: number }
   ) => void;
@@ -165,6 +176,32 @@ import { useLanguageStore } from '@/store/use-language-store';
 export function MediaPanel() {
   const { studio } = useEditorStore();
   const { t } = useLanguageStore();
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [assets, setAssets] = useState<VideoAsset[]>(() =>
+    mediaAssets.map((a) => ({ ...a, id: String(a.id) }))
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newAssets: VideoAsset[] = Array.from(files).map((file) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      title: file.name,
+      type: 'video',
+      src: URL.createObjectURL(file), // This is the blob URL
+      duration: '00:00', // Will be updated by VideoAssetPreview
+      thumbnail: '',
+    }));
+
+    setAssets((prev) => [...newAssets, ...prev]);
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const parseDurationToSeconds = (duration: string) => {
     const [minutes, seconds] = duration.split(':').map(Number);
@@ -172,7 +209,7 @@ export function MediaPanel() {
   };
 
   const addItemToCanvas = async (
-    asset: (typeof mediaAssets)[0],
+    asset: VideoAsset,
     realDurationSec?: number,
     dimensions?: { width: number; height: number }
   ) => {
@@ -242,14 +279,28 @@ export function MediaPanel() {
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Upload Actions */}
       <div className="p-4 flex flex-col gap-3 shrink-0">
-        <Button className="w-full bg-[#3F3F3F] hover:bg-[#4F4F4F] text-white flex items-center gap-2 h-10 border-none shadow-none rounded-md">
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="video/*"
+          onChange={handleUpload}
+          multiple
+        />
+        <Button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full bg-[#3F3F3F] hover:bg-[#4F4F4F] text-white flex items-center gap-2 h-10 border-none shadow-none rounded-md"
+        >
           <CloudUpload className="h-4 w-4" />
           <span>{t('media.upload')}</span>
         </Button>
       </div>
 
       {/* Promo Banner */}
-      <div className="mx-4 mb-4 p-3 bg-linear-to-r from-indigo-500/10 to-purple-500/10 rounded-lg border border-white/5 flex items-center gap-3 shrink-0 cursor-pointer hover:border-indigo-500/30 transition-colors">
+      <div
+        onClick={() => setIsAIModalOpen(true)}
+        className="mx-4 mb-4 p-3 bg-linear-to-r from-indigo-500/10 to-purple-500/10 rounded-lg border border-white/5 flex items-center gap-3 shrink-0 cursor-pointer hover:border-indigo-500/30 transition-colors"
+      >
         <div className="h-8 w-8 bg-white/10 rounded flex items-center justify-center">
           <Plus className="h-5 w-5 text-indigo-400" />
         </div>
@@ -263,10 +314,16 @@ export function MediaPanel() {
         </div>
       </div>
 
+      <AIAssetsModal
+        open={isAIModalOpen}
+        onOpenChange={setIsAIModalOpen}
+        title="AI Assets"
+      />
+
       {/* Assets Grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         <div className="grid grid-cols-2 gap-3">
-          {mediaAssets.map((asset) => (
+          {assets.map((asset) => (
             <VideoAssetPreview
               key={asset.id}
               asset={asset}
