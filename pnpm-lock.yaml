@@ -27,11 +27,14 @@ importers:
         specifier: ^0.11.10
         version: 0.11.10(@assistant-ui/react@0.11.58(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3)))(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@designcombo/video':
-        specifier: ^0.1.16
-        version: 0.1.16(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)
+        specifier: ^0.1.18
+        version: 0.1.18(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)
       '@google/genai':
         specifier: ^1.38.0
         version: 1.38.0
+      '@radix-ui/react-accordion':
+        specifier: ^1.2.12
+        version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-avatar':
         specifier: ^1.1.11
         version: 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -371,8 +374,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@designcombo/video@0.1.16':
-    resolution: {integrity: sha512-2cFWXBgJQrYohPHv7dNujMaaAru6H9FzgcU/wU/MZVBA00hQyUngsyZXEE2icJJIly4NrG+CAwmRcNkjASvssQ==}
+  '@designcombo/video@0.1.18':
+    resolution: {integrity: sha512-evYD/M5A+UKr2P+AJjzTtET8Kx8OByJy8cSq9LB6aAYjH99EA2oS6S9uD/ZQkaMQdk6eZL8Eh4D7re98L7FBJw==}
 
   '@emnapi/core@1.8.1':
     resolution: {integrity: sha512-AvT9QFpxK0Zd8J0jopedNm+w/2fIzvtPKPjqyw9jwvBaReTTqPBk9Hixaz7KbjimP+QNz605/XnjFcDAL2pqBg==}
@@ -4045,8 +4048,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  wrapbox@0.0.1:
-    resolution: {integrity: sha512-tQdovzNzzCSwC7xyxQ6sRJzh5n+0KnDtWTcYtcLDSqXlPe7VCsJuHdf2FNsQc+k9S07fytgyvtiBJua8xHd3Iw==}
+  wrapbox@0.0.2:
+    resolution: {integrity: sha512-Pu4YT5uCKla0XAWINdtVKeZKyjP05MJ5wb4p7XqheNDSQlfFG4l5kWERSuFWJB0yBDPYcvSIufwbQGEqtI8gug==}
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
@@ -4352,7 +4355,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.3.12':
     optional: true
 
-  '@designcombo/video@0.1.16(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)':
+  '@designcombo/video@0.1.18(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)':
     dependencies:
       '@pixi/layout': 3.2.0(@types/react@19.2.9)(pixi.js@8.15.0)(react@19.2.3)(yoga-layout@3.2.1)
       gl-transitions: 1.43.0
@@ -4360,7 +4363,7 @@ snapshots:
       opfs-tools: 0.7.4
       pixi.js: 8.15.0
       wave-resampler: 1.0.0
-      wrapbox: 0.0.1
+      wrapbox: 0.0.2
     transitivePeerDependencies:
       - '@types/react'
       - react
@@ -8661,7 +8664,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  wrapbox@0.0.1:
+  wrapbox@0.0.2:
     dependencies:
       mp4box: 2.3.0
 

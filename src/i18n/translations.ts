@@ -56,6 +56,43 @@ export const translations = {
     recentActivity: 'Actividad reciente',
     education: 'Educación',
     roleAnalyst: 'Analista de Ciberseguridad',
+    'updates.title': 'Novedades',
+    'updates.new_features': 'Nuevas Funciones',
+    'updates.latest_updates':
+      'Explora las últimas mejoras y próximas funciones',
+    'updates.sync_logic': 'Sincronización de línea de tiempo',
+    'updates.sync_logic_desc':
+      'Sincronización bidireccional avanzada entre el lienzo de la línea de tiempo y el estado del Studio, garantizando actualizaciones en tiempo real.',
+    'updates.track_management': 'Multi-pista y Alineación',
+    'updates.track_management_desc':
+      'Soporte para la creación de múltiples pistas a partir de selecciones y alineación inteligente de clips a estas pistas.',
+    'updates.zoom_seeking': 'Zoom y Búsqueda',
+    'updates.zoom_seeking_desc':
+      'Zoom fluido en la línea de tiempo y búsqueda precisa a través de la regla interactiva.',
+    'updates.clip_tools': 'Herramientas de edición de clips',
+    'updates.clip_tools_desc':
+      'Nuevas herramientas para dividir, duplicar y eliminar clips con soporte para atajos de teclado.',
+    'updates.close': '¡Entendido!',
+    'updates.core_features': 'Funciones Core',
+    'updates.video_support': 'Soporte de Video',
+    'updates.video_support_desc':
+      'Carga y edición de archivos de video con vista previa en tiempo real y recorte preciso.',
+    'updates.image_support': 'Soporte de Imágenes',
+    'updates.image_support_desc':
+      'Integración de imágenes estáticas con duración ajustable y manipulación directa en el lienzo.',
+    'updates.state_control': 'Control de Estado',
+    'updates.state_control_desc':
+      'Gestión robusta de la línea de tiempo con guardado automático y coherencia total entre capas.',
+    'updates.coming_soon': 'Próximamente',
+    'updates.ai_voiceover': 'Locución por IA (TTS)',
+    'updates.transitions': 'Efectos de Transición',
+    'updates.audio_mixing': 'Mezcla de Audio Avanzada',
+    'updates.filters_effects': 'Filtros y Efectos Visuales',
+    'updates.export_formats': 'Nuevos Formatos de Exportación',
+    'updates.stt': 'Voz a Texto (Speech to Text)',
+    'updates.captions': 'Generación de Subtítulos',
+    'updates.script_to_video': 'Guion a Video por IA',
+    'updates.link_to_video': 'Enlace a Video por IA',
   },
   en: {
     'media.upload': 'Upload',
@@ -112,6 +149,43 @@ export const translations = {
     recentActivity: 'Recent activity',
     education: 'Education',
     roleAnalyst: 'Cybersecurity Analyst',
+    'updates.title': "What's New",
+    'updates.new_features': 'New Features',
+    'updates.latest_updates':
+      'Explore the latest improvements and upcoming features',
+    'updates.sync_logic': 'Timeline Synchronization',
+    'updates.sync_logic_desc':
+      'Advanced bidirectional synchronization between the timeline canvas and the Studio state, ensuring real-time updates.',
+    'updates.track_management': 'Multi-track & Alignment',
+    'updates.track_management_desc':
+      'Support for creating multiple tracks from selections and smart alignment of clips to these tracks.',
+    'updates.zoom_seeking': 'Zoom & Seeking',
+    'updates.zoom_seeking_desc':
+      'Smooth zooming in the timeline and precise seeking through the interactive ruler.',
+    'updates.clip_tools': 'Clip Editing Tools',
+    'updates.clip_tools_desc':
+      'New tools for splitting, duplicating, and deleting clips with keyboard shortcut support.',
+    'updates.close': 'Got it!',
+    'updates.core_features': 'Core Features',
+    'updates.video_support': 'Video Support',
+    'updates.video_support_desc':
+      'Upload and edit video files with real-time preview and precise trimming.',
+    'updates.image_support': 'Image Support',
+    'updates.image_support_desc':
+      'Integration of static images with adjustable duration and direct canvas manipulation.',
+    'updates.state_control': 'State Control',
+    'updates.state_control_desc':
+      'Robust timeline management with automatic saving and total coherence between layers.',
+    'updates.coming_soon': 'Coming Soon',
+    'updates.ai_voiceover': 'AI Voiceover (TTS)',
+    'updates.transitions': 'Transition Effects',
+    'updates.audio_mixing': 'Advanced Audio Mixing',
+    'updates.filters_effects': 'Visual Filters & Effects',
+    'updates.export_formats': 'New Export Formats',
+    'updates.stt': 'Speech to Text (STT)',
+    'updates.captions': 'Auto Captions Generation',
+    'updates.script_to_video': 'AI Script to Video',
+    'updates.link_to_video': 'AI Link to Video',
   },
 } as const;
 

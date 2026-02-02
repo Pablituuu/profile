@@ -1,162 +1,141 @@
-import { type TMat2D, type TPointerEventInfo, util, Point } from 'fabric';
-import { TimelineEngine } from '../engine';
-import { TIMELINE_CONSTANTS } from '../constants';
+import { type TMat2D, type TPointerEventInfo, util } from 'fabric';
+import { TimelineCanvas } from '../canvas';
+import { Track } from '../track';
+import { Helper } from '../helper';
+import { Placeholder } from '../placeholder';
 
-const calculateClipBounds = (canvas: TimelineEngine) => {
-  const objects = canvas
-    .getObjects()
-    .filter(
-      (obj) =>
-        (obj as any).clipId &&
-        !(obj as any).clipId.startsWith('track-') &&
-        !(obj as any).isHelper &&
-        ![
-          'Track',
-          'Playhead',
-          'Ruler',
-          'Helper',
-          'track-bg',
-          'Placeholder',
-        ].includes(obj.type || (obj as any).type)
+type SizeProps = {
+  min: number;
+  max: number;
+};
+
+export const getObjectsBoundingRect = (canvas: TimelineCanvas) => {
+  const objects = canvas.getObjects().filter((obj) => {
+    // Solo incluimos clips reales (Video, Audio, Imagen, Texto)
+    // Se identifican por tener un clipId y no ser de fondo/auxiliares
+    const isClip = (obj as any).clipId !== undefined;
+    const isTrack = obj instanceof Track || (obj as any).type === 'Track';
+    const isHelper =
+      obj instanceof Helper ||
+      (obj as any).type === 'Helper' ||
+      (obj as any).kind;
+    const isPlaceholder =
+      obj instanceof Placeholder || (obj as any).type === 'Placeholder';
+
+    return (
+      isClip &&
+      !isTrack &&
+      !isHelper &&
+      !isPlaceholder &&
+      !(obj as any).isAlignmentAuxiliary
     );
+  });
 
   if (objects.length === 0) {
     return { left: 0, top: 0, right: 0, bottom: 0 };
   }
 
   const { left, top, width, height } = util.makeBoundingBoxFromPoints(
-    objects.map((obj) => obj.getCoords()).flat(1)
+    objects.map((x) => x.getCoords()).flat(1)
   );
-  return {
-    left,
-    top,
-    right: left + width,
-    bottom: top + height,
-  };
+  return { left, top, right: left + width, bottom: top + height };
 };
 
-export const constrainViewport = (
-  canvas: TimelineEngine,
+export const limitViewport = (
+  canvas: TimelineCanvas,
   vpt: TMat2D,
-  config: {
-    offsetX: number;
-    offsetY: number;
-    extraMarginX: number;
-    extraMarginY: number;
-  }
+  offsetX = 0,
+  offsetY = 0,
+  extraMarginX = 50,
+  extraMarginY = 50
 ): TMat2D => {
   const zoom = vpt[0];
-  const bounds = calculateClipBounds(canvas);
+  const objectRect = getObjectsBoundingRect(canvas);
 
-  const viewLeft = Math.min(bounds.left, -config.offsetX);
-  const viewTop = Math.min(bounds.top, -config.offsetY);
-  const viewRight = bounds.right + config.extraMarginX;
-  const viewBottom = bounds.bottom + config.extraMarginY;
+  // Forzamos que el inicio legal sea siempre 0 o mayor (nunca negativo)
+  const minContentX = Math.max(Math.min(objectRect.left, -offsetX), 0);
+  const minContentY = Math.max(Math.min(objectRect.top, -offsetY), 0);
+  const maxContentX = objectRect.right + extraMarginX;
+  const maxContentY = objectRect.bottom + extraMarginY;
 
-  const totalW = viewRight - viewLeft;
-  const totalH = viewBottom - viewTop;
+  const canvasWidth = canvas.width / zoom;
+  const canvasHeight = canvas.height / zoom;
 
-  const viewportW = canvas.width / zoom;
-  const viewportH = canvas.height / zoom;
+  // 1. LÍMITE IZQUIERDO Y SUPERIOR (No permitir ver espacio < 0)
+  if (vpt[4] > 0) vpt[4] = 0;
+  if (vpt[5] > 0) vpt[5] = 0;
 
-  // Horizontal constraint
-  if (totalW <= viewportW) {
-    vpt[4] = -viewLeft * zoom;
+  // 2. LÍMITE VERTICAL INFERIOR (Estricto)
+  const totalHeight = maxContentY - minContentY;
+  if (totalHeight <= canvasHeight) {
+    vpt[5] = 0;
   } else {
-    const maxL = config.offsetX * zoom;
-    if (vpt[4] > maxL) vpt[4] = maxL;
-
-    const minR = -(viewRight * zoom - canvas.width);
-    if (minR < 0 && vpt[4] < minR) {
-      vpt[4] = minR;
-    }
+    const minVptBottom = -(maxContentY * zoom - canvas.height);
+    if (vpt[5] < minVptBottom) vpt[5] = minVptBottom;
   }
 
-  // Vertical constraint
-  if (totalH <= viewportH) {
-    vpt[5] = -viewTop * zoom;
+  // 3. LÍMITE HORIZONTAL DERECHO (Limitado al contenido + margen)
+  const totalWidth = maxContentX;
+  if (totalWidth <= canvasWidth) {
+    vpt[4] = 0;
   } else {
-    const maxT = config.offsetY * zoom;
-    if (vpt[5] > maxT) vpt[5] = maxT;
-
-    const minB = -(viewBottom * zoom - canvas.height);
-    if (minB < 0 && vpt[5] < minB) {
-      vpt[5] = minB;
-    }
+    const minVptRight = -(maxContentX * zoom - canvas.width);
+    if (vpt[4] < minVptRight) vpt[4] = minVptRight;
   }
 
   return vpt;
 };
 
-export const setupWheelControl =
-  (
-    canvas: TimelineEngine,
-    options: {
-      offsetX?: number;
-      offsetY?: number;
-      extraMarginX?: number;
-      extraMarginY?: number;
-      minZoom?: number;
-      maxZoom?: number;
-      onZoom?: (zoom: number) => void;
-    } = {}
-  ) =>
-  (event: WheelEvent | TPointerEventInfo<WheelEvent>) => {
-    const e = 'e' in event ? event.e : event;
-    const viewportPoint =
-      'viewportPoint' in event
-        ? event.viewportPoint
-        : new Point(canvas.width / 2, canvas.height / 2);
+type MouseWheelOptions = {
+  offsetX?: number;
+  offsetY?: number;
+  extraMarginX?: number;
+  extraMarginY?: number;
+} & Partial<SizeProps>;
 
-    if (e.target === canvas.upperCanvasEl) e.preventDefault();
+export const makeMouseWheel =
+  (canvas: TimelineCanvas, options: MouseWheelOptions = {}) =>
+  (wheelEvent: TPointerEventInfo<WheelEvent>) => {
+    const e = wheelEvent.e;
+    if (e.target == canvas.upperCanvasEl) e.preventDefault();
 
-    // Zooming (Alt or Meta)
-    if (e.altKey || (e.metaKey && !e.ctrlKey)) {
-      const isPrecision = Math.floor(e.deltaY) !== Math.ceil(e.deltaY);
-      const zoomFactor = isPrecision ? 0.99 : 0.995;
+    const isTouchScale = Math.floor(e.deltaY) != Math.ceil(e.deltaY);
+
+    if (e.ctrlKey || e.metaKey) {
+      const speed = isTouchScale ? 0.99 : 0.998;
       let zoom = canvas.getZoom();
-      zoom *= zoomFactor ** e.deltaY;
+      zoom *= speed ** e.deltaY;
 
-      if (options.maxZoom !== undefined && zoom > options.maxZoom)
-        zoom = options.maxZoom;
-      if (options.minZoom !== undefined && zoom < options.minZoom)
-        zoom = options.minZoom;
-
-      canvas.zoomToPoint(viewportPoint, zoom);
-
-      const vpt = canvas.viewportTransform.slice(0) as TMat2D;
-      const limitedVpt = constrainViewport(canvas, vpt, {
-        offsetX: options.offsetX ?? 0,
-        offsetY: options.offsetY ?? 0,
-        extraMarginX: options.extraMarginX ?? 0,
-        extraMarginY: options.extraMarginY ?? 0,
-      });
-
-      canvas.setViewportTransform(limitedVpt);
-      options.onZoom?.(zoom);
+      if (options.max != undefined && zoom > options.max) zoom = options.max;
+      if (options.min != undefined && zoom < options.min) zoom = options.min;
+      canvas.zoomToPoint(wheelEvent.viewportPoint, zoom);
       canvas.requestRenderAll();
       return;
     }
 
-    // Panning
     const vpt = canvas.viewportTransform.slice(0) as TMat2D;
 
-    // Ctrl + Wheel = Horizontal Scroll (Requested by user)
-    // Shift + Wheel = Horizontal Scroll (Common standard)
-    if (e.ctrlKey || e.shiftKey) {
+    // Map vertical wheel to horizontal scroll in timeline by default
+    // If Shift is pressed, we could keep it as is or do something else,
+    // but usually in timelines: Wheel = Horizontal Scroll, Shift+Wheel = Vertical Scroll (or vice versa)
+    // We'll do: Wheel = Horizontal Scroll (deltaY -> vpt[4]), Shift+Wheel = Vertical Scroll (deltaY -> vpt[5])
+    if (e.shiftKey) {
       vpt[4] -= e.deltaY;
     } else {
       vpt[4] -= e.deltaX;
       vpt[5] -= e.deltaY;
     }
 
-    const limitedVpt = constrainViewport(canvas, vpt, {
-      offsetX: options.offsetX ?? 0,
-      offsetY: options.offsetY ?? 0,
-      extraMarginX: options.extraMarginX ?? 0,
-      extraMarginY: options.extraMarginY ?? 0,
-    });
+    const scrollbars = (canvas as any).scrollbars;
 
+    const limitedVpt = limitViewport(
+      canvas,
+      vpt,
+      options.offsetX ?? scrollbars?.offsetX ?? 0,
+      options.offsetY ?? scrollbars?.offsetY ?? 0,
+      options.extraMarginX ?? scrollbars?.extraMarginX ?? 50,
+      options.extraMarginY ?? scrollbars?.extraMarginY ?? 50
+    );
     canvas.setViewportTransform(limitedVpt);
     canvas.requestRenderAll();
   };

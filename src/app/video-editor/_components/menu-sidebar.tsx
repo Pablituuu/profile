@@ -24,7 +24,12 @@ interface MenuSidebarProps {
   onSelect: (id: string | null) => void;
 }
 
-export function MenuSidebar({ activeTool, onSelect }: MenuSidebarProps) {
+import React from 'react';
+
+export const MenuSidebar = React.memo(function MenuSidebar({
+  activeTool,
+  onSelect,
+}: MenuSidebarProps) {
   const handleSelect = (id: string) => {
     // If clicking the already active tool, collapse it (set to null)
     if (activeTool === id) {
@@ -53,4 +58,4 @@ export function MenuSidebar({ activeTool, onSelect }: MenuSidebarProps) {
       ))}
     </aside>
   );
-}
+});

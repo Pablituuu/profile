@@ -112,7 +112,6 @@ export function TextProperties({ clip }: TextPropertiesProps) {
   const textClip = clip as any;
   const style = textClip.style || {};
   const [, setTick] = useState(0);
-  console.log(textClip);
 
   // Listen to clip events for canvas sync
   useEffect(() => {

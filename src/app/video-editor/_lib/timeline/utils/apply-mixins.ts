@@ -1,0 +1,19 @@
+export type Constructor<T = object> = new (...args: any[]) => T;
+
+export function applyMixins<T extends Constructor, S extends Constructor>(
+  derivedCtor: T,
+  constructors: S[]
+) {
+  constructors.forEach((baseCtor) => {
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+      name !== 'constructor' &&
+        Object.defineProperty(
+          derivedCtor.prototype,
+          name,
+          Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
+            Object.create(null)
+        );
+    });
+  });
+  return derivedCtor as T & { prototype: InstanceType<T & S> };
+}

@@ -1,7 +1,8 @@
-import { TransformActionHandler, controlsUtils } from 'fabric';
+import { type TransformActionHandler, controlsUtils } from 'fabric';
 import { resolveOrigin, isTransformCentered } from './utils';
-import { CENTER, LEFT, RIGHT } from './constants';
-import { TIMELINE_CONSTANTS } from '../constants';
+import { CENTER, LEFT, RIGHT, TIMELINE_CONSTANTS } from './constants';
+
+const MICROSECONDS_PER_SECOND = 1_000_000;
 
 const { wrapWithFireEvent, getLocalPoint, wrapWithFixedAnchor } = controlsUtils;
 
@@ -45,28 +46,18 @@ export const changeObjectWidth: TransformActionHandler = (
     const zoom = target.timeScale || 1;
     const playbackRate = target.playbackRate || 1;
     const pixelsPerSecond = TIMELINE_CONSTANTS.PIXELS_PER_SECOND || 50;
-    const microsecondsPerSecond = TIMELINE_CONSTANTS.MICROSECONDS_PER_SECOND;
 
     // Helper to convert pixels to microseconds for the content (respects playbackRate)
     const pixelsToContentUs = (pixels: number) => {
       return (
         (pixels / (pixelsPerSecond * zoom)) *
-        microsecondsPerSecond *
+        MICROSECONDS_PER_SECOND *
         playbackRate
       );
     };
 
     if (newWidth < 1) return false;
 
-    // Ensure target.trim is initialized
-    if (!target.trim) {
-      target.trim = { from: 0, to: 0 };
-    }
-    // Also might need sourceDuration
-    if (typeof target.sourceDuration === 'undefined') {
-      // Fallback or read from metadata if available on object
-      // For now, assuming it exists or logic handles undefined
-    }
     if (fromRight) {
       const diffSize = newWidth - oldWidth;
       const diffUs = pixelsToContentUs(diffSize);
@@ -77,7 +68,7 @@ export const changeObjectWidth: TransformActionHandler = (
       if (newTo > sourceDuration) {
         const maxDiffUs = sourceDuration - target.trim.to;
         const maxDiffSize =
-          (maxDiffUs / microsecondsPerSecond / playbackRate) *
+          (maxDiffUs / MICROSECONDS_PER_SECOND / playbackRate) *
           pixelsPerSecond *
           zoom;
         newWidth = oldWidth + maxDiffSize;
@@ -87,8 +78,8 @@ export const changeObjectWidth: TransformActionHandler = (
         target.set('width', Math.max(newWidth, 0));
         target.trim.to = newTo;
       }
-      return true;
     }
+
     if (fromLeft) {
       const diffPos = oldWidth - newWidth;
       const nextLeft = target.left + diffPos;
@@ -102,10 +93,11 @@ export const changeObjectWidth: TransformActionHandler = (
       const diffSize = newWidth - oldWidth;
       const diffUs = pixelsToContentUs(diffSize);
       const newFrom = target.trim.from - diffUs;
+
       if (newFrom < 0) {
         const maxDiffUs = target.trim.from;
         const maxDiffSize =
-          (maxDiffUs / microsecondsPerSecond / playbackRate) *
+          (maxDiffUs / MICROSECONDS_PER_SECOND / playbackRate) *
           pixelsPerSecond *
           zoom;
         newWidth = oldWidth + maxDiffSize;
@@ -119,7 +111,6 @@ export const changeObjectWidth: TransformActionHandler = (
         target.set('left', target.left + finalDiffPos);
         target.trim.from = newFrom;
       }
-      return true;
     }
 
     target.setCoords();
@@ -127,22 +118,6 @@ export const changeObjectWidth: TransformActionHandler = (
     if (target.onResize) {
       target.onResize();
     }
-
-    // Calculate standard properties for the event
-    const finalDuration = Math.round(
-      (target.width / (pixelsPerSecond * zoom)) * microsecondsPerSecond
-    );
-    const finalDisplayFrom = Math.round(
-      (target.left / (pixelsPerSecond * zoom)) * microsecondsPerSecond
-    );
-
-    // Notify modifying with full payload
-    target.canvas?.fire('clip:modified', {
-      clipId: target.clipId,
-      trim: target.trim,
-      duration: finalDuration,
-      displayFrom: finalDisplayFrom,
-    });
 
     return oldWidth !== target.width;
   }

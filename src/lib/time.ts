@@ -1,6 +1,6 @@
 // Time-related utility functions
 
-import { TIMELINE_CONSTANTS } from '@/app/video-editor/_lib/timeline/constants';
+import { TIMELINE_CONSTANTS } from '@/app/video-editor/_lib/timeline/controls/constants';
 
 const DEFAULT_FPS: number = TIMELINE_CONSTANTS.DEFAULT_FPS;
 

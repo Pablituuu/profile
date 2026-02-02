@@ -1,30 +1,28 @@
-export interface ViewportChangeInfo {
-  left: number;
-  scrollX: number;
-  scrollY: number;
-}
-
-export interface ScrollbarOptions {
-  barColor?: string;
-  outlineColor?: string;
-  outlineWidth?: number;
-  showHorizontal?: boolean;
-  showVertical?: boolean;
-  minBarLength?: number;
-  barThickness?: number;
-  barSpacing?: number;
-  contentPadding?: number;
+export type ScrollbarsProps = {
+  fill?: string;
+  stroke?: string;
+  lineWidth?: number;
+  hideX?: boolean;
+  hideY?: boolean;
+  scrollbarMinWidth?: number;
+  scrollbarSize?: number;
+  scrollSpace?: number;
+  padding?: number;
   extraMarginX?: number;
   extraMarginY?: number;
-  initialOffsetX?: number;
-  initialOffsetY?: number;
-  onScrollChanged?: (info: ViewportChangeInfo) => void;
-  onZoom?: (zoom: number) => void;
-}
+  offsetX?: number;
+  offsetY?: number;
+  scrollbarWidth?: number;
+  scrollbarColor?: string;
+  onViewportChange?: (left: number) => void;
+};
 
-export interface RectDimensions {
+export type ScrollbarProps = {
   left: number;
   top: number;
   right: number;
   bottom: number;
-}
+};
+export type ScrollbarXProps = Pick<ScrollbarProps, 'left' | 'right'>;
+
+export type ScrollbarYProps = Pick<ScrollbarProps, 'top' | 'bottom'>;

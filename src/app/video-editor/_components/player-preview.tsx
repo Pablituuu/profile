@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Player } from './player';
-import { Studio, Compositor } from '@designcombo/video';
+import { Studio, Compositor, Text } from '@designcombo/video';
 import { useEditorStore } from '@/store/use-editor-store';
 
 const defaultSize = {
@@ -13,12 +13,11 @@ const defaultSize = {
 export function PlayerPreview() {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const previewRef = useRef<Studio | null>(null);
-  const { setStudio, setSelectedClips } = useEditorStore();
+  const { setStudio, setSelectedClips, timeline, studio } = useEditorStore();
 
   useEffect(() => {
     if (!previewCanvasRef.current) return;
 
-    // Check support
     (async () => {
       // @ts-ignore
       if (!(await Compositor.isSupported())) {
@@ -26,8 +25,7 @@ export function PlayerPreview() {
       }
     })();
 
-    // Initialize Studio
-    previewRef.current = new Studio({
+    const studioInstance = new Studio({
       width: defaultSize.width,
       height: defaultSize.height,
       fps: 30,
@@ -37,43 +35,50 @@ export function PlayerPreview() {
       spacing: 20,
     });
 
+    previewRef.current = studioInstance;
+    setStudio(studioInstance);
+
+    const init = async () => {
+      await studioInstance.ready;
+    };
+    init();
+
+    return () => {
+      studioInstance.destroy();
+      previewRef.current = null;
+      setStudio(null);
+    };
+  }, []);
+
+  useEffect(() => {
     const studio = previewRef.current;
+    if (!studio) return;
 
     const handleSelection = (data: any) => {
       const clips =
         data?.selected || data?.clips || (Array.isArray(data) ? data : []);
       setSelectedClips(clips);
+      const clipIds = clips.map((clip: any) => clip.id);
+      timeline?.selectedClips(clipIds);
     };
 
     const handleClear = () => {
       setSelectedClips([]);
+      timeline?.selectedClips([]);
     };
 
-    // Listen to all possible selection events to be safe
     studio.on('selection:created', handleSelection);
     studio.on('selection:updated', handleSelection);
     studio.on('selection:change', handleSelection);
     studio.on('selection:cleared', handleClear);
-
-    const init = async () => {
-      await studio.ready;
-    };
-
-    init();
-    // Set store
-    setStudio(studio);
 
     return () => {
       studio.off('selection:created', handleSelection);
       studio.off('selection:updated', handleSelection);
       studio.off('selection:change', handleSelection);
       studio.off('selection:cleared', handleClear);
-      studio.destroy();
-      previewRef.current = null;
-      setStudio(null);
-      setSelectedClips([]);
     };
-  }, []); // dependencies are stable
+  }, [studio, timeline, setSelectedClips]);
 
   return (
     <div className="h-full w-full flex flex-col min-h-0 min-w-0 bg-[#1A1A1A]  rounded-sm relative">

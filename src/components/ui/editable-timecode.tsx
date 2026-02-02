@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { formatTimeCode, parseTimeCode, TimeCode } from '@/lib/time';
-import { TIMELINE_CONSTANTS } from '@/app/video-editor/_lib/timeline/constants';
+import { TIMELINE_CONSTANTS } from '@/app/video-editor/_lib/timeline/controls/constants';
 
 const DEFAULT_FPS = TIMELINE_CONSTANTS.DEFAULT_FPS;
 
