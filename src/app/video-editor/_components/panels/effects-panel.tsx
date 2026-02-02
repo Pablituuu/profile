@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Effect, GL_EFFECT_OPTIONS } from '@designcombo/video';
+import { Effect, GL_EFFECT_OPTIONS } from 'openvideo';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEditorStore } from '@/store/use-editor-store';
 

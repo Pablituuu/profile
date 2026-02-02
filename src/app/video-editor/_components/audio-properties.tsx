@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IClip } from '@designcombo/video';
+import { IClip } from 'openvideo';
 import { IconVolume, IconGauge, IconMusic } from '@tabler/icons-react';
 import {
   InputGroup,

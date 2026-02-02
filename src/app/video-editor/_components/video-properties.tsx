@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { IClip } from '@designcombo/video';
+import { IClip } from 'openvideo';
 import {
   IconMinus,
   IconBlur,

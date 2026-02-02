@@ -17,13 +17,7 @@ export function ProjectsSection() {
       github: `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME || 'pablituuu'}/profile`,
       image: '/video-editor-v2.png',
       desc: t('videoEditorV2Desc'),
-      techs: [
-        'Next JS',
-        '@designcombo/video',
-        'Fabric JS',
-        'Tailwind CSS',
-        'Zustand',
-      ],
+      techs: ['Next JS', 'openvideo', 'Fabric JS', 'Tailwind CSS', 'Zustand'],
     },
     {
       title: t('videoEditorV1Title'),

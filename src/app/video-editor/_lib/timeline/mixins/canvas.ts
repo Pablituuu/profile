@@ -3,6 +3,7 @@ import { TextClipTimeline } from '../text-clip';
 import { VideoClipTimeline } from '../video-clip';
 import { ImageClipTimeline } from '../image-clip';
 import { AudioClipTimeline } from '../audio-clip';
+import { EffectClipTimeline } from '../effect-clip';
 import { Track } from '../track';
 import { TIMELINE_CONSTANTS } from '../controls/constants';
 import { ActiveSelection } from 'fabric';
@@ -101,7 +102,8 @@ class CanvasMixin {
       obj instanceof TextClipTimeline ||
       obj instanceof VideoClipTimeline ||
       obj instanceof ImageClipTimeline ||
-      obj instanceof AudioClipTimeline;
+      obj instanceof AudioClipTimeline ||
+      obj instanceof EffectClipTimeline;
 
     const allObjects = this.getObjects();
     const activeObject = this.getActiveObject();

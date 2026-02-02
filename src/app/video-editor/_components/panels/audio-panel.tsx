@@ -1,7 +1,7 @@
 'use client';
 
 import { Play, Plus } from 'lucide-react';
-import { Audio } from '@designcombo/video';
+import { Audio } from 'openvideo';
 import { useEditorStore } from '@/store/use-editor-store';
 
 const audioTracks = [

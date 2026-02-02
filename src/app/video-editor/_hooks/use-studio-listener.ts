@@ -1,16 +1,17 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useEditorStore } from "@/store/use-editor-store";
-import { TextClipTimeline } from "../_lib/timeline/text-clip";
-import { VideoClipTimeline } from "../_lib/timeline/video-clip";
-import { ImageClipTimeline } from "../_lib/timeline/image-clip";
-import { AudioClipTimeline } from "../_lib/timeline/audio-clip";
-import { Track } from "../_lib/timeline/track";
-import { ITrack, IStudioEventData } from "@/types/editor";
-import { IClip, Text } from "@designcombo/video";
-import { TIMELINE_CONSTANTS } from "../_lib/timeline/controls/constants";
-import { cloneDeep } from "lodash";
+import { useEffect } from 'react';
+import { useEditorStore } from '@/store/use-editor-store';
+import { TextClipTimeline } from '../_lib/timeline/text-clip';
+import { VideoClipTimeline } from '../_lib/timeline/video-clip';
+import { ImageClipTimeline } from '../_lib/timeline/image-clip';
+import { AudioClipTimeline } from '../_lib/timeline/audio-clip';
+import { EffectClipTimeline } from '../_lib/timeline/effect-clip';
+import { Track } from '../_lib/timeline/track';
+import { ITrack, IStudioEventData } from '@/types/editor';
+import { Text, IClip } from 'openvideo';
+import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
+import { cloneDeep } from 'lodash';
 
 /**
  * Hook to listen to Studio events and synchronize the timeline canvas.
@@ -44,17 +45,17 @@ export function useStudioListener() {
       const clip = (data as IStudioEventData).clip || (data as IClip);
       if (!clip) return;
 
-      if (clip.type === "Text") {
+      if (clip.type === 'Text') {
         const studioTracks = studio.tracks || [];
         const trackList: ITrack[] = Array.isArray(studioTracks)
           ? studioTracks
           : Object.values(studioTracks);
 
         const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id),
+          t.clipIds?.includes(clip.id)
         );
 
-        const textValue = (clip as Text).text || "";
+        const textValue = (clip as Text).text || '';
         const trackStep =
           TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
 
@@ -72,14 +73,14 @@ export function useStudioListener() {
         timeline.add(textClip);
         timeline.alignClipsToTrack();
         timeline.renderAll();
-      } else if (clip.type === "Video") {
+      } else if (clip.type === 'Video') {
         const studioTracks = studio.tracks || [];
         const trackList: ITrack[] = Array.isArray(studioTracks)
           ? studioTracks
           : Object.values(studioTracks);
 
         const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id),
+          t.clipIds?.includes(clip.id)
         );
 
         const trackStep =
@@ -89,7 +90,7 @@ export function useStudioListener() {
         const videoClip = new VideoClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
-          src: (clip as any).src || "",
+          src: (clip as any).src || '',
           display: clip.display,
           trim: (clip as any).trim || { from: 0, to: clip.duration },
           duration: clip.duration,
@@ -100,14 +101,14 @@ export function useStudioListener() {
         timeline.add(videoClip);
         timeline.alignClipsToTrack();
         timeline.renderAll();
-      } else if (clip.type === "Image") {
+      } else if (clip.type === 'Image') {
         const studioTracks = studio.tracks || [];
         const trackList: ITrack[] = Array.isArray(studioTracks)
           ? studioTracks
           : Object.values(studioTracks);
 
         const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id),
+          t.clipIds?.includes(clip.id)
         );
 
         const trackStep =
@@ -117,7 +118,7 @@ export function useStudioListener() {
         const imageClip = new ImageClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
-          src: (clip as any).src || "",
+          src: (clip as any).src || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
@@ -127,14 +128,14 @@ export function useStudioListener() {
         timeline.add(imageClip);
         timeline.alignClipsToTrack();
         timeline.renderAll();
-      } else if (clip.type === "Audio") {
+      } else if (clip.type === 'Audio') {
         const studioTracks = studio.tracks || [];
         const trackList: ITrack[] = Array.isArray(studioTracks)
           ? studioTracks
           : Object.values(studioTracks);
 
         const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id),
+          t.clipIds?.includes(clip.id)
         );
 
         const trackStep =
@@ -144,7 +145,7 @@ export function useStudioListener() {
         const audioClip = new AudioClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
-          src: (clip as any).src || "",
+          src: (clip as any).src || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
@@ -152,6 +153,33 @@ export function useStudioListener() {
           zoom: zoomLevel,
         });
         timeline.add(audioClip);
+        timeline.alignClipsToTrack();
+        timeline.renderAll();
+      } else if (clip.type === 'Effect') {
+        const studioTracks = studio.tracks || [];
+        const trackList: ITrack[] = Array.isArray(studioTracks)
+          ? studioTracks
+          : Object.values(studioTracks);
+
+        const trackIndex = trackList.findIndex((t) =>
+          t.clipIds?.includes(clip.id)
+        );
+
+        const trackStep =
+          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
+        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
+
+        const effectClip = new EffectClipTimeline({
+          id: clip.id,
+          name: (clip as any).name || (clip as any).effectType || clip.type,
+          effectType: (clip as any).effectType || '',
+          display: clip.display,
+          duration: clip.duration,
+          trackIndex: trackIndex >= 0 ? trackIndex : 0,
+          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          zoom: zoomLevel,
+        });
+        timeline.add(effectClip);
         timeline.alignClipsToTrack();
         timeline.renderAll();
       }
@@ -163,47 +191,61 @@ export function useStudioListener() {
 
       const objects = timeline.getClips();
       const clipObject = objects.find(
-        (obj) => (obj as any).clipId === clip.id || obj.id === clip.id,
+        (obj) => (obj as any).clipId === clip.id || obj.id === clip.id
       );
 
       if (clipObject) {
         const pixelsPerSec = TIMELINE_CONSTANTS.PIXELS_PER_SECOND * zoomLevel;
-        const newLeft = (clip.display.from * pixelsPerSec) / 1_000_000;
-        const newWidth = (clip.duration * pixelsPerSec) / 1_000_000;
+        const targetAbsLeft = (clip.display.from * pixelsPerSec) / 1_000_000;
+        const targetScaledWidth = (clip.duration * pixelsPerSec) / 1_000_000;
 
-        // If the object is in a group (multi-selection), we must update its relative position
+        const updates: any = {};
+        let hasVisualChange = false;
+
+        // 1. Position Sync (with group handling)
         if (clipObject.group) {
           const matrix = clipObject.calcTransformMatrix();
           const currentAbsLeft = matrix[4] - clipObject.getScaledWidth() / 2;
-          const diffX = newLeft - currentAbsLeft;
+          const diffX = targetAbsLeft - currentAbsLeft;
 
-          clipObject.set({
-            left: clipObject.left + diffX,
-            width: newWidth,
-          });
-          clipObject.setCoords();
-          clipObject.group.setCoords();
+          if (Math.abs(diffX) > 0.1) {
+            updates.left = clipObject.left + diffX;
+            hasVisualChange = true;
+          }
         } else {
-          clipObject.set({
-            left: newLeft,
-            width: newWidth,
-          });
-          clipObject.setCoords();
+          if (Math.abs(clipObject.left - targetAbsLeft) > 0.1) {
+            updates.left = targetAbsLeft;
+            hasVisualChange = true;
+          }
         }
 
-        // Sync internal metadata used for zoom and other calculations
-        if ("startUs" in clipObject)
-          (clipObject as any).startUs = clip.display.from;
-        if ("durationUs" in clipObject)
-          (clipObject as any).durationUs = clip.duration;
-        if ("endUs" in clipObject) (clipObject as any).endUs = clip.display.to;
+        // 2. Width Sync (accounting for scaleX)
+        const currentScaledWidth = clipObject.getScaledWidth();
+        if (Math.abs(currentScaledWidth - targetScaledWidth) > 0.1) {
+          updates.width = targetScaledWidth / Math.abs(clipObject.scaleX || 1);
+          hasVisualChange = true;
+        }
 
-        // Sync trim if applicable
-        if (clip.trim && "trim" in clipObject) {
+        if (hasVisualChange) {
+          clipObject.set(updates);
+          clipObject.setCoords();
+          if (clipObject.group) clipObject.group.setCoords();
+        }
+
+        // 3. Metadata Sync (Unconditional metadata updates)
+        if ('startUs' in clipObject)
+          (clipObject as any).startUs = clip.display.from;
+        if ('durationUs' in clipObject)
+          (clipObject as any).durationUs = clip.duration;
+        if ('endUs' in clipObject) (clipObject as any).endUs = clip.display.to;
+
+        if (clip.trim && 'trim' in clipObject) {
           (clipObject as any).trim = { ...clip.trim };
         }
 
-        timeline.renderAll();
+        if (hasVisualChange) {
+          timeline.renderAll();
+        }
       }
     };
 
@@ -214,7 +256,7 @@ export function useStudioListener() {
       const existingClipIds = new Set(
         timelineObjects
           .filter((obj) => !(obj instanceof Track))
-          .map((c) => (c as any).clipId || (c as any).id),
+          .map((c) => (c as any).clipId || (c as any).id)
       );
 
       studio.clips.forEach((clip) => {
@@ -233,7 +275,7 @@ export function useStudioListener() {
       // 1. Find and remove the clip object from the canvas
       const objects = timeline.getObjects();
       const clipObject = objects.find(
-        (obj) => (obj as any).clipId === clipId || (obj as any).id === clipId,
+        (obj) => (obj as any).clipId === clipId || (obj as any).id === clipId
       );
       if (clipObject && !(clipObject instanceof Track)) {
         timeline.remove(clipObject);
@@ -241,7 +283,7 @@ export function useStudioListener() {
 
       // 2. Sync track clipIds from studio before cleaning up
       const tracks = objects.filter(
-        (obj): obj is Track => obj instanceof Track,
+        (obj): obj is Track => obj instanceof Track
       );
       const studioTracks = studio.tracks || [];
       const trackList: ITrack[] = Array.isArray(studioTracks)
@@ -311,34 +353,34 @@ export function useStudioListener() {
     const handleTrackOrderChanged = () => syncTracks();
 
     // Subscribe to Studio events
-    studio.on("clip:added", handleClipAdded);
-    studio.on("clip:updated", handleClipUpdated);
-    studio.on("clip:removed", handleClipRemoved);
-    studio.on("track:added", handleTrackAdded);
-    studio.on("track:removed", handleTrackRemoved);
-    studio.on("track:order-changed", handleTrackOrderChanged);
-    studio.on("studio:restored", handleSyncHistory);
+    studio.on('clip:added', handleClipAdded);
+    studio.on('clip:updated', handleClipUpdated);
+    studio.on('clip:removed', handleClipRemoved);
+    studio.on('track:added', handleTrackAdded);
+    studio.on('track:removed', handleTrackRemoved);
+    studio.on('track:order-changed', handleTrackOrderChanged);
+    studio.on('studio:restored', handleSyncHistory);
 
     syncTracks();
     syncClips();
 
-    studio.on("currentTime", handleTimeUpdate);
-    studio.on("play", handlePlay);
-    studio.on("pause", handlePause);
+    studio.on('currentTime', handleTimeUpdate);
+    studio.on('play', handlePlay);
+    studio.on('pause', handlePause);
 
     return () => {
       // Clean up subscriptions
-      studio.off("clip:added", handleClipAdded);
-      studio.off("clip:updated", handleClipUpdated);
-      studio.off("clip:removed", handleClipRemoved);
-      studio.off("track:added", handleTrackAdded);
-      studio.off("track:removed", handleTrackRemoved);
-      studio.off("track:order-changed", handleTrackOrderChanged);
-      studio.off("studio:restored", handleSyncHistory);
+      studio.off('clip:added', handleClipAdded);
+      studio.off('clip:updated', handleClipUpdated);
+      studio.off('clip:removed', handleClipRemoved);
+      studio.off('track:added', handleTrackAdded);
+      studio.off('track:removed', handleTrackRemoved);
+      studio.off('track:order-changed', handleTrackOrderChanged);
+      studio.off('studio:restored', handleSyncHistory);
 
-      studio.off("currentTime", handleTimeUpdate);
-      studio.off("play", handlePlay);
-      studio.off("pause", handlePause);
+      studio.off('currentTime', handleTimeUpdate);
+      studio.off('play', handlePlay);
+      studio.off('pause', handlePause);
     };
   }, [studio, timeline, setCurrentTime, setIsPlaying, zoomLevel]);
 }

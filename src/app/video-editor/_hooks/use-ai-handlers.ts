@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Text, Image, Video, IClip, Studio } from '@designcombo/video';
+import { Text, Image, Video, IClip, Studio } from 'openvideo';
 
 interface TextStyle {
   fontSize?: number;

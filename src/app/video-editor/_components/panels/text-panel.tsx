@@ -3,7 +3,7 @@
 import { Type, Captions } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEditorStore } from '@/store/use-editor-store';
-import { Text } from '@designcombo/video';
+import { Text } from 'openvideo';
 import { useCallback } from 'react';
 
 export function TextPanel() {

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useEditorStore } from "@/store/use-editor-store";
-import { TIMELINE_CONSTANTS } from "../_lib/timeline/controls/constants";
-import { Track } from "../_lib/timeline/track";
+import { useEffect } from 'react';
+import { useEditorStore } from '@/store/use-editor-store';
+import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
+import { Track } from '../_lib/timeline/track';
 
 export function useTimelineListener() {
   const { studio, timeline, zoomLevel, setZoomLevel } = useEditorStore();
@@ -20,13 +20,13 @@ export function useTimelineListener() {
         .filter((obj): obj is Track => obj instanceof Track);
 
       const sortedTracks = [...canvasTracks].sort(
-        (a, b) => (a as any).index - (b as any).index,
+        (a, b) => (a as any).index - (b as any).index
       );
 
       const trackData = sortedTracks.map((t) => ({
         id: t.id,
         name: t.name,
-        type: (t as any).trackType || "video",
+        type: (t as any).trackType || 'video',
         clipIds: t.clipIds || [],
       }));
 
@@ -127,8 +127,8 @@ export function useTimelineListener() {
 
         // Group history updates if methods are available
         const hasHistoryGrouping =
-          typeof (studio as any).beginHistoryGroup === "function" &&
-          typeof (studio as any).endHistoryGroup === "function";
+          typeof (studio as any).beginHistoryGroup === 'function' &&
+          typeof (studio as any).endHistoryGroup === 'function';
 
         if (hasHistoryGrouping) {
           (studio as any).beginHistoryGroup();
@@ -139,12 +139,12 @@ export function useTimelineListener() {
           if (hasClipChanges) {
             if ((studio as any).updateClips) {
               await (studio as any).updateClips(
-                validUpdates.map((u) => ({ id: u.id, updates: u.updates })),
+                validUpdates.map((u) => ({ id: u.id, updates: u.updates }))
               );
             } else {
               console.log(validUpdates);
               await Promise.all(
-                validUpdates.map((u) => studio.updateClip(u.id, u.updates)),
+                validUpdates.map((u) => studio.updateClip(u.id, u.updates))
               );
             }
           }
@@ -156,7 +156,7 @@ export function useTimelineListener() {
           }
         }
       } catch (error) {
-        console.error("Failed to sync timeline to studio:", error);
+        console.error('Failed to sync timeline to studio:', error);
       }
     };
 
@@ -171,31 +171,31 @@ export function useTimelineListener() {
       const factor = opt.delta > 0 ? -zoomStep : zoomStep;
       const newZoom = Math.max(
         0.2,
-        Math.min(2, Math.round((zoomLevel + factor) * 10) / 10),
+        Math.min(2, Math.round((zoomLevel + factor) * 10) / 10)
       );
       setZoomLevel(newZoom);
     };
 
     // Subscriptions to custom Fabric events
     // We use granular listeners to match the logic where possible
-    (timeline as any).on("update:track", syncTimelineToStudio);
-    (timeline as any).on("clip:move", syncTimelineToStudio);
-    (timeline as any).on("clip:resize", syncTimelineToStudio);
-    (timeline as any).on("selection:created", syncSelectionToStudio);
-    (timeline as any).on("selection:updated", syncSelectionToStudio);
-    (timeline as any).on("selection:change", syncSelectionToStudio);
-    (timeline as any).on("selection:cleared", syncSelectionToStudio);
-    (timeline as any).on("timeline:zoom", handleTimelineZoom);
+    (timeline as any).on('update:track', syncTimelineToStudio);
+    (timeline as any).on('clip:move', syncTimelineToStudio);
+    (timeline as any).on('clip:resize', syncTimelineToStudio);
+    (timeline as any).on('selection:created', syncSelectionToStudio);
+    (timeline as any).on('selection:updated', syncSelectionToStudio);
+    (timeline as any).on('selection:change', syncSelectionToStudio);
+    (timeline as any).on('selection:cleared', syncSelectionToStudio);
+    (timeline as any).on('timeline:zoom', handleTimelineZoom);
 
     return () => {
-      (timeline as any).off("update:track", syncTimelineToStudio);
-      (timeline as any).off("clip:move", syncTimelineToStudio);
-      (timeline as any).off("clip:resize", syncTimelineToStudio);
-      (timeline as any).off("selection:created", syncSelectionToStudio);
-      (timeline as any).off("selection:updated", syncSelectionToStudio);
-      (timeline as any).off("selection:change", syncSelectionToStudio);
-      (timeline as any).off("selection:cleared", syncSelectionToStudio);
-      (timeline as any).off("timeline:zoom", handleTimelineZoom);
+      (timeline as any).off('update:track', syncTimelineToStudio);
+      (timeline as any).off('clip:move', syncTimelineToStudio);
+      (timeline as any).off('clip:resize', syncTimelineToStudio);
+      (timeline as any).off('selection:created', syncSelectionToStudio);
+      (timeline as any).off('selection:updated', syncSelectionToStudio);
+      (timeline as any).off('selection:change', syncSelectionToStudio);
+      (timeline as any).off('selection:cleared', syncSelectionToStudio);
+      (timeline as any).off('timeline:zoom', handleTimelineZoom);
     };
   }, [studio, timeline, zoomLevel]);
 }

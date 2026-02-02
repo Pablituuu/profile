@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Studio, IClip } from '@designcombo/video';
+import { Studio, IClip } from 'openvideo';
 import TimelineCanvas from '@/app/video-editor/_lib/timeline/canvas';
 
 interface EditorState {

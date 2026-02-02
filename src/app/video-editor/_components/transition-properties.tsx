@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IClip } from '@designcombo/video';
+import { IClip } from 'openvideo';
 import { IconVolume, IconGauge, IconMusic } from '@tabler/icons-react';
 import {
   InputGroup,
@@ -7,7 +7,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group';
 import { Slider } from '@/components/ui/slider';
-import { GL_TRANSITION_OPTIONS, Transition } from '@designcombo/video';
+import { GL_TRANSITION_OPTIONS, Transition } from 'openvideo';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEditorStore } from '@/store/use-editor-store';
 import { Loader2 } from 'lucide-react';

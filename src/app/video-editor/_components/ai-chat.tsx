@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEditorStore } from '@/store/use-editor-store';
-import { Text, IClip } from '@designcombo/video';
 import { useAiHandlers } from '../_hooks/use-ai-handlers';
 
 /**

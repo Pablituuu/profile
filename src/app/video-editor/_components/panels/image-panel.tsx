@@ -5,7 +5,7 @@ import { AIAssetsModal } from '../modals/ai-assets-modal';
 
 import { CloudUpload, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Image } from '@designcombo/video';
+import { Image } from 'openvideo';
 import { useEditorStore } from '@/store/use-editor-store';
 
 const imageAssets = [

@@ -4,7 +4,7 @@ import { AIAssetsModal } from '../modals/ai-assets-modal';
 
 import { CloudUpload, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Placeholder, Video as VideoClip } from '@designcombo/video';
+import { Placeholder, Video as VideoClip } from 'openvideo';
 import { useEditorStore } from '@/store/use-editor-store';
 import { useEffect, useRef, useState } from 'react';
 

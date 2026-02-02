@@ -1,4 +1,4 @@
-import { IClip } from '@designcombo/video';
+import { IClip } from 'openvideo';
 
 export interface ITrack {
   id: string;

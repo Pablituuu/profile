@@ -6,7 +6,7 @@ A premium, modern, and high-performance CV website built with Next.js 15+, Tailw
 
 ## 🚀 Features
 
-- **Next Video Editor V2**: A high-performance web-based video editor powered by `@designcombo/video` and `Fabric.js`.
+- **Next Video Editor V2**: A high-performance web-based video editor powered by `openvideo` and `Fabric.js`.
 - **AI-Powered Experiences**: Integration with Google Gemini AI for advanced content generation and chat interactions.
 - **Full Localization (I18n)**: Seamless English and Spanish support implemented through a centralized, type-safe translation system.
 - **GitHub Integration**: Real-time contribution calendar and repository stats using the GitHub API.
@@ -19,7 +19,7 @@ A premium, modern, and high-performance CV website built with Next.js 15+, Tailw
 
 - **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Turbopack)
 - **AI/ML**: [AI SDK (Google Gemini)](https://sdk.vercel.ai/) & [@google/genai](https://www.npmjs.com/package/@google/genai)
-- **Video Processing**: [@designcombo/video](https://www.designcombo.io/) & [Fabric.js](http://fabricjs.com/)
+- **Video Processing**: [openvideo](https://www.designcombo.io/) & [Fabric.js](http://fabricjs.com/)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
 - **Animation**: [Framer Motion](https://www.framer.com/motion/) & [tw-animate-css](https://www.npmjs.com/package/tw-animate-css)

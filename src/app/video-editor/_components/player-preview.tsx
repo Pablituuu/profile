@@ -2,18 +2,26 @@
 
 import { useEffect, useRef } from 'react';
 import { Player } from './player';
-import { Studio, Compositor, Text } from '@designcombo/video';
+import { Studio, Compositor, fontManager } from 'openvideo';
 import { useEditorStore } from '@/store/use-editor-store';
 
-const defaultSize = {
+// Canvas configuration constants
+const DEFAULT_CANVAS_SIZE = {
   width: 1080,
   height: 1920,
-};
+} as const;
+
+const STUDIO_CONFIG = {
+  fps: 30,
+  bgColor: '#1A1A1A',
+  interactivity: true,
+  spacing: 20,
+} as const;
 
 export function PlayerPreview() {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
-  const previewRef = useRef<Studio | null>(null);
-  const { setStudio, setSelectedClips, timeline, studio } = useEditorStore();
+  const studioRef = useRef<Studio | null>(null);
+  const { setStudio, setSelectedClips, timeline } = useEditorStore();
 
   useEffect(() => {
     if (!previewCanvasRef.current) return;
@@ -25,33 +33,60 @@ export function PlayerPreview() {
       }
     })();
 
+    // Create studio instance
     const studioInstance = new Studio({
-      width: defaultSize.width,
-      height: defaultSize.height,
-      fps: 30,
-      bgColor: '#1A1A1A',
+      ...DEFAULT_CANVAS_SIZE,
+      ...STUDIO_CONFIG,
       canvas: previewCanvasRef.current,
-      interactivity: true,
-      spacing: 20,
     });
 
-    previewRef.current = studioInstance;
+    studioRef.current = studioInstance;
     setStudio(studioInstance);
 
-    const init = async () => {
-      await studioInstance.ready;
+    // Initialize fonts and notify when ready
+    const initializeStudio = async () => {
+      try {
+        await Promise.all([
+          // fontManager.loadFonts([]), // Add specific fonts if needed
+          studioInstance.ready,
+        ]);
+      } catch (error) {
+        console.error('Failed to initialize studio:', error);
+      }
     };
-    init();
+
+    initializeStudio();
+
+    // Setup ResizeObserver for responsive layout
+    const canvas = previewCanvasRef.current;
+    const parentElement = canvas.parentElement;
+    let resizeObserver: ResizeObserver | null = null;
+
+    if (parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        if (
+          studioRef.current &&
+          (studioRef.current as any).updateArtboardLayout
+        ) {
+          (studioRef.current as any).updateArtboardLayout();
+        }
+      });
+      resizeObserver.observe(parentElement);
+    }
 
     return () => {
+      if (resizeObserver && parentElement) {
+        resizeObserver.unobserve(parentElement);
+        resizeObserver.disconnect();
+      }
       studioInstance.destroy();
-      previewRef.current = null;
+      studioRef.current = null;
       setStudio(null);
     };
   }, []);
 
   useEffect(() => {
-    const studio = previewRef.current;
+    const studio = studioRef.current;
     if (!studio) return;
 
     const handleSelection = (data: any) => {
@@ -78,10 +113,10 @@ export function PlayerPreview() {
       studio.off('selection:change', handleSelection);
       studio.off('selection:cleared', handleClear);
     };
-  }, [studio, timeline, setSelectedClips]);
+  }, [timeline, setSelectedClips]);
 
   return (
-    <div className="h-full w-full flex flex-col min-h-0 min-w-0 bg-[#1A1A1A]  rounded-sm relative">
+    <div className="h-full w-full flex flex-col min-h-0 min-w-0 bg-[#1A1A1A] rounded-sm relative">
       {/* Player Container */}
       <div
         style={{
