@@ -108,8 +108,8 @@ importers:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       openvideo:
-        specifier: ^0.0.1
-        version: 0.0.1(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)
+        specifier: ^0.0.3
+        version: 0.0.3(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1)
       radix-ui:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3326,8 +3326,8 @@ packages:
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
-  openvideo@0.0.1:
-    resolution: {integrity: sha512-AFkIADNGgFiEWDaVp3QYZY05wDp77/g9XCmSoW9uxnfxXEPFO5gWay00PBxX0pc3NlT6oZbtPDB8XL7bmS8UMQ==}
+  openvideo@0.0.3:
+    resolution: {integrity: sha512-bJUpc3wODNMjvlgBOv5aD+Y5fip3ftGtBntFGQV4OwEaydgBucyOFiR2Gb9Zv9uKmQgbR3QFJLazNYEUAEk3BQ==}
 
   opfs-tools@0.7.4:
     resolution: {integrity: sha512-DJgQnXyPcCj3q8pKa8SjP4HfNBPffj8kO6W1nc2zQydTqu5G/AxOuIjmWnRxZ84nE1EOpzZzhj8MYCZP1jRR9A==}
@@ -7667,7 +7667,7 @@ snapshots:
       wrappy: 1.0.2
     optional: true
 
-  openvideo@0.0.1(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1):
+  openvideo@0.0.3(@types/react@19.2.9)(react@19.2.3)(yoga-layout@3.2.1):
     dependencies:
       '@pixi/layout': 3.2.0(@types/react@19.2.9)(pixi.js@8.15.0)(react@19.2.3)(yoga-layout@3.2.1)
       gl-transitions: 1.43.0
