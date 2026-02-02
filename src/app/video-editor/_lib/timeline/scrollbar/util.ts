@@ -99,17 +99,8 @@ export const makeMouseWheel =
     const e = wheelEvent.e;
     if (e.target == canvas.upperCanvasEl) e.preventDefault();
 
-    const isTouchScale = Math.floor(e.deltaY) != Math.ceil(e.deltaY);
-
     if (e.ctrlKey || e.metaKey) {
-      const speed = isTouchScale ? 0.99 : 0.998;
-      let zoom = canvas.getZoom();
-      zoom *= speed ** e.deltaY;
-
-      if (options.max != undefined && zoom > options.max) zoom = options.max;
-      if (options.min != undefined && zoom < options.min) zoom = options.min;
-      canvas.zoomToPoint(wheelEvent.viewportPoint, zoom);
-      canvas.requestRenderAll();
+      (canvas as any).fire('timeline:zoom', { delta: e.deltaY });
       return;
     }
 

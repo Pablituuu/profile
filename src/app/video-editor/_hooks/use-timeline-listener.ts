@@ -6,7 +6,7 @@ import { TIMELINE_CONSTANTS } from "../_lib/timeline/controls/constants";
 import { Track } from "../_lib/timeline/track";
 
 export function useTimelineListener() {
-  const { studio, timeline, zoomLevel } = useEditorStore();
+  const { studio, timeline, zoomLevel, setZoomLevel } = useEditorStore();
 
   useEffect(() => {
     if (!studio || !timeline) return;
@@ -36,9 +36,20 @@ export function useTimelineListener() {
       const clipUpdates = canvasClips
         .map((clip: any) => {
           const id = clip.clipId || clip.id;
-          const left = clip.left;
+
+          // Handle absolute coordinates during multi-selection
+          // Objects in ActiveSelection have relative left/top
+          const getAbsLeft = (obj: any) => {
+            if (obj.group) {
+              const matrix = obj.calcTransformMatrix();
+              return matrix[4] - obj.getScaledWidth() / 2;
+            }
+            return obj.left;
+          };
+
+          const left = getAbsLeft(clip);
           // Use content width only, ignoring strokeWidth for duration calculation
-          const width = clip.width * Math.abs(clip.scaleX);
+          const width = clip.getScaledWidth();
 
           const currentClip = studio.clips?.find((c: any) => c.id === id);
 
@@ -155,6 +166,16 @@ export function useTimelineListener() {
       studio.selectClipsByIds(clipIds);
     };
 
+    const handleTimelineZoom = (opt: { delta: number }) => {
+      const zoomStep = 0.1;
+      const factor = opt.delta > 0 ? -zoomStep : zoomStep;
+      const newZoom = Math.max(
+        0.2,
+        Math.min(2, Math.round((zoomLevel + factor) * 10) / 10),
+      );
+      setZoomLevel(newZoom);
+    };
+
     // Subscriptions to custom Fabric events
     // We use granular listeners to match the logic where possible
     (timeline as any).on("update:track", syncTimelineToStudio);
@@ -164,6 +185,7 @@ export function useTimelineListener() {
     (timeline as any).on("selection:updated", syncSelectionToStudio);
     (timeline as any).on("selection:change", syncSelectionToStudio);
     (timeline as any).on("selection:cleared", syncSelectionToStudio);
+    (timeline as any).on("timeline:zoom", handleTimelineZoom);
 
     return () => {
       (timeline as any).off("update:track", syncTimelineToStudio);
@@ -173,6 +195,7 @@ export function useTimelineListener() {
       (timeline as any).off("selection:updated", syncSelectionToStudio);
       (timeline as any).off("selection:change", syncSelectionToStudio);
       (timeline as any).off("selection:cleared", syncSelectionToStudio);
+      (timeline as any).off("timeline:zoom", handleTimelineZoom);
     };
   }, [studio, timeline, zoomLevel]);
 }

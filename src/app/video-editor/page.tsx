@@ -38,7 +38,6 @@ export default function VideoEditorPage() {
         </div>
       </div>
 
-      {/* 4. AI Chat Assistant */}
       <AIChat />
     </div>
   );

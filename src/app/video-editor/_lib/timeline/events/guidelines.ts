@@ -7,29 +7,29 @@ import {
   ObjectEvents,
   SerializedObjectProps,
   TPointerEvent,
-} from "fabric";
-import { getState, setState } from "./internal";
+} from 'fabric';
+import { getState, setState } from './internal';
 import {
   clearAuxiliaryObjects,
   drawGuides,
   getGuides,
   getLineGuideStops,
   getObjectSnappingEdges,
-} from "../utils/guideline";
+} from '../utils/guideline';
 import {
   clearPlaceholderObjects,
   clearTrackHelperGuides,
   isHelperTrack,
-} from "../utils/canvas";
-import { TIMELINE_CONSTANTS } from "../controls/constants";
-import { TimelineCanvas } from "../canvas";
-import { Track } from "../track";
-import { Helper } from "../helper";
-import { cloneDeep } from "lodash";
+} from '../utils/canvas';
+import { TIMELINE_CONSTANTS } from '../controls/constants';
+import { TimelineCanvas } from '../canvas';
+import { Track } from '../track';
+import { Helper } from '../helper';
+import { cloneDeep } from 'lodash';
 
 export function onObjectMoving(
   this: TimelineCanvas,
-  e: ModifiedEvent<TPointerEvent>,
+  e: ModifiedEvent<TPointerEvent>
 ) {
   e.e?.preventDefault();
   const canvas = this;
@@ -82,8 +82,8 @@ export function onObjectMoving(
       (obj) =>
         obj instanceof Track ||
         isHelperTrack(obj) ||
-        (obj as any).type === "Placeholder" ||
-        (obj as any).isAlignmentAuxiliary,
+        (obj as any).type === 'Placeholder' ||
+        (obj as any).isAlignmentAuxiliary
     ),
   ];
 
@@ -101,7 +101,7 @@ export function onObjectMoving(
   }
 
   guides.forEach((lineGuide) => {
-    if (lineGuide.orientation === "V") {
+    if (lineGuide.orientation === 'V') {
       target.left = lineGuide.lineGuide + lineGuide.offset;
     } else {
       target.top = lineGuide.lineGuide + lineGuide.offset;
@@ -114,7 +114,7 @@ export function onObjectMoving(
 
 function onObjectModified(
   this: TimelineCanvas,
-  e: ModifiedEvent<TPointerEvent>,
+  e: ModifiedEvent<TPointerEvent>
 ) {
   const canvas = this;
   if (!canvas) return;
@@ -128,7 +128,7 @@ function onObjectModified(
       p.visible ||
       (isSingleSelection &&
         state.draggingOverTrack &&
-        isHelperTrack(state.draggingOverTrack)),
+        isHelperTrack(state.draggingOverTrack))
   );
 
   if (visiblePlaceholders.length > 0 && activeObject) {
@@ -196,7 +196,7 @@ function onObjectModified(
 
       if (isMultiTrackSelection) {
         const uniqueTops = Array.from(
-          new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj)))),
+          new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj))))
         ).sort((a, b) => a - b);
 
         const allTracks = canvas
@@ -211,7 +211,7 @@ function onObjectModified(
         uniqueTops.forEach((originalTop, index) => {
           const newTrackTop = targetTop + index * trackStep;
           const clipsForThisTrack = activeObjects.filter(
-            (obj) => Math.round(getAbsTop(obj)) === originalTop,
+            (obj) => Math.round(getAbsTop(obj)) === originalTop
           );
 
           clipsForThisTrack.forEach((obj) => {
@@ -226,14 +226,14 @@ function onObjectModified(
           const trackId = `track-${Math.random().toString(36).slice(2, 9)}`;
           const newTrack = new Track({
             id: trackId,
-            name: "New Track",
-            type: "video",
+            name: 'New Track',
+            type: 'video',
             width: 1000000,
             height: TIMELINE_CONSTANTS.CLIP_HEIGHT,
             top: newTrackTop,
             index: baseIndex + index,
             clipIds: clipsForThisTrack.map(
-              (obj) => (obj as any).clipId || (obj as any).id,
+              (obj) => (obj as any).clipId || (obj as any).id
             ),
           });
 
@@ -260,14 +260,14 @@ function onObjectModified(
 
         const newTrack = new Track({
           id: `track-${Math.random().toString(36).slice(2, 9)}`,
-          name: "New Track",
-          type: "video",
+          name: 'New Track',
+          type: 'video',
           width: 1000000,
           height: TIMELINE_CONSTANTS.CLIP_HEIGHT,
           top: targetTop,
           index: baseIndex,
           clipIds: activeObjects.map(
-            (obj) => (obj as any).clipId || (obj as any).id,
+            (obj) => (obj as any).clipId || (obj as any).id
           ),
         });
 
@@ -279,19 +279,19 @@ function onObjectModified(
       protectedTrackIds.push((droppedTarget as any).id);
 
       const uniqueTops = Array.from(
-        new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj)))),
+        new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj))))
       ).sort((a, b) => a - b);
 
       const baseIndex = (droppedTarget as any).index ?? 0;
       const allClipsOnCanvas = (this as any).getClips();
       const selectionIds = new Set(
-        activeObjects.map((obj) => (obj as any).clipId || (obj as any).id),
+        activeObjects.map((obj) => (obj as any).clipId || (obj as any).id)
       );
       const placeholderTargetMap = new Map(
         state.placeholderMovingObjects.map((p) => [
           (p.draggedObject as any)?.clipId || (p.draggedObject as any)?.id,
           p,
-        ]),
+        ])
       );
 
       let cumulativeShift = 0;
@@ -299,7 +299,7 @@ function onObjectModified(
 
       uniqueTops.forEach((originalTop) => {
         const relativeTrackOffset = Math.round(
-          (originalTop - topMostSelectionTop) / trackStep,
+          (originalTop - topMostSelectionTop) / trackStep
         );
         const newTrackTop =
           targetTop + (relativeTrackOffset + cumulativeShift) * trackStep;
@@ -307,14 +307,13 @@ function onObjectModified(
           baseIndex + relativeTrackOffset + cumulativeShift;
 
         const clipsInThisLevel = activeObjects.filter(
-          (obj) => Math.round(getAbsTop(obj)) === originalTop,
+          (obj) => Math.round(getAbsTop(obj)) === originalTop
         );
 
         let existingTrack = canvas
           .getObjects()
           .find(
-            (obj) =>
-              obj instanceof Track && Math.abs(obj.top - newTrackTop) < 2,
+            (obj) => obj instanceof Track && Math.abs(obj.top - newTrackTop) < 2
           ) as Track;
 
         let hasConflict = false;
@@ -376,13 +375,13 @@ function onObjectModified(
           });
 
           const trackClipIds = clipsInThisLevel.map(
-            (obj) => (obj as any).clipId || (obj as any).id,
+            (obj) => (obj as any).clipId || (obj as any).id
           );
 
           const newTrack = new Track({
             id: `track-${Math.random().toString(36).slice(2, 9)}`,
-            name: "New Track (Conflict)",
-            type: "video",
+            name: 'New Track (Conflict)',
+            type: 'video',
             width: 1000000,
             height: TIMELINE_CONSTANTS.CLIP_HEIGHT,
             top: newTrackTop,
@@ -397,12 +396,12 @@ function onObjectModified(
           existingTrack = newTrack;
         } else if (!existingTrack) {
           const trackClipIds = clipsInThisLevel.map(
-            (obj) => (obj as any).clipId || (obj as any).id,
+            (obj) => (obj as any).clipId || (obj as any).id
           );
           const newTrack = new Track({
             id: `track-${Math.random().toString(36).slice(2, 9)}`,
-            name: "New Track (Expansion)",
-            type: "video",
+            name: 'New Track (Expansion)',
+            type: 'video',
             width: 1000000,
             height: TIMELINE_CONSTANTS.CLIP_HEIGHT,
             top: newTrackTop,
@@ -452,7 +451,7 @@ function onObjectModified(
         });
       });
       activeObject.setCoords();
-      if (activeObject.type.toLocaleLowerCase() === "activeselection") {
+      if (activeObject.type.toLocaleLowerCase() === 'activeselection') {
         (activeObject as any)
           .getObjects()
           .forEach((obj: any) => obj.setCoords());
@@ -498,8 +497,8 @@ function onObjectModified(
     placeholderMovingObjects: [],
   });
 
-  (this as any).fire("clip:move");
-  (this as any).fire("update:track");
+  (this as any).fire('clip:move');
+  (this as any).fire('update:track');
   this.requestRenderAll();
 }
 
@@ -511,7 +510,7 @@ function onObjectResizing(
       SerializedObjectProps,
       ObjectEvents
     >;
-  },
+  }
 ) {
   const canvas = this;
   const allObjects = canvas.getObjects();
@@ -520,7 +519,7 @@ function onObjectResizing(
   const corner = (canvas as any)._currentTransform?.corner;
   const targetRect = target.getBoundingRect();
 
-  if (transform.action === "resizing") {
+  if (transform.action === 'resizing') {
     const skipObjects = [
       target,
       ...canvas.getActiveObjects(),
@@ -528,8 +527,8 @@ function onObjectResizing(
         (obj) =>
           obj instanceof Track ||
           isHelperTrack(obj) ||
-          (obj as any).type === "Placeholder" ||
-          (obj as any).isAlignmentAuxiliary,
+          (obj as any).type === 'Placeholder' ||
+          (obj as any).isAlignmentAuxiliary
       ),
     ];
 
@@ -537,12 +536,12 @@ function onObjectResizing(
     const validatelineGuideStopsVertical = lineGuideStops.vertical.filter(
       (dataV) => {
         const val = dataV.val;
-        if (corner === "ml") {
+        if (corner === 'ml') {
           return val <= targetRect.left;
-        } else if (corner === "mr") {
+        } else if (corner === 'mr') {
           return val >= targetRect.left + targetRect.width;
         }
-      },
+      }
     );
     lineGuideStops.vertical = validatelineGuideStopsVertical;
     const itemBounds = getObjectSnappingEdges(target);
@@ -554,13 +553,13 @@ function onObjectResizing(
   }
 }
 export function addGuidelineEvents(timeline: TimelineCanvas) {
-  timeline.on("object:moving", onObjectMoving.bind(timeline));
-  timeline.on("object:modified", onObjectModified.bind(timeline));
-  timeline.on("object:resizing", onObjectResizing.bind(timeline));
+  timeline.on('object:moving', onObjectMoving.bind(timeline));
+  timeline.on('object:modified', onObjectModified.bind(timeline));
+  timeline.on('object:resizing', onObjectResizing.bind(timeline));
 }
 
 export function removeGuidelineEvents(timeline: TimelineCanvas) {
-  timeline.off("object:moving", onObjectMoving.bind(timeline));
-  timeline.off("object:modified", onObjectModified.bind(timeline));
-  timeline.off("object:resizing", onObjectResizing.bind(timeline));
+  timeline.off('object:moving', onObjectMoving.bind(timeline));
+  timeline.off('object:modified', onObjectModified.bind(timeline));
+  timeline.off('object:resizing', onObjectResizing.bind(timeline));
 }

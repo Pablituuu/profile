@@ -336,10 +336,10 @@ export function AIChat() {
         {/* Modal Window */}
         <div
           className={cn(
-            'w-[400px] h-[640px] bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ease-out pointer-events-auto origin-bottom-right mb-4',
+            'w-[400px]  bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ease-out pointer-events-auto origin-bottom-right mb-4',
             isOpen
-              ? 'scale-100 opacity-100 translate-y-0'
-              : 'scale-90 opacity-0 translate-y-10'
+              ? 'scale-100 opacity-100 translate-y-0 h-[640px]'
+              : 'scale-90 opacity-0 translate-y-10 h-[0px]'
           )}
           style={{ visibility: isOpen ? 'visible' : 'hidden' }}
         >

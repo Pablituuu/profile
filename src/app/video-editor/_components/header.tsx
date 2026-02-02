@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ExportModal } from "./export-modal";
-import { LanguageSwitcher } from "./language-switcher";
-import { Undo2, Redo2 } from "lucide-react";
-import { useEditorStore } from "@/store/use-editor-store";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { ExportModal } from './export-modal';
+import { LanguageSwitcher } from './language-switcher';
+import { Undo2, Redo2 } from 'lucide-react';
+import { useEditorStore } from '@/store/use-editor-store';
 
 export function Header() {
   const { studio } = useEditorStore();
@@ -31,10 +31,10 @@ export function Header() {
       setCanRedo(canRedo);
     };
 
-    studio.on("history:changed", handleHistoryChange);
+    studio.on('history:changed', handleHistoryChange);
 
     return () => {
-      studio.off("history:changed", handleHistoryChange);
+      studio.off('history:changed', handleHistoryChange);
     };
   }, [studio]);
 

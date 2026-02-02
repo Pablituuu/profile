@@ -1,11 +1,11 @@
-import TimelineCanvas from "../canvas";
-import { TextClipTimeline } from "../text-clip";
-import { VideoClipTimeline } from "../video-clip";
-import { ImageClipTimeline } from "../image-clip";
-import { AudioClipTimeline } from "../audio-clip";
-import { Track } from "../track";
-import { TIMELINE_CONSTANTS } from "../controls/constants";
-import { ActiveSelection } from "fabric";
+import TimelineCanvas from '../canvas';
+import { TextClipTimeline } from '../text-clip';
+import { VideoClipTimeline } from '../video-clip';
+import { ImageClipTimeline } from '../image-clip';
+import { AudioClipTimeline } from '../audio-clip';
+import { Track } from '../track';
+import { TIMELINE_CONSTANTS } from '../controls/constants';
+import { ActiveSelection } from 'fabric';
 
 class CanvasMixin {
   alignClipsToTrack(this: TimelineCanvas) {
@@ -60,7 +60,7 @@ class CanvasMixin {
 
     // 3. Update groups that had children moved to recalculate their bounding boxes
     affectedGroups.forEach((group) => {
-      if (group.type.toLowerCase() === "activeselection") {
+      if (group.type.toLowerCase() === 'activeselection') {
         const groupObjects = group.getObjects();
         group.remove(...groupObjects);
         group.add(...groupObjects);
@@ -123,8 +123,8 @@ class CanvasMixin {
           processedIds.add(id);
         }
       } else if (
-        obj.type.toLowerCase() === "activeselection" ||
-        obj.type.toLowerCase() === "group"
+        obj.type.toLowerCase() === 'activeselection' ||
+        obj.type.toLowerCase() === 'group'
       ) {
         (obj as any).getObjects().forEach((child: any) => {
           if (isClip(child)) {
@@ -143,12 +143,12 @@ class CanvasMixin {
 
   synchronizeTracksWithClips(
     this: TimelineCanvas,
-    options?: { protectedTrackIds?: string[] },
+    options?: { protectedTrackIds?: string[] }
   ) {
     const clips = this.getClips();
     const allObjects = this.getObjects();
     const tracks = allObjects.filter(
-      (obj): obj is Track => obj instanceof Track,
+      (obj): obj is Track => obj instanceof Track
     );
 
     // Group tracks by their rounded vertical position to detect duplicates/conflicts
@@ -189,7 +189,7 @@ class CanvasMixin {
         survivorData.push({
           id: survivor.id,
           name: survivor.name,
-          type: (survivor as any).trackType || "video",
+          type: (survivor as any).trackType || 'video',
           clipIds: survivor.clipIds,
           top: survivor.top, // Temporary for sorting if index is missing
           index: survivor.index,
@@ -237,7 +237,7 @@ class CanvasMixin {
     }
     const clips = this.getClips();
     const selectedClips = clips.filter((clip) =>
-      objectIds.includes((clip as any).clipId),
+      objectIds.includes((clip as any).clipId)
     );
     const activeSelection = new ActiveSelection(selectedClips);
     this.setActiveObject(activeSelection);

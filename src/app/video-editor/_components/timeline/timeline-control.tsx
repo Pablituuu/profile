@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useEditorStore } from "@/store/use-editor-store";
+import { useEditorStore } from '@/store/use-editor-store';
 import {
   TooltipProvider,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { Scissors, Copy, Trash2, Magnet, ZoomOut, ZoomIn } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
-import { formatTimeCode } from "@/lib/time";
-import { EditableTimecode } from "@/components/ui/editable-timecode";
+} from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Scissors, Copy, Trash2, Magnet, ZoomOut, ZoomIn } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { formatTimeCode } from '@/lib/time';
+import { EditableTimecode } from '@/components/ui/editable-timecode';
 import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
   IconPlayerSkipBack,
   IconPlayerSkipForward,
-} from "@tabler/icons-react";
+} from '@tabler/icons-react';
 
 export function TimelineControl() {
   const {
@@ -36,7 +36,7 @@ export function TimelineControl() {
   const clips = studio?.clips || [];
   const durationInUs = clips.reduce(
     (max, clip) => Math.max(max, clip.display.to),
-    0,
+    0
   );
   const duration = durationInUs / 1_000_000;
 
@@ -52,11 +52,11 @@ export function TimelineControl() {
     studio?.seek(time * 1_000_000);
   };
 
-  const handleZoomIn = () => {
+  const handleZoomIn = (e: React.MouseEvent) => {
     setZoomLevel(Math.min(2, zoomLevel + 0.1));
   };
 
-  const handleZoomOut = () => {
+  const handleZoomOut = (e: React.MouseEvent) => {
     setZoomLevel(Math.max(0.2, zoomLevel - 0.1));
   };
 
@@ -142,7 +142,7 @@ export function TimelineControl() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`size-8 ${isSnapping ? "text-indigo-400" : "text-white/60 hover:text-white"}`}
+                className={`size-8 ${isSnapping ? 'text-indigo-400' : 'text-white/60 hover:text-white'}`}
                 onClick={() => setIsSnapping(!isSnapping)}
               >
                 <Magnet className="h-4 w-4" />
@@ -200,7 +200,7 @@ export function TimelineControl() {
           />
           <span className="text-white/20 text-[11px]">/</span>
           <span className="text-white/40 font-mono text-[11px]">
-            {formatTimeCode(duration, "MM:SS")}
+            {formatTimeCode(duration, 'MM:SS')}
           </span>
         </div>
       </div>

@@ -171,10 +171,25 @@ export function useStudioListener() {
         const newLeft = (clip.display.from * pixelsPerSec) / 1_000_000;
         const newWidth = (clip.duration * pixelsPerSec) / 1_000_000;
 
-        clipObject.set({
-          left: newLeft,
-          width: newWidth,
-        });
+        // If the object is in a group (multi-selection), we must update its relative position
+        if (clipObject.group) {
+          const matrix = clipObject.calcTransformMatrix();
+          const currentAbsLeft = matrix[4] - clipObject.getScaledWidth() / 2;
+          const diffX = newLeft - currentAbsLeft;
+
+          clipObject.set({
+            left: clipObject.left + diffX,
+            width: newWidth,
+          });
+          clipObject.setCoords();
+          clipObject.group.setCoords();
+        } else {
+          clipObject.set({
+            left: newLeft,
+            width: newWidth,
+          });
+          clipObject.setCoords();
+        }
 
         // Sync internal metadata used for zoom and other calculations
         if ("startUs" in clipObject)
@@ -188,7 +203,6 @@ export function useStudioListener() {
           (clipObject as any).trim = { ...clip.trim };
         }
 
-        clipObject.setCoords();
         timeline.renderAll();
       }
     };
