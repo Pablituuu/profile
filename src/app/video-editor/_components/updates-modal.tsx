@@ -30,19 +30,19 @@ export function UpdatesModal() {
 
   const updateItems = [
     {
+      id: 'i18n',
+      title: t('updates.i18n'),
+      description: t('updates.i18n_desc'),
+    },
+    {
+      id: 'ai_assets',
+      title: t('updates.ai_assets'),
+      description: t('updates.ai_assets_desc'),
+    },
+    {
       id: 'smart_sync',
       title: t('updates.smart_sync'),
       description: t('updates.smart_sync_desc'),
-    },
-    {
-      id: 'keyboard_zoom',
-      title: t('updates.keyboard_zoom'),
-      description: t('updates.keyboard_zoom_desc'),
-    },
-    {
-      id: 'performance_ui',
-      title: t('updates.performance_ui'),
-      description: t('updates.performance_ui_desc'),
     },
     {
       id: 'track_management',
@@ -66,6 +66,19 @@ export function UpdatesModal() {
       id: 'state_control',
       title: t('updates.state_control'),
       description: t('updates.state_control_desc'),
+    },
+    {
+      id: 'keyboard_zoom',
+      title: t('updates.keyboard_zoom'),
+      description: t('updates.keyboard_zoom_desc'),
+    },
+  ];
+
+  const issueItems = [
+    {
+      id: 'transitions_fix',
+      title: t('updates.transitions_fix'),
+      description: t('updates.transitions_fix_desc'),
     },
   ];
 
@@ -108,6 +121,29 @@ export function UpdatesModal() {
         </div>
 
         <div className="px-6 py-4 space-y-8 max-h-[500px] overflow-y-auto custom-scrollbar">
+          {/* Known Issues Section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-red-400/60 border-b border-red-500/10 pb-2 ml-1">
+              {t('updates.issues')}
+            </h3>
+            <Accordion type="multiple" className="space-y-2">
+              {issueItems.map((item) => (
+                <AccordionItem
+                  key={item.id}
+                  value={item.id}
+                  className="border border-red-500/5 rounded-lg bg-red-500/5 px-4 hover:bg-red-500/10 transition-all border-none"
+                >
+                  <AccordionTrigger className="text-left font-medium text-red-300/80 hover:text-red-300 hover:no-underline py-4">
+                    {item.title}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-red-200/60 text-sm leading-relaxed pb-4">
+                    {item.description}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+
           {/* Recent Updates Section */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 border-b border-white/5 pb-2 ml-1">

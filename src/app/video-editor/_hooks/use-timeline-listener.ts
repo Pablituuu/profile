@@ -2,11 +2,19 @@
 
 import { useEffect } from 'react';
 import { useEditorStore } from '@/store/use-editor-store';
-import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
 import { Track } from '../_lib/timeline/track';
+import { TransitionClipTimeline } from '../_lib/timeline/transition-clip';
+import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
 
 export function useTimelineListener() {
-  const { studio, timeline, zoomLevel, setZoomLevel } = useEditorStore();
+  const {
+    studio,
+    timeline,
+    zoomLevel,
+    setZoomLevel,
+    setActiveTool,
+    setSelectedTransitionObject,
+  } = useEditorStore();
 
   useEffect(() => {
     if (!studio || !timeline) return;
@@ -35,10 +43,13 @@ export function useTimelineListener() {
 
       const clipUpdates = canvasClips
         .map((clip: any) => {
-          const id = clip.clipId || clip.id;
+          const id = clip.clipId || (clip as any).id;
+          if (!id) return null;
 
-          // Handle absolute coordinates during multi-selection
-          // Objects in ActiveSelection have relative left/top
+          const isTransition =
+            clip.type === 'TransitionClip' ||
+            clip instanceof TransitionClipTimeline;
+
           const getAbsLeft = (obj: any) => {
             if (obj.group) {
               const matrix = obj.calcTransformMatrix();
@@ -48,27 +59,44 @@ export function useTimelineListener() {
           };
 
           const left = getAbsLeft(clip);
-          // Use content width only, ignoring strokeWidth for duration calculation
           const width = clip.getScaledWidth();
-
           const currentClip = studio.clips?.find((c: any) => c.id === id);
 
-          const fromUs = Math.round((left / pixelsPerSec) * 1_000_000);
-          const durationUs = Math.round((width / pixelsPerSec) * 1_000_000);
+          let fromUs: number;
+          let durationUs: number;
+
+          if (isTransition) {
+            // Transitions are handles centered on the junction point.
+            // The junction is at (left + width/2).
+            const junctionTimeUs = Math.round(
+              ((left + width / 2) / pixelsPerSec) * 1_000_000
+            );
+            // Preserve its Studio duration (never overwrite with the handle's 24px width)
+            durationUs = (currentClip as any)?.duration || 1000000;
+            // Center the transition clip on the junction
+            fromUs = junctionTimeUs - Math.round(durationUs / 2);
+          } else {
+            // Normal clips: direct mapping from visual position to time
+            fromUs = Math.round((left / pixelsPerSec) * 1_000_000);
+            durationUs = Math.round((width / pixelsPerSec) * 1_000_000);
+          }
+
           const toUs = fromUs + durationUs;
           const updates: any = {};
 
-          // Check for display changes (start or end time)
           const hasFromChange =
-            !currentClip || Math.abs(currentClip.display.from - fromUs) > 1;
+            !currentClip ||
+            !currentClip.display ||
+            Math.abs(currentClip.display.from - fromUs) > 1;
           const hasToChange =
-            !currentClip || Math.abs(currentClip.display.to - toUs) > 1;
+            !currentClip ||
+            !currentClip.display ||
+            Math.abs(currentClip.display.to - toUs) > 1;
 
           if (hasFromChange || hasToChange) {
             updates.display = { from: fromUs, to: toUs };
           }
 
-          // Check for duration change
           const hasDurationChange =
             !currentClip || Math.abs(currentClip.duration - durationUs) > 1;
 
@@ -76,7 +104,6 @@ export function useTimelineListener() {
             updates.duration = durationUs;
           }
 
-          // Sync trim for video/audio if changed on the timeline object
           if (clip.trim) {
             const currentTrimFrom = Math.round(clip.trim.from);
             const currentTrimTo = Math.round(clip.trim.to);
@@ -93,39 +120,17 @@ export function useTimelineListener() {
                 to: currentTrimTo,
               };
             }
-          } else if (
-            clip.trimFromUs !== undefined &&
-            clip.trimToUs !== undefined
-          ) {
-            const currentTrimFrom = Math.round(clip.trimFromUs);
-            const currentTrimTo = Math.round(clip.trimToUs);
-
-            const hasTrimChange =
-              !currentClip ||
-              !currentClip.trim ||
-              Math.abs(currentClip.trim.from - currentTrimFrom) > 1 ||
-              Math.abs(currentClip.trim.to - currentTrimTo) > 1;
-
-            if (hasTrimChange) {
-              updates.trim = {
-                from: currentTrimFrom,
-                to: currentTrimTo,
-              };
-            }
           }
 
           if (Object.keys(updates).length === 0) return null;
-
           return { id, updates };
         })
         .filter(Boolean);
 
-      // 3. Update Studio
       try {
         const validUpdates = clipUpdates as { id: string; updates: any }[];
         const hasClipChanges = validUpdates.length > 0;
 
-        // Group history updates if methods are available
         const hasHistoryGrouping =
           typeof (studio as any).beginHistoryGroup === 'function' &&
           typeof (studio as any).endHistoryGroup === 'function';
@@ -135,18 +140,32 @@ export function useTimelineListener() {
         }
 
         try {
-          // 1. Update Clips
           if (hasClipChanges) {
             if ((studio as any).updateClips) {
               await (studio as any).updateClips(
                 validUpdates.map((u) => ({ id: u.id, updates: u.updates }))
               );
             } else {
-              console.log(validUpdates);
               await Promise.all(
                 validUpdates.map((u) => studio.updateClip(u.id, u.updates))
               );
             }
+          }
+
+          // Handle Deletions: If a transition exists in Studio but not on Canvas, remove it
+          const studioClips = studio.clips || [];
+          const canvasClipIds = new Set(
+            canvasClips.map((c: any) => c.clipId || c.id)
+          );
+          const clipsToRemove = studioClips.filter(
+            (c: any) =>
+              c.type.toLowerCase() === 'transition' && !canvasClipIds.has(c.id)
+          );
+
+          if (clipsToRemove.length > 0) {
+            await Promise.all(
+              clipsToRemove.map((c) => studio.removeClip(c.id))
+            );
           }
 
           await studio.setTracks(trackData as any);
@@ -166,6 +185,14 @@ export function useTimelineListener() {
       studio.selectClipsByIds(clipIds);
     };
 
+    const handleCanvasMouseDown = (e: any) => {
+      const target = e.target;
+      if (target instanceof TransitionClipTimeline) {
+        setSelectedTransitionObject(target);
+        setActiveTool('transitions');
+      }
+    };
+
     const handleTimelineZoom = (opt: { delta: number }) => {
       const zoomStep = 0.1;
       const factor = opt.delta > 0 ? -zoomStep : zoomStep;
@@ -176,8 +203,7 @@ export function useTimelineListener() {
       setZoomLevel(newZoom);
     };
 
-    // Subscriptions to custom Fabric events
-    // We use granular listeners to match the logic where possible
+    (timeline as any).on('mouse:down', handleCanvasMouseDown);
     (timeline as any).on('update:track', syncTimelineToStudio);
     (timeline as any).on('clip:move', syncTimelineToStudio);
     (timeline as any).on('clip:resize', syncTimelineToStudio);
@@ -188,6 +214,7 @@ export function useTimelineListener() {
     (timeline as any).on('timeline:zoom', handleTimelineZoom);
 
     return () => {
+      (timeline as any).off('mouse:down', handleCanvasMouseDown);
       (timeline as any).off('update:track', syncTimelineToStudio);
       (timeline as any).off('clip:move', syncTimelineToStudio);
       (timeline as any).off('clip:resize', syncTimelineToStudio);
@@ -197,5 +224,12 @@ export function useTimelineListener() {
       (timeline as any).off('selection:cleared', syncSelectionToStudio);
       (timeline as any).off('timeline:zoom', handleTimelineZoom);
     };
-  }, [studio, timeline, zoomLevel]);
+  }, [
+    studio,
+    timeline,
+    zoomLevel,
+    setZoomLevel,
+    setActiveTool,
+    setSelectedTransitionObject,
+  ]);
 }

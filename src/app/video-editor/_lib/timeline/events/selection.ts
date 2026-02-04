@@ -1,8 +1,14 @@
 import { ActiveSelection, FabricObject } from 'fabric';
 import { TimelineCanvas } from '../canvas';
+import { TransitionClipTimeline } from '../transition-clip';
 
 export function onSelectionCreated(this: TimelineCanvas) {
   const activeObject = this.getActiveObject();
+  this.getObjects().forEach((clip) => {
+    if (clip instanceof TransitionClipTimeline) {
+      this.bringObjectToFront(clip);
+    }
+  });
 
   if (activeObject instanceof ActiveSelection) {
     activeObject.getObjects().forEach((obj: FabricObject) => {
@@ -29,6 +35,11 @@ export function onSelectionCreated(this: TimelineCanvas) {
 }
 
 export function onSelectionCleared(this: TimelineCanvas) {
+  this.getObjects().forEach((clip) => {
+    if (clip instanceof TransitionClipTimeline) {
+      this.bringObjectToFront(clip);
+    }
+  });
   (this as any).fire('active-selection:cleared');
   this.requestRenderAll();
 }

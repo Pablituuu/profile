@@ -12,6 +12,7 @@ import { ITrack, IStudioEventData } from '@/types/editor';
 import { Text, IClip } from 'openvideo';
 import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
 import { cloneDeep } from 'lodash';
+import { TransitionClipTimeline } from '../_lib/timeline/transition-clip';
 
 /**
  * Hook to listen to Studio events and synchronize the timeline canvas.
@@ -226,7 +227,10 @@ export function useStudioListener() {
           hasVisualChange = true;
         }
 
-        if (hasVisualChange) {
+        if (
+          hasVisualChange &&
+          !(clipObject instanceof TransitionClipTimeline)
+        ) {
           clipObject.set(updates);
           clipObject.setCoords();
           if (clipObject.group) clipObject.group.setCoords();

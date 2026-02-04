@@ -10,9 +10,10 @@ import { Timeline } from './_components/timeline/timeline';
 import { AIChat } from './_components/ai-chat';
 import { UpdatesModal } from './_components/updates-modal';
 import { cn } from '@/lib/utils';
+import { useEditorStore } from '@/store/use-editor-store';
 
 export default function VideoEditorPage() {
-  const [activeTool, setActiveTool] = useState<string | null>('media');
+  const { activeTool, setActiveTool } = useEditorStore();
 
   return (
     <div className="h-screen w-screen flex bg-background text-foreground overflow-hidden">
@@ -31,9 +32,14 @@ export default function VideoEditorPage() {
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <Header />
 
-        <div className="flex-1 relative overflow-hidden flex flex-col">
-          <PlayerPreview />
-          <PropertiesPanel />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Seccion Superior: Player + Properties */}
+          <div className="flex-1 relative overflow-hidden">
+            <PlayerPreview />
+            <PropertiesPanel />
+          </div>
+
+          {/* Seccion Inferior: Timeline */}
           <Timeline />
         </div>
       </div>

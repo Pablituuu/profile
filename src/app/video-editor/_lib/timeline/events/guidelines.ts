@@ -25,7 +25,7 @@ import { TIMELINE_CONSTANTS } from '../controls/constants';
 import { TimelineCanvas } from '../canvas';
 import { Track } from '../track';
 import { Helper } from '../helper';
-import { cloneDeep } from 'lodash';
+import { TransitionClipTimeline } from '../transition-clip';
 
 export function onObjectMoving(
   this: TimelineCanvas,
@@ -110,6 +110,8 @@ export function onObjectMoving(
 
   if (target.left <= 0) target.left = 0;
   if (target.top <= 0) target.top = 0;
+
+  (this as any).detectConsecutiveClips();
 }
 
 function onObjectModified(
@@ -174,9 +176,13 @@ function onObjectModified(
     return obj.top;
   };
 
+  const primaryClips = activeObjects.filter(
+    (obj) => !(obj instanceof TransitionClipTimeline)
+  );
+
   const isMultiTrackSelection =
     activeObject instanceof ActiveSelection &&
-    new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj)))).size > 1;
+    new Set(primaryClips.map((obj) => Math.round(getAbsTop(obj)))).size > 1;
 
   if (activeObject && droppedTarget) {
     const targetTop = droppedTarget.top;
@@ -196,7 +202,7 @@ function onObjectModified(
 
       if (isMultiTrackSelection) {
         const uniqueTops = Array.from(
-          new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj))))
+          new Set(primaryClips.map((obj) => Math.round(getAbsTop(obj))))
         ).sort((a, b) => a - b);
 
         const allTracks = canvas
@@ -211,7 +217,9 @@ function onObjectModified(
         uniqueTops.forEach((originalTop, index) => {
           const newTrackTop = targetTop + index * trackStep;
           const clipsForThisTrack = activeObjects.filter(
-            (obj) => Math.round(getAbsTop(obj)) === originalTop
+            (obj) =>
+              Math.abs(getAbsTop(obj) - originalTop) <
+              TIMELINE_CONSTANTS.CLIP_HEIGHT / 2
           );
 
           clipsForThisTrack.forEach((obj) => {
@@ -279,7 +287,7 @@ function onObjectModified(
       protectedTrackIds.push((droppedTarget as any).id);
 
       const uniqueTops = Array.from(
-        new Set(activeObjects.map((obj) => Math.round(getAbsTop(obj))))
+        new Set(primaryClips.map((obj) => Math.round(getAbsTop(obj))))
       ).sort((a, b) => a - b);
 
       const baseIndex = (droppedTarget as any).index ?? 0;
@@ -307,7 +315,9 @@ function onObjectModified(
           baseIndex + relativeTrackOffset + cumulativeShift;
 
         const clipsInThisLevel = activeObjects.filter(
-          (obj) => Math.round(getAbsTop(obj)) === originalTop
+          (obj) =>
+            Math.abs(getAbsTop(obj) - originalTop) <
+            TIMELINE_CONSTANTS.CLIP_HEIGHT / 2
         );
 
         let existingTrack = canvas
@@ -320,6 +330,7 @@ function onObjectModified(
 
         if (existingTrack) {
           const clipsOnThisTrack = allClipsOnCanvas.filter((c: any) => {
+            if (c instanceof TransitionClipTimeline) return false;
             const id = c.clipId || c.id;
             if (selectionIds.has(id)) return false;
             return (
@@ -329,6 +340,7 @@ function onObjectModified(
           });
 
           hasConflict = clipsInThisLevel.some((movingClip) => {
+            if (movingClip instanceof TransitionClipTimeline) return false;
             const clipId = (movingClip as any).clipId || (movingClip as any).id;
             const placeholder = placeholderTargetMap.get(clipId);
 
@@ -377,7 +389,6 @@ function onObjectModified(
           const trackClipIds = clipsInThisLevel.map(
             (obj) => (obj as any).clipId || (obj as any).id
           );
-
           const newTrack = new Track({
             id: `track-${Math.random().toString(36).slice(2, 9)}`,
             name: 'New Track (Conflict)',
@@ -459,34 +470,7 @@ function onObjectModified(
     }
   }
 
-  const allClips = (this as any).getClips();
-  const allTracks = canvas
-    .getObjects()
-    .filter((obj): obj is Track => obj instanceof Track);
-
-  allTracks.forEach((t) => ((t as any).clipIds = []));
-
-  allClips.forEach((clip: any) => {
-    const clipTop = getAbsTop(clip);
-    let nearestTrack: any = null;
-    let minDistance = Infinity;
-
-    allTracks.forEach((track) => {
-      const dist = Math.abs(track.top - clipTop);
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearestTrack = track;
-      }
-    });
-
-    if (nearestTrack && minDistance < TIMELINE_CONSTANTS.CLIP_HEIGHT / 2 + 5) {
-      const clipId = clip.clipId || clip.id;
-      if (clipId && !nearestTrack.clipIds.includes(clipId)) {
-        nearestTrack.clipIds.push(clipId);
-      }
-    }
-  });
-
+  (this as any).detectConsecutiveClips();
   this.synchronizeTracksWithClips({ protectedTrackIds });
 
   clearPlaceholderObjects(canvas, state.placeholderMovingObjects);

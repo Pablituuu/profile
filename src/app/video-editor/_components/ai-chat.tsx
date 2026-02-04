@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useEditorStore } from '@/store/use-editor-store';
 import { useAiHandlers } from '../_hooks/use-ai-handlers';
+import { useLanguageStore } from '@/store/use-language-store';
 
 /**
  * Custom Message component with role-based styling using local variables
@@ -89,6 +90,7 @@ export function AIChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const { studio } = useEditorStore();
+  const { t } = useLanguageStore();
 
   const { handleToolCall } = useAiHandlers(studio);
 
@@ -121,7 +123,7 @@ export function AIChat() {
             {/* Contact / Profile Section - NOW AT TOP */}
             <div className="w-full space-y-2">
               <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex flex-col items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white shadow-lg">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white shadow-lg">
                   PJ
                 </div>
                 <div className="text-center">
@@ -275,11 +277,10 @@ export function AIChat() {
               </div>
               <div className="space-y-2 max-w-[240px]">
                 <p className="text-base font-semibold text-white/90">
-                  How can I assist you?
+                  {t('chat.how_assist')}
                 </p>
                 <p className="text-xs text-white/40 leading-relaxed font-medium">
-                  I can help you with timeline edits, effects, or explaining
-                  editor features.
+                  {t('chat.placeholder')}
                 </p>
               </div>
             </div>
@@ -303,7 +304,7 @@ export function AIChat() {
                   <span className="w-1.5 h-1.5 rounded-full bg-white/20 animate-bounce" />
                 </div>
                 <span className="text-xs text-white/40 font-medium">
-                  Pensando...
+                  {t('chat.thinking')}
                 </span>
               </div>
             </div>
@@ -313,7 +314,7 @@ export function AIChat() {
         <ComposerPrimitive.Root className="p-6 pt-2 shrink-0 border-t border-white/5 bg-black/20 backdrop-blur-sm">
           <div className="relative group bg-white/5 border border-white/10 rounded-2xl p-1 transition-all focus-within:ring-2 focus-within:ring-indigo-500/40 focus-within:bg-white/8">
             <ComposerPrimitive.Input
-              placeholder="Type a message..."
+              placeholder={t('chat.type_message')}
               autoFocus
               className="w-full bg-transparent border-none py-3.5 pl-4 pr-14 text-sm text-white placeholder:text-white/20 focus:outline-none resize-none min-h-[48px] max-h-[120px]"
             />
@@ -322,7 +323,7 @@ export function AIChat() {
             </ComposerPrimitive.Send>
           </div>
           <p className="text-center text-[9px] text-white/10 mt-4 uppercase tracking-[0.2em] font-bold">
-            AI assistant may provide inaccurate info
+            {t('chat.inaccurate')}
           </p>
         </ComposerPrimitive.Root>
       </ThreadPrimitive.Root>
@@ -338,7 +339,7 @@ export function AIChat() {
             'w-[400px]  bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden transition-all duration-300 ease-out pointer-events-auto origin-bottom-right mb-4',
             isOpen
               ? 'scale-100 opacity-100 translate-y-0 h-[640px]'
-              : 'scale-90 opacity-0 translate-y-10 h-[0px]'
+              : 'scale-90 opacity-0 translate-y-10 h-0'
           )}
           style={{ visibility: isOpen ? 'visible' : 'hidden' }}
         >
@@ -351,14 +352,14 @@ export function AIChat() {
               </div>
               <div>
                 <h3 className="font-bold text-white tracking-tight text-base">
-                  Assistant AI
+                  {t('chat.assistant')}
                 </h3>
                 <div className="flex items-center gap-1.5">
                   <div
                     className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] ${hasKey ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}
                   />
                   <span className="text-[10px] text-white/40 uppercase tracking-[0.15em] font-black">
-                    {hasKey === false ? 'Demo Mode' : 'Powered by Gemini'}
+                    {hasKey === false ? t('chat.mode_demo') : t('chat.gemini')}
                   </span>
                 </div>
               </div>

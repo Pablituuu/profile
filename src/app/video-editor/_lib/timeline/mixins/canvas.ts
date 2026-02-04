@@ -7,6 +7,8 @@ import { EffectClipTimeline } from '../effect-clip';
 import { Track } from '../track';
 import { TIMELINE_CONSTANTS } from '../controls/constants';
 import { ActiveSelection } from 'fabric';
+import { TransitionClipTimeline } from '../transition-clip';
+import { cloneDeep } from 'lodash';
 
 class CanvasMixin {
   alignClipsToTrack(this: TimelineCanvas) {
@@ -70,6 +72,7 @@ class CanvasMixin {
     });
 
     if (hasChanges) {
+      this.detectConsecutiveClips();
       this.renderAll();
     }
   }
@@ -103,7 +106,8 @@ class CanvasMixin {
       obj instanceof VideoClipTimeline ||
       obj instanceof ImageClipTimeline ||
       obj instanceof AudioClipTimeline ||
-      obj instanceof EffectClipTimeline;
+      obj instanceof EffectClipTimeline ||
+      obj instanceof TransitionClipTimeline;
 
     const allObjects = this.getObjects();
     const activeObject = this.getActiveObject();
@@ -152,6 +156,41 @@ class CanvasMixin {
     const tracks = allObjects.filter(
       (obj): obj is Track => obj instanceof Track
     );
+
+    // 0. Rebuild clipIds based on current vertical positions
+    const getAbsTop = (obj: any) => {
+      if (obj.group) {
+        const matrix = obj.calcTransformMatrix();
+        return matrix[5] - obj.getScaledHeight() / 2;
+      }
+      return obj.top;
+    };
+
+    tracks.forEach((t) => ((t as any).clipIds = []));
+
+    clips.forEach((clip: any) => {
+      const clipTop = getAbsTop(clip);
+      let nearestTrack: any = null;
+      let minDistance = Infinity;
+
+      tracks.forEach((track) => {
+        const dist = Math.abs(track.top - clipTop);
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestTrack = track;
+        }
+      });
+
+      if (
+        nearestTrack &&
+        minDistance < TIMELINE_CONSTANTS.CLIP_HEIGHT / 2 + 5
+      ) {
+        const clipId = clip.clipId || clip.id;
+        if (clipId && !nearestTrack.clipIds.includes(clipId)) {
+          nearestTrack.clipIds.push(clipId);
+        }
+      }
+    });
 
     // Group tracks by their rounded vertical position to detect duplicates/conflicts
     const tracksByTop: Record<number, Track[]> = {};
@@ -277,6 +316,118 @@ class CanvasMixin {
         }
 
         obj.setCoords();
+      }
+    });
+
+    this.renderAll();
+  }
+
+  detectConsecutiveClips(this: TimelineCanvas) {
+    const clips = this.getClips();
+
+    // Helper to get consistent coordinates
+    const getAbsTop = (obj: any) => {
+      if (obj.group) {
+        const matrix = obj.calcTransformMatrix();
+        return matrix[5] - obj.getScaledHeight() / 2;
+      }
+      return obj.top;
+    };
+
+    const getAbsLeft = (obj: any) => {
+      if (obj.group) {
+        const matrix = obj.calcTransformMatrix();
+        return matrix[4] - obj.getScaledWidth() / 2;
+      }
+      return obj.left;
+    };
+
+    // Group ONLY Video and Image clips by track (ignoring transitions themselves)
+    const tracks: Record<number, any[]> = {};
+    clips.forEach((clip: any) => {
+      if (
+        clip instanceof VideoClipTimeline ||
+        clip instanceof ImageClipTimeline
+      ) {
+        const top = Math.round(getAbsTop(clip));
+        if (!tracks[top]) tracks[top] = [];
+        tracks[top].push(clip);
+      }
+    });
+
+    const usedTransitions = new Set<TransitionClipTimeline>();
+
+    Object.keys(tracks).forEach((topStr) => {
+      const trackClips = tracks[Number(topStr)];
+      trackClips.sort((a, b) => getAbsLeft(a) - getAbsLeft(b));
+
+      for (let i = 0; i < trackClips.length - 1; i++) {
+        const current = trackClips[i];
+        const next = trackClips[i + 1];
+
+        const currentRight = getAbsLeft(current) + current.getScaledWidth();
+        const nextLeft = getAbsLeft(next);
+        const gap = Math.abs(currentRight - nextLeft);
+
+        if (gap < 2) {
+          const fromId = (current as any).clipId || (current as any).id;
+          const toId = (next as any).clipId || (next as any).id;
+
+          const targetLeft = currentRight - 12;
+          const targetTop =
+            Number(topStr) + (TIMELINE_CONSTANTS.CLIP_HEIGHT - 20) / 2;
+
+          // Check if transition already exists (robust against ID promotion)
+          const existing = this.getObjects().find((obj) => {
+            if (!(obj instanceof TransitionClipTimeline)) return false;
+            const matchesFrom =
+              obj.clipIdFrom === (current as any).clipId ||
+              obj.clipIdFrom === (current as any).id;
+            const matchesTo =
+              obj.clipIdTo === (next as any).clipId ||
+              obj.clipIdTo === (next as any).id;
+            return matchesFrom && matchesTo;
+          }) as TransitionClipTimeline;
+
+          if (!existing) {
+            const transition = new TransitionClipTimeline({
+              clipIdFrom: fromId,
+              clipIdTo: toId,
+              left: targetLeft,
+              top: targetTop,
+            });
+            this.add(transition);
+            this.bringObjectToFront(transition);
+            usedTransitions.add(transition);
+          } else {
+            // Update position and IDs
+            existing.set({
+              clipIdFrom: fromId,
+              clipIdTo: toId,
+              left: targetLeft,
+              top: targetTop,
+            });
+            existing.setCoords();
+            usedTransitions.add(existing);
+          }
+        }
+      }
+    });
+
+    // Cleanup: Remove junctions that are no longer between adjacent clips
+    this.getObjects().forEach((obj) => {
+      if (obj instanceof TransitionClipTimeline && !usedTransitions.has(obj)) {
+        const idsToRemove = [(obj as any).clipId, obj.id].filter(Boolean);
+        if (idsToRemove.length > 0) {
+          this.getObjects().forEach((track) => {
+            if (track instanceof Track) {
+              track.clipIds = track.clipIds.filter(
+                (id) => !idsToRemove.includes(id)
+              );
+            }
+          });
+        }
+        this.remove(obj);
       }
     });
 

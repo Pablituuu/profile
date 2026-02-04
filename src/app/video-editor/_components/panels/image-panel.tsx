@@ -137,7 +137,7 @@ export function ImagePanel() {
       <AIAssetsModal
         open={isAIModalOpen}
         onOpenChange={setIsAIModalOpen}
-        title="AI Image Generation"
+        title={t('modal.ai_images')}
       />
 
       {/* Images Grid */}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Studio, IClip } from 'openvideo';
 import TimelineCanvas from '@/app/video-editor/_lib/timeline/canvas';
+import { TransitionClipTimeline } from '@/app/video-editor/_lib/timeline/transition-clip';
 
 interface EditorState {
   studio: Studio | null;
@@ -19,6 +20,12 @@ interface EditorState {
   setIsExportModalOpen: (open: boolean) => void;
   zoomLevel: number;
   setZoomLevel: (zoom: number) => void;
+  activeTool: string | null;
+  setActiveTool: (tool: string | null) => void;
+  selectedTransitionObject: TransitionClipTimeline | null;
+  setSelectedTransitionObject: (
+    selectedTransitionObject: TransitionClipTimeline | null
+  ) => void;
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -38,4 +45,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   setIsExportModalOpen: (isExportModalOpen) => set({ isExportModalOpen }),
   zoomLevel: 1,
   setZoomLevel: (zoomLevel) => set({ zoomLevel }),
+  activeTool: 'media',
+  setActiveTool: (activeTool) => set({ activeTool }),
+  selectedTransitionObject: null,
+  setSelectedTransitionObject: (selectedTransitionObject) =>
+    set({ selectedTransitionObject }),
 }));

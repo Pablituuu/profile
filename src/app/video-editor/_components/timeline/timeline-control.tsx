@@ -12,6 +12,7 @@ import { Scissors, Copy, Trash2, Magnet, ZoomOut, ZoomIn } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { formatTimeCode } from '@/lib/time';
 import { EditableTimecode } from '@/components/ui/editable-timecode';
+import { useLanguageStore } from '@/store/use-language-store';
 import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
@@ -30,6 +31,7 @@ export function TimelineControl() {
     setZoomLevel,
     timeline,
   } = useEditorStore();
+  const { t } = useLanguageStore();
 
   // Calculate total duration from clips in microseconds
   // studio.clips might be an array or undefined
@@ -99,7 +101,7 @@ export function TimelineControl() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-[10px] py-1 px-2">
-              Split (S)
+              {t('timeline.split')}
             </TooltipContent>
           </Tooltip>
 
@@ -115,7 +117,7 @@ export function TimelineControl() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-[10px] py-1 px-2">
-              Duplicate (D)
+              {t('timeline.duplicate')}
             </TooltipContent>
           </Tooltip>
 
@@ -131,7 +133,7 @@ export function TimelineControl() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-[10px] py-1 px-2">
-              Delete (Del)
+              {t('timeline.delete')}
             </TooltipContent>
           </Tooltip>
 
@@ -149,7 +151,7 @@ export function TimelineControl() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-[10px] py-1 px-2">
-              Snapping (N)
+              {t('timeline.snapping')}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

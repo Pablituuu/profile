@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { Effect, GL_EFFECT_OPTIONS } from 'openvideo';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEditorStore } from '@/store/use-editor-store';
+import { useLanguageStore } from '@/store/use-language-store';
 
 export function EffectsPanel() {
   const { studio } = useEditorStore();
+  const { t } = useLanguageStore();
   const EFFECT_DURATION_DEFAULT = 5000000;
 
   const [hovered, setHovered] = useState<Record<string, boolean>>({});
@@ -14,7 +16,9 @@ export function EffectsPanel() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background text-foreground select-none">
       <div className="p-4 shrink-0">
-        <h3 className="text-sm font-semibold text-muted-foreground">Efectos</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          {t('effects.title')}
+        </h3>
       </div>
       <ScrollArea className="flex-1 px-4">
         <div className="grid grid-cols-2 gap-3 pb-4">

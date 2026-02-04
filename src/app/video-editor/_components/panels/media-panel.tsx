@@ -317,7 +317,7 @@ export function MediaPanel() {
       <AIAssetsModal
         open={isAIModalOpen}
         onOpenChange={setIsAIModalOpen}
-        title="AI Assets"
+        title={t('modal.ai_assets')}
       />
 
       {/* Assets Grid */}

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { Studio, Compositor, fontManager } from "openvideo";
-import { useEditorStore } from "@/store/use-editor-store";
+import { useEffect, useRef } from 'react';
+import { Studio, Compositor, fontManager } from 'openvideo';
+import { useEditorStore } from '@/store/use-editor-store';
 
 // Canvas configuration constants
 const DEFAULT_CANVAS_SIZE = {
@@ -12,7 +12,7 @@ const DEFAULT_CANVAS_SIZE = {
 
 const STUDIO_CONFIG = {
   fps: 30,
-  bgColor: "#1A1A1A",
+  bgColor: '#1A1A1A',
   interactivity: true,
   spacing: 20,
 } as const;
@@ -28,7 +28,7 @@ export function PlayerPreview() {
     (async () => {
       // @ts-ignore
       if (!(await Compositor.isSupported())) {
-        alert("Your browser does not support WebCodecs");
+        alert('Your browser does not support WebCodecs');
       }
     })();
 
@@ -50,7 +50,7 @@ export function PlayerPreview() {
           studioInstance.ready,
         ]);
       } catch (error) {
-        console.error("Failed to initialize studio:", error);
+        console.error('Failed to initialize studio:', error);
       }
     };
 
@@ -101,16 +101,16 @@ export function PlayerPreview() {
       timeline?.selectedClips([]);
     };
 
-    studio.on("selection:created", handleSelection);
-    studio.on("selection:updated", handleSelection);
-    studio.on("selection:change", handleSelection);
-    studio.on("selection:cleared", handleClear);
+    studio.on('selection:created', handleSelection);
+    studio.on('selection:updated', handleSelection);
+    studio.on('selection:change', handleSelection);
+    studio.on('selection:cleared', handleClear);
 
     return () => {
-      studio.off("selection:created", handleSelection);
-      studio.off("selection:updated", handleSelection);
-      studio.off("selection:change", handleSelection);
-      studio.off("selection:cleared", handleClear);
+      studio.off('selection:created', handleSelection);
+      studio.off('selection:updated', handleSelection);
+      studio.off('selection:change', handleSelection);
+      studio.off('selection:cleared', handleClear);
     };
   }, [timeline, setSelectedClips]);
 
@@ -120,17 +120,17 @@ export function PlayerPreview() {
       <div
         style={{
           flex: 1,
-          position: "relative", // Ensure relative positioning for absolute children if needed
-          overflow: "hidden", // Hide anything outside (though canvas masks it too)
+          position: 'relative', // Ensure relative positioning for absolute children if needed
+          overflow: 'hidden', // Hide anything outside (though canvas masks it too)
         }}
       >
         <canvas
           ref={previewCanvasRef}
           id="preview-canvas"
           style={{
-            display: "block",
-            width: "100%",
-            height: "100%",
+            display: 'block',
+            width: '100%',
+            height: '100%',
           }}
         />
       </div>

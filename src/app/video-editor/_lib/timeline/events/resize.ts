@@ -103,11 +103,9 @@ export function onObjectResizeModified(
       c.set({ top: c.top + trackStep });
       c.setCoords();
     });
-
-    (canvas as any).synchronizeTracksWithClips({
-      protectedTrackIds: [newTrack.id, currentTrack.id],
-    });
   }
+  (canvas as any).detectConsecutiveClips();
+  (canvas as any).synchronizeTracksWithClips();
   (canvas as any).fire('clip:resize');
   (canvas as any).fire('update:track');
   canvas.requestRenderAll();

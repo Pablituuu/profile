@@ -9,14 +9,15 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/use-language-store';
 
 const menuItems = [
-  { id: 'media', icon: Clapperboard, label: 'Media' },
-  { id: 'audio', icon: Music, label: 'Audio' },
-  { id: 'text', icon: Type, label: 'Text' },
-  { id: 'image', icon: ImageIcon, label: 'Image' },
-  { id: 'effects', icon: Sparkles, label: 'Effects' },
-  { id: 'transitions', icon: ArrowRightLeft, label: 'Transitions' },
+  { id: 'media', icon: Clapperboard, labelKey: 'menu.media' },
+  { id: 'audio', icon: Music, labelKey: 'menu.audio' },
+  { id: 'text', icon: Type, labelKey: 'menu.text' },
+  { id: 'image', icon: ImageIcon, labelKey: 'menu.image' },
+  { id: 'effects', icon: Sparkles, labelKey: 'menu.effects' },
+  { id: 'transitions', icon: ArrowRightLeft, labelKey: 'menu.transitions' },
 ];
 
 interface MenuSidebarProps {
@@ -30,6 +31,7 @@ export const MenuSidebar = React.memo(function MenuSidebar({
   activeTool,
   onSelect,
 }: MenuSidebarProps) {
+  const { t } = useLanguageStore();
   const handleSelect = (id: string) => {
     // If clicking the already active tool, collapse it (set to null)
     if (activeTool === id) {
@@ -53,7 +55,9 @@ export const MenuSidebar = React.memo(function MenuSidebar({
           )}
         >
           <item.icon className="h-6 w-6" strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">{item.label}</span>
+          <span className="text-[10px] font-medium">
+            {t(item.labelKey as any)}
+          </span>
         </div>
       ))}
     </aside>

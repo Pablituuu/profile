@@ -3,11 +3,13 @@
 import { Type, Captions } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEditorStore } from '@/store/use-editor-store';
+import { useLanguageStore } from '@/store/use-language-store';
 import { Text } from 'openvideo';
 import { useCallback } from 'react';
 
 export function TextPanel() {
   const { studio } = useEditorStore();
+  const { t } = useLanguageStore();
 
   const handleAddText = useCallback(async () => {
     if (!studio) return;
@@ -37,7 +39,7 @@ export function TextPanel() {
     <div className="flex-1 flex flex-col p-4 gap-4 bg-background text-foreground select-none">
       <div className="flex flex-col gap-3">
         <h3 className="text-sm font-semibold text-muted-foreground mb-1">
-          Básico
+          {t('text.basic')}
         </h3>
 
         <Button
@@ -46,7 +48,7 @@ export function TextPanel() {
           onClick={handleAddText}
         >
           <Type className="h-5 w-5" />
-          <span>Agregar texto</span>
+          <span>{t('text.add_text')}</span>
         </Button>
 
         <Button
@@ -54,7 +56,7 @@ export function TextPanel() {
           className="w-full h-12 justify-start gap-3 bg-[#3F3F3F] hover:bg-[#4F4F4F] text-white border-none"
         >
           <Captions className="h-5 w-5" />
-          <span>Agregar captions</span>
+          <span>{t('text.add_captions')}</span>
         </Button>
       </div>
     </div>
