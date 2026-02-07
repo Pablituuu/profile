@@ -9,46 +9,23 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = streamText({
-    model: google('gemini-robotics-er-1.5-preview'),
+    model: google('gemini-2.0-flash'),
     messages: await convertToModelMessages(messages),
-    system: `You are a friendly, professional, and proactive Video Editor AI Assistant. Your goal is to help users edit their videos with ease and precision using the DesignCombo editor.
-
-    **CORE RESPONSIBILITIES:**
-    1. **Execute Actions:** Use the available tools to perform actions like adding text, generating media, or updating styles.
-    2. **Language Consistency:** ALWAYS respond in the SAME LANGUAGE as the user (Spanish or English).
-    3. **Scope Enforcement:** ONLY answer questions related to video editing or the editor itself. Kindly refuse off-topic questions (news, weather, etc.).
-
-    **TOOL USAGE RULES:**
-    - **addText:** Use when the user wants to add NEW text to the timeline.
-    - **updateSelectedTextStyle:** Use when the user wants to modify EXISTING selected text (color, size, content, etc.).
-    - **generateImage:** Use when the user wants to create an AI image from a description.
-    - **generateVideo:** Use when the user wants to create an AI video clip from a description.
+    system: `You are a professional Video Editor AI Assistant for the DesignCombo editor.
     
-    **CRITICAL RULES:**
-    1. **NO IDs:** Do not ask for or invent internal IDs. The system handles "selected" assets automatically.
-    2. **PROMPT TRANSLATION:** When using 'generateImage' or 'generateVideo', ALWAYS translate the 'prompt' to ENGLISH, even if the user speaks Spanish. This ensures better generation quality.
-    3. **Brief Explanations:** Briefly explain what you are doing before calling a tool.
-    4. **Impossible Requests:** If a request cannot be fulfilled by a tool, explain why politely.`,
+    **CRITICAL STABILITY RULES:**
+    1. **Tool Calls:** When calling a tool, do NOT explain what you are doing. JUST call the tool.
+    2. **JSON Stringified Input:** For tools like 'addText' or 'update' styles, you MUST send a SINGLE string field named 'json' containing the actual parameters as a JSON object.
+    3. **No Incremental Objects:** Do NOT send nested objects directly. Stringify them into the 'json' field to ensure streaming stability.
+    4. **Consistency:** Decide all property values BEFORE starting the tool call block.`,
     tools: {
       addText: tool({
-        description: 'Add a text element to the video timeline',
+        description:
+          'Add a text element to the video timeline. Input must be a JSON string containing text, color, fontSize, and fontWeight.',
         inputSchema: z.object({
-          text: z.string().describe('The content of the text to add'),
-          fontSize: z
-            .number()
-            .optional()
-            .default(124)
-            .describe('Font size in pixels'),
-          color: z
+          json: z
             .string()
-            .optional()
-            .default('#ffffff')
-            .describe('Hex color code for the text'),
-          fontWeight: z
-            .string()
-            .optional()
-            .default('bold')
-            .describe('CSS font weight'),
+            .describe('JSON string: {text, color, fontSize, fontWeight}'),
         }),
       }),
       generateImage: tool({
@@ -56,27 +33,7 @@ export async function POST(req: Request) {
         inputSchema: z.object({
           prompt: z
             .string()
-            .describe('The description of the image to generate'),
-        }),
-      }),
-      updateSelectedTextStyle: tool({
-        description:
-          'Update the style or content of the currently selected text clip(s)',
-        inputSchema: z.object({
-          text: z.string().optional().describe('New content for the text'),
-          fontSize: z.number().optional().describe('New font size in pixels'),
-          color: z.string().optional().describe('New hex color code'),
-          fontWeight: z.string().optional().describe('New CSS font weight'),
-          textAlign: z
-            .enum(['left', 'center', 'right'])
-            .optional()
-            .describe('Text alignment'),
-          opacity: z
-            .number()
-            .min(0)
-            .max(1)
-            .optional()
-            .describe('Opacity (0 to 1)'),
+            .describe('The description of the image in English'),
         }),
       }),
       generateVideo: tool({
@@ -84,7 +41,21 @@ export async function POST(req: Request) {
         inputSchema: z.object({
           prompt: z
             .string()
-            .describe('The description of the video to generate'),
+            .describe('The description of the video in English'),
+        }),
+      }),
+      updateSelectedMediaStyle: tool({
+        description:
+          'Update properties of selected media. Input must be a JSON string of properties to update.',
+        inputSchema: z.object({
+          json: z.string().describe('JSON string of style properties'),
+        }),
+      }),
+      updateSelectedTextStyle: tool({
+        description:
+          'Update properties of selected text. Input must be a JSON string of properties to update.',
+        inputSchema: z.object({
+          json: z.string().describe('JSON string of text properties'),
         }),
       }),
     },

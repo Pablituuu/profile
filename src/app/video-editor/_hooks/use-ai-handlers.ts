@@ -11,6 +11,27 @@ interface TextStyle {
   [key: string]: unknown;
 }
 
+interface MediaStyle {
+  borderRadius?: number;
+  stroke?: {
+    color?: string;
+    width?: number;
+  };
+  dropShadow?: {
+    color?: string;
+    alpha?: number;
+    blur?: number;
+    distance?: number;
+    angle?: number;
+  };
+  [key: string]: unknown;
+}
+
+interface MediaClip extends IClip {
+  style: MediaStyle;
+  volume: number;
+}
+
 /**
  * Interface for clips that support text content and direct updates.
  */
@@ -149,10 +170,8 @@ export const useAiHandlers = (studio: Studio | null) => {
       if (!studio) return;
 
       const selectedClips = studio.getSelectedClips();
-      console.log('handleUpdateTextStyle dispatcher input:', input);
 
       if (!selectedClips.length) {
-        console.warn('No clips selected for AI update.');
         return;
       }
 
@@ -170,7 +189,6 @@ export const useAiHandlers = (studio: Studio | null) => {
               styleUpdates.fontSize = input.fontSize;
             if (input.color !== undefined) {
               styleUpdates.fill = input.color;
-              styleUpdates.color = input.color;
             }
             if (input.fontWeight !== undefined)
               styleUpdates.fontWeight = input.fontWeight;
@@ -178,14 +196,28 @@ export const useAiHandlers = (studio: Studio | null) => {
               styleUpdates.align = input.textAlign;
 
             if (Object.keys(styleUpdates).length > 0) {
-              updates.style = styleUpdates;
+              updates.style = {
+                ...(textClip.style || {}),
+                ...styleUpdates,
+              };
+            }
+
+            // Remove undefined or null values to avoid issues with the editor
+            const cleanUpdates = Object.fromEntries(
+              Object.entries(updates).filter(([_, v]) => v != null)
+            );
+
+            if (cleanUpdates.style) {
+              cleanUpdates.style = Object.fromEntries(
+                Object.entries(cleanUpdates.style).filter(([_, v]) => v != null)
+              );
             }
 
             console.log(
               `Updating clip ${textClip.id} via dispatcher with:`,
-              updates
+              cleanUpdates
             );
-            textClip.update(updates);
+            textClip.update(cleanUpdates);
           }
         });
       } catch (error: unknown) {
@@ -195,36 +227,174 @@ export const useAiHandlers = (studio: Studio | null) => {
     [studio]
   );
 
+  const handleUpdateMediaStyle = useCallback(
+    async (input: {
+      opacity?: number;
+      left?: number;
+      top?: number;
+      width?: number;
+      height?: number;
+      angle?: number;
+      borderRadius?: number;
+      volume?: number;
+      strokeColor?: string;
+      strokeWidth?: number;
+      shadowDistance?: number;
+      shadowAngle?: number;
+      shadowBlur?: number;
+      shadowColor?: string;
+    }) => {
+      if (!studio) return;
+
+      const selectedClips = studio.getSelectedClips();
+      if (!selectedClips.length) return;
+
+      try {
+        selectedClips.forEach((clip) => {
+          const type = clip.type.toLowerCase();
+          if (type === 'image' || type === 'video') {
+            const mediaClip = clip as MediaClip;
+            const updates: any = {};
+            const styleUpdates: any = { ...(mediaClip.style || {}) };
+
+            const angle =
+              input.angle !== undefined ? input.angle : (input as any).rotation;
+            const borderRadius =
+              input.borderRadius !== undefined
+                ? input.borderRadius
+                : (input as any).cornerRadius;
+
+            let shadowColor = input.shadowColor;
+            let shadowBlur = input.shadowBlur;
+            let shadowDistance = input.shadowDistance;
+            let shadowAngle = input.shadowAngle;
+
+            // Handle CSS shadow string alias if present
+            const cssShadow = (input as any).shadow;
+            if (cssShadow && typeof cssShadow === 'string') {
+              const parts = cssShadow.split(' ');
+              if (parts.length >= 3) {
+                shadowDistance = parseInt(parts[0]) || 5;
+                shadowBlur = parseInt(parts[2]) || 10;
+                const colorMatch = cssShadow.match(
+                  /(rgba?\(.*?\)|#[0-9a-fA-F]{3,6})/
+                );
+                if (colorMatch) shadowColor = colorMatch[0];
+              }
+            }
+
+            if (input.opacity !== undefined) updates.opacity = input.opacity;
+            if (input.left !== undefined) updates.left = input.left;
+            if (input.top !== undefined) updates.top = input.top;
+            if (input.width !== undefined) updates.width = input.width;
+            if (input.height !== undefined) updates.height = input.height;
+            if (angle !== undefined) updates.angle = angle;
+
+            if (type === 'video' && input.volume !== undefined) {
+              updates.volume = input.volume;
+            }
+
+            if (borderRadius !== undefined) {
+              styleUpdates.borderRadius = Math.max(1, borderRadius);
+            }
+
+            if (
+              input.strokeColor !== undefined ||
+              input.strokeWidth !== undefined
+            ) {
+              styleUpdates.stroke = {
+                ...(styleUpdates.stroke || { color: '#ffffff', width: 0 }),
+                ...(input.strokeColor !== undefined
+                  ? { color: input.strokeColor }
+                  : {}),
+                ...(input.strokeWidth !== undefined
+                  ? { width: input.strokeWidth }
+                  : {}),
+              };
+            }
+
+            if (
+              shadowDistance !== undefined ||
+              shadowAngle !== undefined ||
+              shadowBlur !== undefined ||
+              shadowColor !== undefined
+            ) {
+              const currentShadow = styleUpdates.dropShadow || {
+                color: '#000000',
+                alpha: 1,
+                blur: 0,
+                distance: 0,
+                angle: 0,
+              };
+
+              styleUpdates.dropShadow = {
+                ...currentShadow,
+                ...(shadowColor !== undefined ? { color: shadowColor } : {}),
+                ...(shadowBlur !== undefined ? { blur: shadowBlur } : {}),
+                ...(shadowDistance !== undefined
+                  ? { distance: shadowDistance }
+                  : {}),
+                ...(shadowAngle !== undefined
+                  ? { angle: (shadowAngle * Math.PI) / 180 }
+                  : {}),
+              };
+            }
+
+            updates.style = styleUpdates;
+
+            // Remove undefined or null values
+            const cleanUpdates = Object.fromEntries(
+              Object.entries(updates).filter(([_, v]) => v != null)
+            );
+
+            if (cleanUpdates.style) {
+              cleanUpdates.style = Object.fromEntries(
+                Object.entries(cleanUpdates.style).filter(([_, v]) => v != null)
+              );
+            }
+
+            console.log(
+              `Updating ${type} clip ${mediaClip.id} with:`,
+              cleanUpdates
+            );
+            mediaClip.update(cleanUpdates);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to update media style via hook:', error);
+      }
+    },
+    [studio]
+  );
+
   const handleToolCall = useCallback(
     async (toolCall: { toolName: string; input: unknown }) => {
-      const { toolName, input } = toolCall;
+      const { toolName, input } = toolCall as { toolName: string; input: any };
       console.log('Dispatching AI Tool:', toolName, input);
+
+      let payload = input;
+      if (input.json) {
+        try {
+          payload = JSON.parse(input.json);
+          console.log('Parsed Tool Payload:', payload);
+        } catch (e) {
+          console.error('Failed to parse tool JSON:', input.json, e);
+        }
+      } else if (input.updates) {
+        payload = input.updates;
+      }
 
       switch (toolName) {
         case 'addText':
-          return await handleAddText(
-            input as {
-              text: string;
-              fontSize?: number;
-              color?: string;
-              fontWeight?: string;
-            }
-          );
+          return await handleAddText(payload);
         case 'generateImage':
-          return await handleGenerateImage(input as { prompt: string });
+          return await handleGenerateImage(payload);
         case 'generateVideo':
-          return await handleGenerateVideo(input as { prompt: string });
+          return await handleGenerateVideo(payload);
         case 'updateSelectedTextStyle':
-          return await handleUpdateTextStyle(
-            input as {
-              text?: string;
-              fontSize?: number;
-              color?: string;
-              fontWeight?: string;
-              textAlign?: 'left' | 'center' | 'right';
-              opacity?: number;
-            }
-          );
+          return await handleUpdateTextStyle(payload);
+        case 'updateSelectedMediaStyle':
+          return await handleUpdateMediaStyle(payload);
         default:
           console.warn(`No handler for tool: ${toolName}`);
       }
@@ -234,6 +404,7 @@ export const useAiHandlers = (studio: Studio | null) => {
       handleGenerateImage,
       handleGenerateVideo,
       handleUpdateTextStyle,
+      handleUpdateMediaStyle,
     ]
   );
 

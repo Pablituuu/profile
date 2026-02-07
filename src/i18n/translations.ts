@@ -105,6 +105,12 @@ export const translations = {
     'updates.i18n': 'Soporte Bilingüe (EN/ES)',
     'updates.i18n_desc':
       'Ahora toda la interfaz está disponible en Español e Inglés con cambio instantáneo.',
+    'updates.ai_stability': 'Estabilidad Asistente AI',
+    'updates.ai_stability_desc':
+      'Mejora crítica en el streaming de Gemini para evitar errores JSON y procesamiento de estilos optimizado mediante strings.',
+    'updates.corner_radius_fix': 'Fix de Radio de Borde',
+    'updates.corner_radius_fix_desc':
+      'Se ha corregido un problema que impedía aplicar el radio de borde correctamente con valor 0, forzando un mínimo de 1.',
     'updates.ai_assets': 'Assets AI Integrados',
     'updates.ai_assets_desc':
       'Generación de imágenes y assets mediante inteligencia artificial directamente en el editor.',
@@ -148,6 +154,11 @@ export const translations = {
     'chat.type_message': 'Escribe un mensaje...',
     'chat.inaccurate':
       'El asistente AI puede proporcionar información inexacta',
+    'chat.adding_text': 'Agregando texto',
+    'chat.updating_style': 'Actualizando estilo del texto...',
+    'chat.updating_media_style': 'Actualizando estilo del medio...',
+    'text.apply_hardcoded': 'Aplicar Estilo Hardcoded',
+    'image.apply_hardcoded': 'Aplicar Estilo Hardcoded (Imagen)',
   },
   en: {
     'media.upload': 'Upload',
@@ -253,6 +264,12 @@ export const translations = {
     'updates.i18n': 'Bilingual Support (EN/ES)',
     'updates.i18n_desc':
       'The entire interface is now available in both Spanish and English with instant switching.',
+    'updates.ai_stability': 'AI Assistant Stability',
+    'updates.ai_stability_desc':
+      'Critical improvement in Gemini streaming to prevent JSON errors and optimized style processing using strings.',
+    'updates.corner_radius_fix': 'Border Radius Fix',
+    'updates.corner_radius_fix_desc':
+      'Fixed an issue that prevented correctly applying border radius with value 0, enforcing a minimum of 1.',
     'updates.ai_assets': 'Integrated AI Assets',
     'updates.ai_assets_desc':
       'Generate images and assets using artificial intelligence directly within the editor.',
@@ -295,6 +312,11 @@ export const translations = {
     'chat.thinking': 'Thinking...',
     'chat.type_message': 'Type a message...',
     'chat.inaccurate': 'AI assistant may provide inaccurate info',
+    'chat.adding_text': 'Adding text',
+    'chat.updating_style': 'Updating text style...',
+    'chat.updating_media_style': 'Updating media style...',
+    'text.apply_hardcoded': 'Apply Hardcoded Style',
+    'image.apply_hardcoded': 'Apply Hardcoded Style (Image)',
   },
 } as const;
 

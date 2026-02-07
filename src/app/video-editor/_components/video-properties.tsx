@@ -271,16 +271,20 @@ export function VideoProperties({ clip }: VideoPropertiesProps) {
         <div className="flex items-center gap-4">
           <IconSquare className="size-4 text-muted-foreground" />
           <Slider
-            value={[style.borderRadius || 0]}
-            onValueChange={(v) => handleStyleUpdate({ borderRadius: v[0] })}
+            value={[style.borderRadius || 1]}
+            onValueChange={(v) =>
+              handleStyleUpdate({ borderRadius: Math.max(1, v[0]) })
+            }
             max={500}
             step={1}
             className="flex-1"
           />
           <InputGroup className="w-20">
             <NumberInput
-              value={style.borderRadius || 0}
-              onChange={(val) => handleStyleUpdate({ borderRadius: val })}
+              value={style.borderRadius || 1}
+              onChange={(val) =>
+                handleStyleUpdate({ borderRadius: Math.max(1, val) })
+              }
               className="p-0 text-center"
             />
             <InputGroupAddon align="inline-end" className="p-0 pr-2">

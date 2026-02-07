@@ -30,6 +30,16 @@ export function UpdatesModal() {
 
   const updateItems = [
     {
+      id: 'ai_stability',
+      title: t('updates.ai_stability'),
+      description: t('updates.ai_stability_desc'),
+    },
+    {
+      id: 'corner_radius_fix',
+      title: t('updates.corner_radius_fix'),
+      description: t('updates.corner_radius_fix_desc'),
+    },
+    {
       id: 'i18n',
       title: t('updates.i18n'),
       description: t('updates.i18n_desc'),

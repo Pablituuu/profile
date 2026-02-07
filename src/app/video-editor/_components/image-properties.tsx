@@ -34,12 +34,14 @@ import {
 import { Slider } from '@/components/ui/slider';
 import color from 'color';
 import { NumberInput } from '@/components/ui/number-input';
+import { useLanguageStore } from '@/store/use-language-store';
 
 interface ImagePropertiesProps {
   clip: IClip;
 }
 
 export function ImageProperties({ clip }: ImagePropertiesProps) {
+  const { t } = useLanguageStore();
   const imageClip = clip as any;
   const style = imageClip.style || {};
   const [, setTick] = useState(0);
@@ -120,8 +122,31 @@ export function ImageProperties({ clip }: ImagePropertiesProps) {
     });
   };
 
+  // const handleHardcodedUpdate = () => {
+  //   imageClip.update({
+  //     opacity: 0.75,
+  //     angle: 20,
+  //     style: {
+  //       borderRadius: 290,
+  //       dropShadow: {
+  //         color: '#0000ff',
+  //         alpha: 1,
+  //         blur: 5,
+  //         distance: 250,
+  //         angle: 0.7853981633974483,
+  //       },
+  //     },
+  //   });
+  // };
+
   return (
     <div className="flex flex-col gap-5">
+      {/* <button
+        onClick={handleHardcodedUpdate}
+        className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
+      >
+        {t('image.apply_hardcoded')}
+      </button> */}
       {/* Transform Section */}
       <div className="flex flex-col gap-2">
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -243,16 +268,20 @@ export function ImageProperties({ clip }: ImagePropertiesProps) {
         <div className="flex items-center gap-4">
           <IconSquare className="size-4 text-muted-foreground" />
           <Slider
-            value={[style.borderRadius || 0]}
-            onValueChange={(v) => handleStyleUpdate({ borderRadius: v[0] })}
+            value={[style.borderRadius || 1]}
+            onValueChange={(v) =>
+              handleStyleUpdate({ borderRadius: Math.max(1, v[0]) })
+            }
             max={500}
             step={1}
             className="flex-1"
           />
           <InputGroup className="w-20">
             <NumberInput
-              value={style.borderRadius || 0}
-              onChange={(val) => handleStyleUpdate({ borderRadius: val })}
+              value={style.borderRadius || 1}
+              onChange={(val) =>
+                handleStyleUpdate({ borderRadius: Math.max(1, val) })
+              }
               className="p-0 text-center"
             />
             <InputGroupAddon align="inline-end" className="p-0 pr-2">

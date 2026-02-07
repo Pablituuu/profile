@@ -51,6 +51,7 @@ import color from 'color';
 import { fontManager } from 'openvideo';
 import { getGroupedFonts, getFontByPostScriptName } from '@/utils/font-utils';
 import { NumberInput } from '@/components/ui/number-input';
+import { useLanguageStore } from '@/store/use-language-store';
 
 const GROUPED_FONTS = getGroupedFonts();
 
@@ -109,6 +110,7 @@ interface TextPropertiesProps {
 }
 
 export function TextProperties({ clip }: TextPropertiesProps) {
+  const { t } = useLanguageStore();
   const textClip = clip as any;
   const style = textClip.style || {};
   const [, setTick] = useState(0);
@@ -220,8 +222,26 @@ export function TextProperties({ clip }: TextPropertiesProps) {
     });
   };
 
+  // const handleHardcodedUpdate = () => {
+  //   console.log(textClip);
+  //   textClip.update({
+  //     opacity: 0.9,
+  //     style: {
+  //       fill: '#333333',
+  //       align: 'right',
+  //     },
+  //   });
+  // };
+
   return (
     <div className="flex flex-col gap-5">
+      {/* <button
+        onClick={handleHardcodedUpdate}
+        className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-indigo-600/20"
+      >
+        {t('text.apply_hardcoded')}
+      </button> */}
+
       {/* Content */}
       <div className="flex flex-col gap-2">
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">

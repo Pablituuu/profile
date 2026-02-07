@@ -32,6 +32,7 @@ import { useLanguageStore } from '@/store/use-language-store';
  * Custom Message component with role-based styling using local variables
  */
 const CustomMessage = () => {
+  const { t } = useLanguageStore();
   return (
     <MessagePrimitive.Root className="flex gap-3 mb-6 data-[role=user]:flex-row-reverse group [--msg-avatar-bg:rgba(255,255,255,0.05)] [--msg-bg:rgba(255,255,255,0.03)] [--msg-border:rgba(255,255,255,0.05)] data-[role=user]:[--msg-avatar-bg:rgba(255,255,255,0.1)] data-[role=user]:[--msg-bg:rgba(79,70,229,0.15)] data-[role=user]:[--msg-border:rgba(147,51,234,0.3)]">
       <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border border-white/10 bg-[--msg-avatar-bg]">
@@ -58,7 +59,7 @@ const CustomMessage = () => {
                         <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
                       </div>
                       <span className="text-xs text-white/60 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                        Agregando texto: "{(args as any).text}"
+                        {t('chat.adding_text')}: "{(args as any).text}"
                       </span>
                     </div>
                   ),
@@ -68,7 +69,17 @@ const CustomMessage = () => {
                         <Sparkles className="w-3 h-3 text-purple-400 animate-pulse" />
                       </div>
                       <span className="text-xs text-white/60 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                        Actualizando estilo del texto...
+                        {t('chat.updating_style')}
+                      </span>
+                    </div>
+                  ),
+                  updateSelectedMediaStyle: () => (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 mt-2 first:mt-0 animate-in fade-in slide-in-from-left-2 duration-500">
+                      <div className="w-5 h-5 rounded-md bg-blue-500/20 flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 text-blue-400 animate-pulse" />
+                      </div>
+                      <span className="text-xs text-white/60 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                        {t('chat.updating_media_style')}
                       </span>
                     </div>
                   ),
