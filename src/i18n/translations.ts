@@ -166,6 +166,7 @@ export const translations = {
     'highlights.status_finalizing': 'Finalizando detalles...',
     'highlights.status_wait': 'Esto puede tomar unos momentos...',
     'highlights.clips_count': 'clips',
+    'highlights.status_verifying': 'Verificando permisos...',
     'highlights.demo_mode': 'Modo Demo',
     'highlights.demo_title': 'Contenido Protegido',
     'highlights.demo_description':
@@ -177,6 +178,7 @@ export const translations = {
     'updates.transitions_fix_desc':
       'Se ha detectado un comportamiento inconsistente al añadir transiciones en uniones complejas. Nuestro equipo está trabajando en una solución prioritaria.',
     'header.export': 'Exportar',
+    'header.logout': 'Cerrar Sesión',
     'header.import_json': 'Importar desde JSON',
     'header.export_json': 'Exportar a JSON',
     'header.json_menu': 'JSON',
@@ -219,6 +221,19 @@ export const translations = {
     'chat.updating_media_style': 'Actualizando estilo del medio...',
     'text.apply_hardcoded': 'Aplicar Estilo Hardcoded',
     'image.apply_hardcoded': 'Aplicar Estilo Hardcoded (Imagen)',
+    'login.subtitle': 'Toda la potencia de la IA para tus videos.',
+    'login.title': 'Editor de Video AI',
+    'login.description': 'Ingresa tus credenciales para acceder al editor',
+    'login.google': 'Google',
+    'login.github': 'GitHub',
+    'login.or_continue': 'O CONTINÚA CON EMAIL',
+    'login.email': 'Correo electrónico',
+    'login.password': 'Contraseña',
+    'login.signin': 'Iniciar Sesión',
+    'login.signup': 'Registrarse',
+    'login.privacy':
+      'Al iniciar sesión, aceptas nuestra política de privacidad.',
+    'login.rights': 'Todos los derechos reservados.',
   },
   en: {
     'media.upload': 'Upload',
@@ -385,6 +400,7 @@ export const translations = {
     'highlights.status_finalizing': 'Finishing touches...',
     'highlights.status_wait': 'This may take a few moments...',
     'highlights.clips_count': 'clips',
+    'highlights.status_verifying': 'Verifying permissions...',
     'highlights.demo_mode': 'Demo Mode',
     'highlights.demo_title': 'Protected Content',
     'highlights.demo_description':
@@ -396,6 +412,7 @@ export const translations = {
     'updates.transitions_fix_desc':
       'Inconsistent behavior has been detected when adding transitions in complex unions. Our team is working on a high-priority solution.',
     'header.export': 'Export',
+    'header.logout': 'Sign Out',
     'header.import_json': 'Import from JSON',
     'header.export_json': 'Export to JSON',
     'header.json_menu': 'JSON',
@@ -437,6 +454,18 @@ export const translations = {
     'chat.updating_media_style': 'Updating media style...',
     'text.apply_hardcoded': 'Apply Hardcoded Style',
     'image.apply_hardcoded': 'Apply Hardcoded Style (Image)',
+    'login.subtitle': 'All the power of AI for your videos.',
+    'login.title': 'AI Video Editor',
+    'login.description': 'Enter your credentials to access the editor',
+    'login.google': 'Google',
+    'login.github': 'GitHub',
+    'login.or_continue': 'OR CONTINUE WITH EMAIL',
+    'login.email': 'Email Address',
+    'login.password': 'Password',
+    'login.signin': 'Sign In',
+    'login.signup': 'Sign Up',
+    'login.privacy': 'By signing in, you agree to our privacy policy.',
+    'login.rights': 'All rights reserved.',
   },
 } as const;
 

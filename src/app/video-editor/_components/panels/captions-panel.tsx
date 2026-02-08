@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Languages,
   Loader2,
@@ -21,25 +21,25 @@ import {
   Linkedin,
   Mail,
   MessageCircle,
-} from "lucide-react";
-import { checkDeepgramApiKey } from "@/app/actions/check-api-key";
-import { useLanguageStore } from "@/store/use-language-store";
-import { useEditorStore } from "@/store/use-editor-store";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { VideoClipTimeline as VideoClipTimelineClass } from "@/app/video-editor/_lib/timeline/video-clip";
-import { fontManager, jsonToClip, Log } from "openvideo";
-import { cloneDeep } from "lodash";
-import { createPortal } from "react-dom";
+} from 'lucide-react';
+import { checkDeepgramApiKey } from '@/app/actions/check-api-key';
+import { useLanguageStore } from '@/store/use-language-store';
+import { useEditorStore } from '@/store/use-editor-store';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { VideoClipTimeline as VideoClipTimelineClass } from '@/app/video-editor/_lib/timeline/video-clip';
+import { fontManager, jsonToClip, Log } from 'openvideo';
+import { cloneDeep } from 'lodash';
+import { createPortal } from 'react-dom';
 
 const LANGUAGES = [
-  { code: "auto", label: "Auto Detect", icon: Sparkles },
-  { code: "es", label: "Spanish", icon: "🇪🇸" },
-  { code: "en", label: "English", icon: "🇺🇸" },
-  { code: "pt", label: "Portuguese", icon: "🇧🇷" },
-  { code: "fr", label: "French", icon: "🇫🇷" },
+  { code: 'auto', label: 'Auto Detect', icon: Sparkles },
+  { code: 'es', label: 'Spanish', icon: '🇪🇸' },
+  { code: 'en', label: 'English', icon: '🇺🇸' },
+  { code: 'pt', label: 'Portuguese', icon: '🇧🇷' },
+  { code: 'fr', label: 'French', icon: '🇫🇷' },
 ];
 
 export function CaptionsPanel() {
@@ -49,10 +49,10 @@ export function CaptionsPanel() {
   const [isBurning, setIsBurning] = useState(false);
   const [videoClips, setVideoClips] = useState<any[]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState("auto");
+  const [selectedLanguage, setSelectedLanguage] = useState('auto');
   const [transcription, setTranscription] = useState<any>(null);
   const [copied, setCopied] = useState(false);
-  const [view, setView] = useState<"setup" | "list">("setup");
+  const [view, setView] = useState<'setup' | 'list'>('setup');
   const [captionItems, setCaptionItems] = useState<any[]>([]);
   const [activeCaptionId, setActiveCaptionId] = useState<string | null>(null);
   const [errorToast, setErrorToast] = useState<string | null>(null);
@@ -62,9 +62,11 @@ export function CaptionsPanel() {
   const activeCaptionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    checkDeepgramApiKey().then((configured) => {
+    const checkAccess = async () => {
+      const configured = await checkDeepgramApiKey();
       setHasKey(configured);
-    });
+    };
+    checkAccess();
   }, []);
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export function CaptionsPanel() {
       });
     });
 
-    const captions = allClips.filter((clip) => clip.type === "Caption");
+    const captions = allClips.filter((clip) => clip.type === 'Caption');
     const sorted = captions.sort((a, b) => a.display.from - b.display.from);
     setCaptionItems(sorted);
   }, [studio]);
@@ -98,7 +100,7 @@ export function CaptionsPanel() {
     ({ currentTime }: { currentTime: number }) => {
       const activeItem = captionItemsRef.current.find(
         (item) =>
-          currentTime >= item.display.from && currentTime < item.display.to,
+          currentTime >= item.display.from && currentTime < item.display.to
       );
       const newActiveId = activeItem ? activeItem.id : null;
       if (newActiveId !== activeCaptionIdRef.current) {
@@ -106,7 +108,7 @@ export function CaptionsPanel() {
         activeCaptionIdRef.current = newActiveId;
       }
     },
-    [],
+    []
   );
 
   useEffect(() => {
@@ -116,8 +118,8 @@ export function CaptionsPanel() {
       const videos = clips.filter(
         (clip: any) =>
           clip instanceof VideoClipTimelineClass ||
-          clip.type === "VideoClip" ||
-          clip.type === "video",
+          clip.type === 'VideoClip' ||
+          clip.type === 'video'
       );
       setVideoClips(videos);
     };
@@ -125,23 +127,23 @@ export function CaptionsPanel() {
     updateClips();
     updateCaptionItems();
 
-    timeline.on("object:added", updateClips);
-    timeline.on("object:removed", updateClips);
-    timeline.on("object:modified", updateClips);
+    timeline.on('object:added', updateClips);
+    timeline.on('object:removed', updateClips);
+    timeline.on('object:modified', updateClips);
 
-    studio?.on("clip:added", updateCaptionItems);
-    studio?.on("clip:removed", updateCaptionItems);
-    studio?.on("clip:updated", updateCaptionItems);
-    studio?.on("currentTime", handleTimeUpdate);
+    studio?.on('clip:added', updateCaptionItems);
+    studio?.on('clip:removed', updateCaptionItems);
+    studio?.on('clip:updated', updateCaptionItems);
+    studio?.on('currentTime', handleTimeUpdate);
 
     return () => {
-      timeline.off("object:added", updateClips);
-      timeline.off("object:removed", updateClips);
-      timeline.off("object:modified", updateClips);
-      studio?.off("clip:added", updateCaptionItems);
-      studio?.off("clip:removed", updateCaptionItems);
-      studio?.off("clip:updated", updateCaptionItems);
-      studio?.off("currentTime", handleTimeUpdate);
+      timeline.off('object:added', updateClips);
+      timeline.off('object:removed', updateClips);
+      timeline.off('object:modified', updateClips);
+      studio?.off('clip:added', updateCaptionItems);
+      studio?.off('clip:removed', updateCaptionItems);
+      studio?.off('clip:updated', updateCaptionItems);
+      studio?.off('currentTime', handleTimeUpdate);
     };
   }, [timeline, studio, updateCaptionItems, handleTimeUpdate]);
 
@@ -155,25 +157,25 @@ export function CaptionsPanel() {
       const body = new FormData();
       const response = await fetch(clip.src);
       const blob = await response.blob();
-      body.append("video", blob, "video.mp4");
-      body.append("language", selectedLanguage);
+      body.append('video', blob, 'video.mp4');
+      body.append('language', selectedLanguage);
 
-      const apiResponse = await fetch("/api/ai/captions", {
-        method: "POST",
+      const apiResponse = await fetch('/api/ai/captions', {
+        method: 'POST',
         body,
       });
 
       const data = await apiResponse.json();
       if (data.error) {
-        if (data.error.includes("does not have an audio track")) {
-          throw new Error(t("captions.no_audio_error"));
+        if (data.error.includes('does not have an audio track')) {
+          throw new Error(t('captions.no_audio_error'));
         }
         throw new Error(data.error);
       }
       setTranscription(data);
       setTimeout(() => handleBurnToTimeline(data), 100);
     } catch (error: any) {
-      setErrorToast(error.message || t("updates.ai_stability_desc"));
+      setErrorToast(error.message || t('updates.ai_stability_desc'));
     } finally {
       setIsProcessing(false);
     }
@@ -183,30 +185,30 @@ export function CaptionsPanel() {
     words: any[],
     maxWidth: number = 800,
     fontSize: number = 80,
-    fontFamily: string = "Bangers-Regular",
-    fontWeight: string = "900",
+    fontFamily: string = 'Bangers-Regular',
+    fontWeight: string = '900'
   ): any[] => {
     if (!words || words.length === 0) return [];
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     if (!ctx) return [];
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
 
     const captions: any[] = [];
     let currentWords: any[] = [];
-    let currentText = "";
+    let currentText = '';
     let currentWidth = 0;
 
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      const wordText = word.word || word.text || "";
+      const wordText = word.word || word.text || '';
       const testText = currentText ? `${currentText} ${wordText}` : wordText;
       const testWidth = ctx.measureText(testText).width;
 
       if (testWidth > maxWidth && currentWords.length > 0) {
         const firstWord = currentWords[0];
         const lastWord = currentWords[currentWords.length - 1];
-        const metrics = ctx.measureText("AaFfLMZpPqQ");
+        const metrics = ctx.measureText('AaFfLMZpPqQ');
         const textHeight =
           metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
@@ -215,11 +217,11 @@ export function CaptionsPanel() {
           width: currentWidth,
           height: textHeight || fontSize,
           words: currentWords.map((w, idx) => ({
-            text: w.word || w.text || "",
+            text: w.word || w.text || '',
             from: idx === 0 ? 0 : (w.start - firstWord.start) * 1000,
             to: (w.end - firstWord.start) * 1000,
             isKeyWord: idx === 0 || idx === currentWords.length - 1,
-            paragraphIndex: w.paragraphIndex ?? "",
+            paragraphIndex: w.paragraphIndex ?? '',
           })),
           from: firstWord.start,
           to: lastWord.end,
@@ -237,7 +239,7 @@ export function CaptionsPanel() {
     if (currentWords.length > 0) {
       const firstWord = currentWords[0];
       const lastWord = currentWords[currentWords.length - 1];
-      const metrics = ctx.measureText("AaFfLMZpPqQ");
+      const metrics = ctx.measureText('AaFfLMZpPqQ');
       const textHeight =
         metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       captions.push({
@@ -245,11 +247,11 @@ export function CaptionsPanel() {
         width: currentWidth,
         height: textHeight || fontSize,
         words: currentWords.map((w, idx) => ({
-          text: w.word || w.text || "",
+          text: w.word || w.text || '',
           from: idx === 0 ? 0 : (w.start - firstWord.start) * 1000,
           to: (w.end - firstWord.start) * 1000,
           isKeyWord: idx === 0 || idx === currentWords.length - 1,
-          paragraphIndex: w.paragraphIndex ?? "",
+          paragraphIndex: w.paragraphIndex ?? '',
         })),
         from: firstWord.start,
         to: lastWord.end,
@@ -265,16 +267,16 @@ export function CaptionsPanel() {
     setIsBurning(true);
     try {
       const clip = videoClips.find(
-        (c) => (c.clipId || c.id) === selectedClipId,
+        (c) => (c.clipId || c.id) === selectedClipId
       );
       if (!clip) return;
 
       const videoWidth = (studio as any).opts?.width || 1080;
       const videoHeight = (studio as any).opts?.height || 1920;
       const fontSize = 80;
-      const fontFamily = "Bangers-Regular";
+      const fontFamily = 'Bangers-Regular';
       const fontUrl =
-        "https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLCz7V1tvFP-KUEg.ttf";
+        'https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLCz7V1tvFP-KUEg.ttf';
 
       await fontManager.addFont({ name: fontFamily, url: fontUrl });
 
@@ -285,7 +287,7 @@ export function CaptionsPanel() {
         videoWidth * 0.8,
         fontSize,
         fontFamily,
-        "900",
+        '900'
       );
 
       const clipsToAdd: any[] = [];
@@ -300,8 +302,8 @@ export function CaptionsPanel() {
         const captionHeight = Math.ceil(chunk.height) + 20;
 
         const json = {
-          type: "Caption",
-          src: "",
+          type: 'Caption',
+          src: '',
           display: { from: fromUs, to: toUs },
           playbackRate: 1,
           duration: durationUs,
@@ -318,13 +320,13 @@ export function CaptionsPanel() {
           style: {
             fontSize,
             fontFamily,
-            fontWeight: "900",
-            color: "#FFFF00",
-            align: "center",
+            fontWeight: '900',
+            color: '#FFFF00',
+            align: 'center',
             fontUrl,
-            stroke: { color: "#000000", width: 8 },
+            stroke: { color: '#000000', width: 8 },
             shadow: {
-              color: "#000000",
+              color: '#000000',
               alpha: 0.8,
               blur: 10,
               distance: 4,
@@ -334,16 +336,16 @@ export function CaptionsPanel() {
           caption: {
             words: chunk.words,
             colors: {
-              appeared: "#FFFFFF",
-              active: "#FFFFFF",
-              activeFill: "#FF0000",
-              background: "",
-              keyword: "#FFFFFF",
+              appeared: '#FFFFFF',
+              active: '#FFFFFF',
+              activeFill: '#FF0000',
+              background: '',
+              keyword: '#FFFFFF',
             },
             preserveKeywordColor: true,
             positioning: { videoWidth, videoHeight },
           },
-          wordsPerLine: "multiple",
+          wordsPerLine: 'multiple',
         };
         const captionClip = await jsonToClip(json as any);
         clipsToAdd.push(captionClip);
@@ -353,10 +355,10 @@ export function CaptionsPanel() {
         await studio.addClip(clipsToAdd, { trackId: captionTrackId });
         updateCaptionItems();
         setTranscription(null);
-        setView("list");
+        setView('list');
       }
     } catch (error) {
-      console.error("Burn error:", error);
+      console.error('Burn error:', error);
     } finally {
       setIsBurning(false);
     }
@@ -365,7 +367,7 @@ export function CaptionsPanel() {
   const handleUpdateCaption = async (
     id: string,
     text: string,
-    fullUpdate = false,
+    fullUpdate = false
   ) => {
     if (!studio) return;
     const clip = studio.getClipById(id);
@@ -375,7 +377,7 @@ export function CaptionsPanel() {
 
     if (!fullUpdate) {
       (clip as any).text = text;
-      (clip as any).emit("propsChange", { text });
+      (clip as any).emit('propsChange', { text });
       return;
     }
 
@@ -385,7 +387,7 @@ export function CaptionsPanel() {
       : { ...clip };
     const caption = clipJson.caption || {};
     const oldWords = caption.words || [];
-    const paragraphIndex = oldWords[0]?.paragraphIndex ?? "";
+    const paragraphIndex = oldWords[0]?.paragraphIndex ?? '';
 
     let updatedWords;
     if (newWordsText.length > oldWords.length) {
@@ -423,14 +425,14 @@ export function CaptionsPanel() {
       await studio.addClip([newClip], { trackId });
       studio.removeClipById(id);
     } catch (error) {
-      Log.error("Failed to update caption clip:", error);
+      Log.error('Failed to update caption clip:', error);
     }
   };
 
   const handleSplitCaption = async (
     id: string,
     cursorPosition: number,
-    fullText: string,
+    fullText: string
   ) => {
     if (!studio) return;
     const clip = studio.getClipById(id);
@@ -464,11 +466,11 @@ export function CaptionsPanel() {
     const part1Text = wordsInText
       .slice(0, splitWordIndex)
       .map((w) => w.text)
-      .join(" ");
+      .join(' ');
     const part2Text = wordsInText
       .slice(splitWordIndex)
       .map((w) => w.text)
-      .join(" ");
+      .join(' ');
     const clipJson = (clip as any).toJSON
       ? (clip as any).toJSON()
       : { ...clip };
@@ -525,7 +527,7 @@ export function CaptionsPanel() {
       await studio.addClip([clip1, clip2], { trackId });
       studio.removeClipById(id);
     } catch (error) {
-      Log.error("Failed to split caption clip:", error);
+      Log.error('Failed to split caption clip:', error);
     }
   };
 
@@ -553,7 +555,7 @@ export function CaptionsPanel() {
     const seconds = Math.floor(micros / 1e6);
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   const filteredCaptionItems = captionItems.filter((item: any) => {
@@ -566,6 +568,17 @@ export function CaptionsPanel() {
   });
 
   const renderContent = () => {
+    if (hasKey === null) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">
+            {t('highlights.status_verifying')}
+          </p>
+        </div>
+      );
+    }
+
     if (hasKey === false) {
       return (
         <div className="flex flex-col items-center py-6 text-center space-y-6 h-full animate-in fade-in duration-500 overflow-y-auto">
@@ -576,10 +589,10 @@ export function CaptionsPanel() {
             </div>
             <div className="space-y-1 px-4">
               <h3 className="text-base font-bold text-white tracking-tight">
-                {t("highlights.demo_title")}
+                {t('highlights.demo_title')}
               </h3>
               <p className="text-xs text-white/40 leading-relaxed">
-                {t("highlights.demo_description")}
+                {t('highlights.demo_description')}
               </p>
             </div>
           </div>
@@ -600,18 +613,18 @@ export function CaptionsPanel() {
                 {[
                   {
                     icon: Github,
-                    href: "https://github.com/Pablituuu",
-                    title: "GitHub",
+                    href: 'https://github.com/Pablituuu',
+                    title: 'GitHub',
                   },
                   {
                     icon: Linkedin,
-                    href: "https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/",
-                    title: "LinkedIn",
+                    href: 'https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/',
+                    title: 'LinkedIn',
                   },
                   {
                     icon: Mail,
-                    href: "mailto:pablito.silvainca@gmail.com",
-                    title: "Email",
+                    href: 'mailto:pablito.silvainca@gmail.com',
+                    title: 'Email',
                   },
                 ].map((social, i) => (
                   <a
@@ -668,21 +681,21 @@ export function CaptionsPanel() {
             <div className="flex items-center justify-center gap-3 opacity-30">
               <div className="h-px bg-white/50 flex-1" />
               <span className="text-[10px] uppercase font-black tracking-widest text-white/50">
-                {t("highlights.overview")}
+                {t('highlights.overview')}
               </span>
               <div className="h-px bg-white/50 flex-1" />
             </div>
             <div className="w-full bg-white/5 rounded-2xl border border-white/5 p-4 text-left space-y-3">
               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.15em]">
-                {t("highlights.current_features")}
+                {t('highlights.current_features')}
               </p>
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  t("updates.ai_captions"),
-                  t("updates.stt"),
-                  "Deepgram Nova-2 Integration",
-                  "Gemini Pro Vision Support",
-                  t("updates.i18n"),
+                  t('updates.ai_captions'),
+                  t('updates.stt'),
+                  'Deepgram Nova-2 Integration',
+                  'Gemini Pro Vision Support',
+                  t('updates.i18n'),
                 ].map((feat) => (
                   <div
                     key={feat}
@@ -699,22 +712,22 @@ export function CaptionsPanel() {
       );
     }
 
-    if (view === "list") {
+    if (view === 'list') {
       return (
         <div className="flex-1 flex flex-col bg-[#0D0D0F] overflow-hidden">
           <div className="p-5 flex items-center gap-4 border-b border-white/5 bg-[#0D0D0F]/80 backdrop-blur-xl sticky top-0 z-20">
             <button
-              onClick={() => setView("setup")}
+              onClick={() => setView('setup')}
               className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all active:scale-95"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
               <h2 className="text-sm font-bold text-white tracking-tight">
-                {t("captions.list_title")}
+                {t('captions.list_title')}
               </h2>
               <p className="text-[10px] text-white/30 font-medium uppercase tracking-widest">
-                {filteredCaptionItems.length} {t("highlights.clips_count")}
+                {filteredCaptionItems.length} {t('highlights.clips_count')}
               </p>
             </div>
           </div>
@@ -726,14 +739,14 @@ export function CaptionsPanel() {
                     <MessageSquare className="w-8 h-8" />
                   </div>
                   <p className="text-xs font-medium">
-                    {t("highlights.status_init").replace("...", "")}
+                    {t('highlights.status_init').replace('...', '')}
                   </p>
                   <Button
-                    onClick={() => setView("setup")}
+                    onClick={() => setView('setup')}
                     variant="ghost"
                     className="text-indigo-400 font-bold text-[10px] uppercase tracking-widest"
                   >
-                    {t("captions.setup_title")}
+                    {t('captions.setup_title')}
                   </Button>
                 </div>
               ) : (
@@ -768,7 +781,7 @@ export function CaptionsPanel() {
             </div>
             <div>
               <h2 className="text-sm font-bold text-white tracking-tight leading-none mb-1.5">
-                {t("captions.setup_title")}
+                {t('captions.setup_title')}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -791,14 +804,14 @@ export function CaptionsPanel() {
               <button
                 key={lang.code}
                 onClick={() => setSelectedLanguage(lang.code)}
-                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-300 ${selectedLanguage === lang.code ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)] scale-[1.02]" : "bg-white/5 border-white/5 text-white/60 hover:bg-white/10"}`}
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-300 ${selectedLanguage === lang.code ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)] scale-[1.02]' : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'}`}
               >
                 <span className="text-sm">
-                  {typeof lang.icon === "string" ? (
+                  {typeof lang.icon === 'string' ? (
                     lang.icon
                   ) : (
                     <lang.icon
-                      className={`w-3.5 h-3.5 ${selectedLanguage === lang.code ? "text-indigo-600" : "text-indigo-400"}`}
+                      className={`w-3.5 h-3.5 ${selectedLanguage === lang.code ? 'text-indigo-600' : 'text-indigo-400'}`}
                     />
                   )}
                 </span>
@@ -822,7 +835,7 @@ export function CaptionsPanel() {
                 <AlertCircle className="w-6 h-6" />
               </div>
               <p className="text-[11px] text-white/30 font-medium">
-                {t("updates.video_support_desc")}
+                {t('updates.video_support_desc')}
               </p>
             </div>
           ) : (
@@ -838,20 +851,20 @@ export function CaptionsPanel() {
                       if (
                         captionItems.some(
                           (c) =>
-                            (c.mediaId || c.metadata?.sourceClipId) === clipId,
+                            (c.mediaId || c.metadata?.sourceClipId) === clipId
                         )
                       )
-                        setView("list");
+                        setView('list');
                     }}
-                    className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between group overflow-hidden ${isSelected ? "bg-[#1A1A1E] border-indigo-500/50 shadow-xl" : "bg-white/5 border-transparent hover:bg-white/10"}`}
+                    className={`p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center justify-between group overflow-hidden ${isSelected ? 'bg-[#1A1A1E] border-indigo-500/50 shadow-xl' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
                   >
                     <div className="flex items-center gap-4 relative z-10">
                       <VideoThumbnail src={clip.src} isSelected={isSelected} />
                       <div>
                         <p
-                          className={`text-xs font-bold leading-none mb-1.5 ${isSelected ? "text-white" : "text-white/70"}`}
+                          className={`text-xs font-bold leading-none mb-1.5 ${isSelected ? 'text-white' : 'text-white/70'}`}
                         >
-                          {(clip.label || "Video Clip").substring(0, 20)}...
+                          {(clip.label || 'Video Clip').substring(0, 20)}...
                         </p>
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/30 font-mono">
@@ -861,12 +874,12 @@ export function CaptionsPanel() {
                             const count = captionItems.filter(
                               (c) =>
                                 (c.mediaId || c.metadata?.sourceClipId) ===
-                                clipId,
+                                clipId
                             ).length;
                             return (
                               count > 0 && (
                                 <span className="text-[8px] font-bold uppercase">
-                                  {count} {t("updates.captions")}
+                                  {count} {t('updates.captions')}
                                 </span>
                               )
                             );
@@ -892,7 +905,7 @@ export function CaptionsPanel() {
             className="w-full bg-white hover:bg-white/90 text-black font-bold h-12 rounded-2xl shadow-[0_10px_30px_rgba(255,255,255,0.15)] transition-all hover:scale-[1.02] active:scale-95 border-none"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            {t("text.add_captions")}
+            {t('text.add_captions')}
           </Button>
         )}
 
@@ -906,10 +919,10 @@ export function CaptionsPanel() {
             </div>
             <div className="text-center space-y-1">
               <p className="text-xs text-white font-bold">
-                {t("highlights.processing")}
+                {t('highlights.processing')}
               </p>
               <p className="text-[10px] text-white/30 font-medium tracking-wide uppercase">
-                {t("captions.processing")}
+                {t('captions.processing')}
               </p>
             </div>
           </div>
@@ -941,7 +954,7 @@ export function CaptionsPanel() {
               <div className="p-5 rounded-2xl bg-[#141417] border border-white/5 text-[13px] text-white/90 leading-relaxed font-medium italic shadow-inner">
                 "
                 {transcription.results?.channels[0]?.alternatives[0]
-                  ?.transcript || "No transcript found"}
+                  ?.transcript || 'No transcript found'}
                 "
               </div>
               <button
@@ -974,12 +987,12 @@ export function CaptionsPanel() {
                 ) : (
                   <>
                     <Plus className="w-4 h-4 mr-2" />
-                    {t("captions.regenerate")}
+                    {t('captions.regenerate')}
                   </>
                 )}
               </Button>
               <p className="text-[9px] text-center text-white/20 font-medium uppercase tracking-tighter">
-                {t("captions.alignment_complete")}
+                {t('captions.alignment_complete')}
               </p>
             </div>
           </div>
@@ -991,7 +1004,7 @@ export function CaptionsPanel() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#0D0D0F]">
       {renderContent()}
-      {typeof document !== "undefined" &&
+      {typeof document !== 'undefined' &&
         errorToast &&
         createPortal(
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-9999 animate-in slide-in-from-bottom-5 fade-in duration-300">
@@ -1003,7 +1016,7 @@ export function CaptionsPanel() {
               <div className="relative flex-1 min-w-0">
                 <h4 className="text-[11px] font-bold text-red-500 uppercase tracking-widest mb-1 flex items-center gap-2">
                   <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />
-                  {t("captions.system_message")}
+                  {t('captions.system_message')}
                 </h4>
                 <p className="text-[13px] text-white/90 font-medium leading-tight">
                   {errorToast}
@@ -1017,7 +1030,7 @@ export function CaptionsPanel() {
               </button>
             </div>
           </div>,
-          document.body,
+          document.body
         )}
     </div>
   );
@@ -1038,10 +1051,10 @@ function CaptionItem({
   onDelete: () => void;
   onSeek: () => void;
 }) {
-  const [text, setText] = useState(item.text || "");
+  const [text, setText] = useState(item.text || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
-    setText(item.text || "");
+    setText(item.text || '');
   }, [item.text]);
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -1051,7 +1064,7 @@ function CaptionItem({
     if (text !== item.text) onUpdate(text, true);
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       const cursorPosition = textareaRef.current?.selectionStart || 0;
       onSplit(cursorPosition, text);
@@ -1060,10 +1073,10 @@ function CaptionItem({
   return (
     <div
       className={cn(
-        "group relative flex flex-col gap-2.5 rounded-2xl p-4 transition-all duration-300 border",
+        'group relative flex flex-col gap-2.5 rounded-2xl p-4 transition-all duration-300 border',
         isActive
-          ? "bg-indigo-500/5 border-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.05)]"
-          : "bg-white/2 border-white/5 hover:bg-white/4",
+          ? 'bg-indigo-500/5 border-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.05)]'
+          : 'bg-white/2 border-white/5 hover:bg-white/4'
       )}
     >
       <div className="flex items-center justify-between">
@@ -1073,7 +1086,7 @@ function CaptionItem({
         >
           <div className="w-1 h-3 rounded-full bg-indigo-500/40 group-hover/time:bg-indigo-500 transition-colors" />
           <span className="text-[10px] font-bold font-mono text-white/30 group-hover/time:text-white/60 transition-colors tracking-tight">
-            {formatTimeForUI(item.display.from / 1e6)} —{" "}
+            {formatTimeForUI(item.display.from / 1e6)} —{' '}
             {formatTimeForUI(item.display.to / 1e6)}
           </span>
         </div>
@@ -1102,7 +1115,7 @@ function CaptionItem({
         rows={1}
         onInput={(e) => {
           const target = e.target as HTMLTextAreaElement;
-          target.style.height = "auto";
+          target.style.height = 'auto';
           target.style.height = `${target.scrollHeight}px`;
         }}
       />
@@ -1113,7 +1126,7 @@ function CaptionItem({
 function formatTimeForUI(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
-  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
 function VideoThumbnail({
@@ -1127,16 +1140,16 @@ function VideoThumbnail({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (!src) return;
-    const video = document.createElement("video");
-    video.crossOrigin = "anonymous";
-    video.preload = "metadata";
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.preload = 'metadata';
     const onLoadedMetadata = () => {
       video.currentTime = 0.5;
     };
     const onSeeked = () => {
       if (!canvasRef.current) return;
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (!ctx) return;
       canvas.width = 80;
       canvas.height = 80;
@@ -1154,28 +1167,28 @@ function VideoThumbnail({
       }
       ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
       try {
-        setThumbnail(canvas.toDataURL("image/jpeg", 0.7));
+        setThumbnail(canvas.toDataURL('image/jpeg', 0.7));
       } catch (e) {
-        console.error("Thumb error:", e);
+        console.error('Thumb error:', e);
       }
     };
-    video.addEventListener("loadedmetadata", onLoadedMetadata);
-    video.addEventListener("seeked", onSeeked);
+    video.addEventListener('loadedmetadata', onLoadedMetadata);
+    video.addEventListener('seeked', onSeeked);
     video.src = src;
     video.load();
     return () => {
-      video.removeEventListener("loadedmetadata", onLoadedMetadata);
-      video.removeEventListener("seeked", onSeeked);
-      video.src = "";
+      video.removeEventListener('loadedmetadata', onLoadedMetadata);
+      video.removeEventListener('seeked', onSeeked);
+      video.src = '';
     };
   }, [src]);
   return (
     <div
       className={cn(
-        "w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-500 border relative",
+        'w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-500 border relative',
         isSelected
-          ? "border-indigo-400/50 shadow-lg shadow-indigo-500/20 scale-105"
-          : "border-white/10 grayscale-[0.5] group-hover/thumb:grayscale-0",
+          ? 'border-indigo-400/50 shadow-lg shadow-indigo-500/20 scale-105'
+          : 'border-white/10 grayscale-[0.5] group-hover/thumb:grayscale-0'
       )}
     >
       {thumbnail ? (

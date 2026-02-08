@@ -7,13 +7,17 @@ steps:
       - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME}"
       - "--build-arg"
       - "NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_SUPABASE_URL=${_NEXT_PUBLIC_SUPABASE_URL}"
+      - "--build-arg"
+      - "NEXT_PUBLIC_SUPABASE_ANON_KEY=${_NEXT_PUBLIC_SUPABASE_ANON_KEY}"
       - "-t"
-      - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
+      - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"
       - "."
 
   # 2. Push the Docker image to Google Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"]
+    args: ["push", "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"]
 
   # 3. Deploy to Google Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -21,17 +25,17 @@ steps:
     args:
       - "run"
       - "deploy"
-      - "pablituuu-cv"
+      - "${_SERVICE_NAME}"
       - "--image"
-      - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
+      - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"
       - "--region"
-      - "us-central1"
+      - "${_DEPLOY_REGION}"
       - "--allow-unauthenticated"
       - "--set-env-vars"
-      - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME},GITHUB_USERNAME=${_GITHUB_USERNAME},NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID}"
+      - "NEXT_PUBLIC_GITHUB_USERNAME=${_GITHUB_USERNAME},GITHUB_USERNAME=${_GITHUB_USERNAME},NEXT_PUBLIC_CLARITY_PROJECT_ID=${_CLARITY_PROJECT_ID},NEXT_PUBLIC_SUPABASE_URL=${_NEXT_PUBLIC_SUPABASE_URL},NEXT_PUBLIC_SUPABASE_ANON_KEY=${_NEXT_PUBLIC_SUPABASE_ANON_KEY},SUPABASE_SERVICE_ROLE_KEY=${_SUPABASE_SERVICE_ROLE_KEY},GOOGLE_GENERATIVE_AI_API_KEY=${_GOOGLE_GENERATIVE_AI_API_KEY},DEEPGRAM_API_KEY=${_DEEPGRAM_API_KEY}"
 
 options:
   logging: CLOUD_LOGGING_ONLY
 
 images:
-  - "gcr.io/$PROJECT_ID/pablituuu-cv:$COMMIT_SHA"
+  - "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$COMMIT_SHA"

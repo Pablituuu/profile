@@ -164,9 +164,11 @@ export function HighlightsPanel() {
 
   // Check API Key on mount
   useEffect(() => {
-    checkGeminiApiKey().then((configured) => {
+    const checkAccess = async () => {
+      const configured = await checkGeminiApiKey();
       setHasKey(configured);
-    });
+    };
+    checkAccess();
   }, []);
 
   // Manage video URL creation/cleanup
@@ -340,6 +342,17 @@ export function HighlightsPanel() {
   };
 
   const renderContent = () => {
+    if (hasKey === null) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">
+            {t('highlights.status_verifying')}
+          </p>
+        </div>
+      );
+    }
+
     if (hasKey === false) {
       return (
         <div className="flex flex-col items-center py-6 text-center space-y-6 h-full animate-in fade-in duration-500">
