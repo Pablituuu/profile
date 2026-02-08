@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 import {
   CloudUpload,
   Scissors,
@@ -16,21 +16,21 @@ import {
   MessageCircle,
   Bot,
   Lock,
-} from "lucide-react";
-import { checkGeminiApiKey } from "@/app/actions/check-api-key";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from 'lucide-react';
+import { checkGeminiApiKey } from '@/app/actions/check-api-key';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useLanguageStore } from "@/store/use-language-store";
-import { useEditorStore } from "@/store/use-editor-store";
-import { Video as VideoClip } from "openvideo";
+} from '@/components/ui/select';
+import { useLanguageStore } from '@/store/use-language-store';
+import { useEditorStore } from '@/store/use-editor-store';
+import { Video as VideoClip } from 'openvideo';
 
 interface SuggestedClip {
   id: string;
@@ -51,15 +51,15 @@ function formatTime(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
   if (h > 0)
-    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
   const { t } = useLanguageStore();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [thumbnail, setThumbnail] = useState<string>("");
+  const [thumbnail, setThumbnail] = useState<string>('');
 
   useEffect(() => {
     if (!videoUrl || !videoRef.current || !canvasRef.current) return;
@@ -71,24 +71,24 @@ function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
     video.currentTime = clip.start;
 
     const handleSeeked = () => {
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (ctx) {
         canvas.width = 320;
         canvas.height = 180;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         try {
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
           setThumbnail(dataUrl);
         } catch (e) {
-          console.warn("Error generating thumbnail:", e);
+          console.warn('Error generating thumbnail:', e);
         }
       }
     };
 
-    video.addEventListener("seeked", handleSeeked);
+    video.addEventListener('seeked', handleSeeked);
     return () => {
-      video.removeEventListener("seeked", handleSeeked);
-      video.removeAttribute("src");
+      video.removeEventListener('seeked', handleSeeked);
+      video.removeAttribute('src');
       video.load();
     };
   }, [videoUrl, clip.start]);
@@ -143,7 +143,7 @@ function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
           className="w-full h-9 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold border-none shadow-[0_4px_10px_rgba(79,70,229,0.3)] hover:shadow-indigo-500/50 transition-all rounded-lg active:scale-95"
         >
           <Plus className="h-4 w-4 mr-2" />
-          {t("highlights.add_to_timeline")}
+          {t('highlights.add_to_timeline')}
         </Button>
       </div>
     </div>
@@ -157,8 +157,8 @@ export function HighlightsPanel() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [suggestedClips, setSuggestedClips] = useState<SuggestedClip[]>([]);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [activeMethod, setActiveMethod] = useState<"upload" | "url">("upload");
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [activeMethod, setActiveMethod] = useState<'upload' | 'url'>('upload');
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -190,87 +190,87 @@ export function HighlightsPanel() {
 
   /* New state for streaming performance */
   const [progress, setProgress] = useState(0);
-  const [currentMessage, setCurrentMessage] = useState("");
+  const [currentMessage, setCurrentMessage] = useState('');
   const [processedChunks, setProcessedChunks] = useState(0);
   const [totalChunks, setTotalChunks] = useState(0);
-  const [targetDuration, setTargetDuration] = useState("30-60");
+  const [targetDuration, setTargetDuration] = useState('30-60');
 
   const processWithIA = async () => {
-    if (activeMethod === "upload" && !videoFile) return;
-    if (activeMethod === "url" && !youtubeUrl) return;
+    if (activeMethod === 'upload' && !videoFile) return;
+    if (activeMethod === 'url' && !youtubeUrl) return;
 
     setIsProcessing(true);
     setProgress(0);
     setSuggestedClips([]);
     setProcessedChunks(0);
     setTotalChunks(0);
-    setCurrentMessage(t("highlights.status_init"));
+    setCurrentMessage(t('highlights.status_init'));
 
     try {
       const formData = new FormData();
-      if (activeMethod === "upload" && videoFile) {
-        formData.append("video", videoFile);
+      if (activeMethod === 'upload' && videoFile) {
+        formData.append('video', videoFile);
       } else {
-        formData.append("youtubeUrl", youtubeUrl);
+        formData.append('youtubeUrl', youtubeUrl);
       }
-      formData.append("targetDuration", targetDuration);
+      formData.append('targetDuration', targetDuration);
 
-      const response = await fetch("/api/ai/highlights", {
-        method: "POST",
+      const response = await fetch('/api/ai/highlights', {
+        method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Error en la conexión con el servidor");
+      if (!response.ok) throw new Error('Error en la conexión con el servidor');
 
       const reader = response.body?.getReader();
-      if (!reader) throw new Error("No se pudo leer la respuesta del servidor");
+      if (!reader) throw new Error('No se pudo leer la respuesta del servidor');
 
       const decoder = new TextDecoder();
-      let buffer = "";
+      let buffer = '';
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() || "";
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
+          if (!line.startsWith('data: ')) continue;
 
           try {
-            const data = JSON.parse(line.replace("data: ", ""));
+            const data = JSON.parse(line.replace('data: ', ''));
 
             switch (data.status) {
-              case "upload_complete":
-                setCurrentMessage(t("highlights.status_init"));
+              case 'upload_complete':
+                setCurrentMessage(t('highlights.status_init'));
                 setProgress(10);
                 if (data.videoUrl) setVideoUrl(data.videoUrl);
                 break;
-              case "processing":
+              case 'processing':
                 setTotalChunks(data.totalChunks);
                 setCurrentMessage(
-                  `${t("highlights.status_split")} (${data.totalChunks})`,
+                  `${t('highlights.status_split')} (${data.totalChunks})`
                 );
                 break;
-              case "chunk_optimizing":
+              case 'chunk_optimizing':
                 setCurrentMessage(
-                  `${t("highlights.status_optimizing")} ${data.chunkIndex + 1}/${data.totalChunks}`,
+                  `${t('highlights.status_optimizing')} ${data.chunkIndex + 1}/${data.totalChunks}`
                 );
                 setProcessedChunks(data.chunkIndex);
                 break;
-              case "chunk_uploading":
+              case 'chunk_uploading':
                 setCurrentMessage(
-                  `${t("highlights.status_uploading")} ${data.chunkIndex + 1}/${totalChunks}`,
+                  `${t('highlights.status_uploading')} ${data.chunkIndex + 1}/${totalChunks}`
                 );
                 break;
-              case "chunk_analyzing":
+              case 'chunk_analyzing':
                 setCurrentMessage(
-                  `${t("highlights.status_analyzing")} ${data.chunkIndex + 1}/${totalChunks}`,
+                  `${t('highlights.status_analyzing')} ${data.chunkIndex + 1}/${totalChunks}`
                 );
                 break;
-              case "chunk_done":
+              case 'chunk_done':
                 if (data.clips) {
                   setSuggestedClips((prev) => [...prev, ...data.clips]);
                 }
@@ -278,25 +278,25 @@ export function HighlightsPanel() {
                 const total = data.totalChunks || totalChunks || 1;
                 const newProgress = Math.min(
                   10 + ((data.chunkIndex + 1) / total) * 85,
-                  95,
+                  95
                 );
                 setProgress(newProgress);
                 break;
-              case "all_done":
-                setCurrentMessage(t("highlights.status_complete"));
+              case 'all_done':
+                setCurrentMessage(t('highlights.status_complete'));
                 setProgress(100);
                 setIsProcessing(false);
                 break;
-              case "error":
+              case 'error':
                 throw new Error(data.message);
             }
           } catch (e) {
-            console.warn("Error parsing stream line:", e);
+            console.warn('Error parsing stream line:', e);
           }
         }
       }
     } catch (error: any) {
-      console.error("Failed to analyze video:", error);
+      console.error('Failed to analyze video:', error);
       setCurrentMessage(`Error: ${error.message}`);
     } finally {
       setIsProcessing(false);
@@ -335,7 +335,7 @@ export function HighlightsPanel() {
 
       await studio.addClip(videoClip);
     } catch (error) {
-      console.error("Error adding highlight clip:", error);
+      console.error('Error adding highlight clip:', error);
     }
   };
 
@@ -351,10 +351,10 @@ export function HighlightsPanel() {
             </div>
             <div className="space-y-1 px-4">
               <h3 className="text-base font-bold text-white tracking-tight">
-                {t("highlights.demo_title")}
+                {t('highlights.demo_title')}
               </h3>
               <p className="text-xs text-white/40 leading-relaxed">
-                {t("highlights.demo_description")}
+                {t('highlights.demo_description')}
               </p>
             </div>
           </div>
@@ -378,18 +378,18 @@ export function HighlightsPanel() {
                 {[
                   {
                     icon: Github,
-                    href: "https://github.com/Pablituuu",
-                    title: "GitHub",
+                    href: 'https://github.com/Pablituuu',
+                    title: 'GitHub',
                   },
                   {
                     icon: Linkedin,
-                    href: "https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/",
-                    title: "LinkedIn",
+                    href: 'https://www.linkedin.com/in/pablito-jean-pool-silva-inca-735a03192/',
+                    title: 'LinkedIn',
                   },
                   {
                     icon: Mail,
-                    href: "mailto:pablito.silvainca@gmail.com",
-                    title: "Email",
+                    href: 'mailto:pablito.silvainca@gmail.com',
+                    title: 'Email',
                   },
                 ].map((social, i) => (
                   <a
@@ -450,22 +450,22 @@ export function HighlightsPanel() {
             <div className="flex items-center justify-center gap-3 opacity-30">
               <div className="h-px bg-white/50 flex-1" />
               <span className="text-[10px] uppercase font-black tracking-widest text-white/50">
-                {t("highlights.overview")}
+                {t('highlights.overview')}
               </span>
               <div className="h-px bg-white/50 flex-1" />
             </div>
 
             <div className="w-full bg-white/5 rounded-2xl border border-white/5 p-4 text-left space-y-3">
               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.15em]">
-                {t("highlights.current_features")}
+                {t('highlights.current_features')}
               </p>
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  t("updates.ai_highlights"),
-                  "YouTube Link Extraction",
-                  "Dynamic Overlap Analysis",
-                  t("highlights.target_duration"),
-                  t("updates.i18n"),
+                  t('updates.ai_highlights'),
+                  'YouTube Link Extraction',
+                  'Dynamic Overlap Analysis',
+                  t('highlights.target_duration'),
+                  t('updates.i18n'),
                 ].map((feat) => (
                   <div
                     key={feat}
@@ -488,22 +488,22 @@ export function HighlightsPanel() {
         {!isProcessing && suggestedClips.length === 0 && (
           <div className="flex bg-[#111] p-1 rounded-lg border border-white/5">
             <button
-              onClick={() => setActiveMethod("upload")}
+              onClick={() => setActiveMethod('upload')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[11px] font-bold transition-all ${
-                activeMethod === "upload"
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "text-white/40 hover:text-white/60"
+                activeMethod === 'upload'
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'text-white/40 hover:text-white/60'
               }`}
             >
               <CloudUpload className="h-4 w-4" />
-              {t("media.upload")}
+              {t('media.upload')}
             </button>
             <button
-              onClick={() => setActiveMethod("url")}
+              onClick={() => setActiveMethod('url')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[11px] font-bold transition-all ${
-                activeMethod === "url"
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "text-white/40 hover:text-white/60"
+                activeMethod === 'url'
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'text-white/40 hover:text-white/60'
               }`}
             >
               <Youtube className="h-4 w-4" />
@@ -515,7 +515,7 @@ export function HighlightsPanel() {
         {/* Input Area (Upload or URL) */}
         {!isProcessing && suggestedClips.length === 0 && (
           <div className="space-y-6">
-            {activeMethod === "upload" ? (
+            {activeMethod === 'upload' ? (
               !videoFile ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -533,10 +533,10 @@ export function HighlightsPanel() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold">
-                      {t("highlights.upload_title")}
+                      {t('highlights.upload_title')}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      {t("highlights.upload_subtitle")}
+                      {t('highlights.upload_subtitle')}
                     </p>
                   </div>
                 </div>
@@ -554,7 +554,7 @@ export function HighlightsPanel() {
                     className="h-7 text-[10px]"
                     onClick={() => setVideoFile(null)}
                   >
-                    {t("highlights.change_video")}
+                    {t('highlights.change_video')}
                   </Button>
                 </div>
               )
@@ -563,12 +563,12 @@ export function HighlightsPanel() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <LinkIcon className="h-3 w-3" />
-                    {t("highlights.url_label")}
+                    {t('highlights.url_label')}
                   </label>
                   <Input
                     value={youtubeUrl}
                     onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder={t("highlights.url_placeholder")}
+                    placeholder={t('highlights.url_placeholder')}
                     className="bg-black/20 border-white/5 text-xs h-10 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
@@ -576,12 +576,12 @@ export function HighlightsPanel() {
             )}
 
             {/* Common Options and Process Button */}
-            {(videoFile || (activeMethod === "url" && youtubeUrl)) && (
+            {(videoFile || (activeMethod === 'url' && youtubeUrl)) && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Clock className="h-3 w-3" />
-                    {t("highlights.target_duration")}
+                    {t('highlights.target_duration')}
                   </label>
                   <Select
                     value={targetDuration}
@@ -589,18 +589,18 @@ export function HighlightsPanel() {
                   >
                     <SelectTrigger className="w-full bg-black/20 border-white/5 h-9 text-xs">
                       <SelectValue
-                        placeholder={t("highlights.target_duration")}
+                        placeholder={t('highlights.target_duration')}
                       />
                     </SelectTrigger>
                     <SelectContent className="bg-[#222] border-white/10 text-white">
                       <SelectItem value="5-30">
-                        {t("highlights.range_short")}
+                        {t('highlights.range_short')}
                       </SelectItem>
                       <SelectItem value="30-60">
-                        {t("highlights.range_medium")}
+                        {t('highlights.range_medium')}
                       </SelectItem>
                       <SelectItem value="60-180">
-                        {t("highlights.range_long")}
+                        {t('highlights.range_long')}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -611,7 +611,7 @@ export function HighlightsPanel() {
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 h-10 border-none shadow-lg shadow-indigo-600/20"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>{t("highlights.extract_btn")}</span>
+                  <span>{t('highlights.extract_btn')}</span>
                 </Button>
               </div>
             )}
@@ -631,8 +631,8 @@ export function HighlightsPanel() {
               </p>
               <p className="text-[10px] text-indigo-200/50">
                 {progress > 90
-                  ? t("highlights.status_finalizing")
-                  : t("highlights.status_wait")}
+                  ? t('highlights.status_finalizing')
+                  : t('highlights.status_wait')}
               </p>
             </div>
 
@@ -653,7 +653,7 @@ export function HighlightsPanel() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between border-b border-white/5 pb-2">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                {t("highlights.suggested")}
+                {t('highlights.suggested')}
               </h3>
               <div className="flex items-center gap-2">
                 {(videoFile || youtubeUrl) && (
@@ -664,14 +664,14 @@ export function HighlightsPanel() {
                     onClick={() => {
                       setSuggestedClips([]);
                       setVideoFile(null);
-                      setYoutubeUrl("");
+                      setYoutubeUrl('');
                     }}
                   >
-                    {t("highlights.change_video")}
+                    {t('highlights.change_video')}
                   </Button>
                 )}
                 <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
-                  {suggestedClips.length} {t("highlights.clips_count")}
+                  {suggestedClips.length} {t('highlights.clips_count')}
                 </span>
               </div>
             </div>
@@ -693,7 +693,7 @@ export function HighlightsPanel() {
               onClick={() => suggestedClips.forEach(addClipToTimeline)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              {t("highlights.add_all")}
+              {t('highlights.add_all')}
             </Button>
           </div>
         )}
@@ -706,10 +706,10 @@ export function HighlightsPanel() {
       <div className="p-4 border-b border-border/50">
         <h2 className="text-sm font-bold flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-indigo-400" />
-          {t("highlights.title")}
+          {t('highlights.title')}
         </h2>
         <p className="text-[11px] text-muted-foreground mt-1">
-          {t("highlights.description")}
+          {t('highlights.description')}
         </p>
       </div>
 

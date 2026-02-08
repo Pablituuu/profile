@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Clapperboard,
@@ -8,18 +8,18 @@ import {
   ArrowRightLeft,
   Image as ImageIcon,
   Scissors,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useLanguageStore } from "@/store/use-language-store";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useLanguageStore } from '@/store/use-language-store';
 
 const menuItems = [
-  { id: "media", icon: Clapperboard, labelKey: "menu.media" },
-  { id: "audio", icon: Music, labelKey: "menu.audio" },
-  { id: "text", icon: Type, labelKey: "menu.text" },
-  { id: "image", icon: ImageIcon, labelKey: "menu.image" },
-  { id: "effects", icon: Sparkles, labelKey: "menu.effects" },
-  { id: "transitions", icon: ArrowRightLeft, labelKey: "menu.transitions" },
-  { id: "highlights", icon: Scissors, labelKey: "menu.highlights" },
+  { id: 'media', icon: Clapperboard, labelKey: 'menu.media' },
+  { id: 'audio', icon: Music, labelKey: 'menu.audio' },
+  { id: 'text', icon: Type, labelKey: 'menu.text' },
+  { id: 'image', icon: ImageIcon, labelKey: 'menu.image' },
+  { id: 'effects', icon: Sparkles, labelKey: 'menu.effects' },
+  { id: 'transitions', icon: ArrowRightLeft, labelKey: 'menu.transitions' },
+  { id: 'highlights', icon: Scissors, labelKey: 'menu.highlights' },
 ];
 
 interface MenuSidebarProps {
@@ -27,7 +27,7 @@ interface MenuSidebarProps {
   onSelect: (id: string | null) => void;
 }
 
-import React from "react";
+import React from 'react';
 
 export const MenuSidebar = React.memo(function MenuSidebar({
   activeTool,
@@ -50,10 +50,10 @@ export const MenuSidebar = React.memo(function MenuSidebar({
           key={item.id}
           onClick={() => handleSelect(item.id)}
           className={cn(
-            "flex flex-col items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
+            'flex flex-col items-center gap-1 cursor-pointer transition-colors hover:text-foreground',
             activeTool === item.id
-              ? "text-brand-primary"
-              : "text-muted-foreground",
+              ? 'text-brand-primary'
+              : 'text-muted-foreground'
           )}
         >
           <item.icon className="h-6 w-6" strokeWidth={1.5} />
