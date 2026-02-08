@@ -89,11 +89,19 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: 'status_init',
-            message: 'Downloading YouTube video...',
+            message: 'Downloading YouTube video (using auth)...',
           });
 
-          const info = await ytdl.getInfo(youtubeUrl);
-          // Try to get a high quality format that has both video and audio
+          const cookies = process.env.YOUTUBE_COOKIES;
+          const options: any = {
+            requestOptions: {
+              headers: {
+                cookie: cookies || '',
+              },
+            },
+          };
+
+          const info = await ytdl.getInfo(youtubeUrl, options);
           const format = ytdl.chooseFormat(info.formats, {
             quality: 'highest',
             filter: (f) => f.hasVideo && f.hasAudio && f.container === 'mp4',
@@ -103,7 +111,7 @@ export async function POST(req: NextRequest) {
           const writer = createWriteStream(tempOriginalPath);
 
           await new Promise<void>((resolve, reject) => {
-            ytdl(youtubeUrl, { format })
+            ytdl(youtubeUrl, { ...options, format })
               .pipe(writer)
               .on('finish', () => resolve())
               .on('error', (err) => reject(err));
