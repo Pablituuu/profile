@@ -13,6 +13,7 @@ import { Text, IClip } from 'openvideo';
 import { TIMELINE_CONSTANTS } from '../_lib/timeline/controls/constants';
 import { cloneDeep } from 'lodash';
 import { TransitionClipTimeline } from '../_lib/timeline/transition-clip';
+import { CaptionClipTimeline } from '../_lib/timeline/caption-clip';
 
 /**
  * Hook to listen to Studio events and synchronize the timeline canvas.
@@ -41,54 +42,35 @@ export function useStudioListener() {
       timeline.alignClipsToTrack();
     };
 
-    const handleClipAdded = (data: IStudioEventData | IClip) => {
-      // Normalize clip data from event object or raw clip
-      const clip = (data as IStudioEventData).clip || (data as IClip);
-      if (!clip) return;
+    const addClipInternal = (clip: IClip) => {
+      const studioTracks = studio.tracks || [];
+      const trackList: ITrack[] = Array.isArray(studioTracks)
+        ? studioTracks
+        : Object.values(studioTracks);
+
+      const trackIndex = trackList.findIndex((t) =>
+        t.clipIds?.includes(clip.id)
+      );
+
+      const trackStep =
+        TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
+      const visualIndex = trackIndex >= 0 ? trackIndex : 0;
+      const top = TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep;
+
+      let timelineClip: any;
 
       if (clip.type === 'Text') {
-        const studioTracks = studio.tracks || [];
-        const trackList: ITrack[] = Array.isArray(studioTracks)
-          ? studioTracks
-          : Object.values(studioTracks);
-
-        const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id)
-        );
-
-        const textValue = (clip as Text).text || '';
-        const trackStep =
-          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
-
-        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
-
-        const textClip = new TextClipTimeline({
+        timelineClip = new TextClipTimeline({
           id: clip.id,
-          text: textValue,
+          text: (clip as Text).text || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
-          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          top,
           zoom: zoomLevel,
         });
-        timeline.add(textClip);
-        timeline.alignClipsToTrack();
-        timeline.renderAll();
       } else if (clip.type === 'Video') {
-        const studioTracks = studio.tracks || [];
-        const trackList: ITrack[] = Array.isArray(studioTracks)
-          ? studioTracks
-          : Object.values(studioTracks);
-
-        const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id)
-        );
-
-        const trackStep =
-          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
-        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
-
-        const videoClip = new VideoClipTimeline({
+        timelineClip = new VideoClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
           src: (clip as any).src || '',
@@ -96,94 +78,72 @@ export function useStudioListener() {
           trim: (clip as any).trim || { from: 0, to: clip.duration },
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
-          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          top,
           zoom: zoomLevel,
         });
-        timeline.add(videoClip);
-        timeline.alignClipsToTrack();
-        timeline.renderAll();
       } else if (clip.type === 'Image') {
-        const studioTracks = studio.tracks || [];
-        const trackList: ITrack[] = Array.isArray(studioTracks)
-          ? studioTracks
-          : Object.values(studioTracks);
-
-        const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id)
-        );
-
-        const trackStep =
-          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
-        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
-
-        const imageClip = new ImageClipTimeline({
+        timelineClip = new ImageClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
           src: (clip as any).src || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
-          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          top,
           zoom: zoomLevel,
         });
-        timeline.add(imageClip);
-        timeline.alignClipsToTrack();
-        timeline.renderAll();
       } else if (clip.type === 'Audio') {
-        const studioTracks = studio.tracks || [];
-        const trackList: ITrack[] = Array.isArray(studioTracks)
-          ? studioTracks
-          : Object.values(studioTracks);
-
-        const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id)
-        );
-
-        const trackStep =
-          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
-        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
-
-        const audioClip = new AudioClipTimeline({
+        timelineClip = new AudioClipTimeline({
           id: clip.id,
           name: (clip as any).name || clip.type,
           src: (clip as any).src || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
-          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          top,
           zoom: zoomLevel,
         });
-        timeline.add(audioClip);
-        timeline.alignClipsToTrack();
-        timeline.renderAll();
       } else if (clip.type === 'Effect') {
-        const studioTracks = studio.tracks || [];
-        const trackList: ITrack[] = Array.isArray(studioTracks)
-          ? studioTracks
-          : Object.values(studioTracks);
-
-        const trackIndex = trackList.findIndex((t) =>
-          t.clipIds?.includes(clip.id)
-        );
-
-        const trackStep =
-          TIMELINE_CONSTANTS.CLIP_HEIGHT + TIMELINE_CONSTANTS.TRACK_SPACING;
-        const visualIndex = trackIndex >= 0 ? trackIndex : 0;
-
-        const effectClip = new EffectClipTimeline({
+        timelineClip = new EffectClipTimeline({
           id: clip.id,
           name: (clip as any).name || (clip as any).effectType || clip.type,
           effectType: (clip as any).effectType || '',
           display: clip.display,
           duration: clip.duration,
           trackIndex: trackIndex >= 0 ? trackIndex : 0,
-          top: TIMELINE_CONSTANTS.INITIAL_Y_OFFSET + visualIndex * trackStep,
+          top,
           zoom: zoomLevel,
         });
-        timeline.add(effectClip);
-        timeline.alignClipsToTrack();
-        timeline.renderAll();
+      } else if (clip.type === 'Caption') {
+        timelineClip = new CaptionClipTimeline({
+          id: clip.id,
+          text: (clip as any).text || 'Subtitle',
+          display: clip.display,
+          duration: clip.duration,
+          trackIndex: trackIndex >= 0 ? trackIndex : 0,
+          top,
+          zoom: zoomLevel,
+        });
+      } else if (clip.type === 'Transition') {
+        timelineClip = new TransitionClipTimeline({
+          id: clip.id,
+          clipIdFrom: (clip as any).clipIdFrom || '',
+          clipIdTo: (clip as any).clipIdTo || '',
+          top,
+        });
       }
+
+      if (timelineClip) {
+        timeline.add(timelineClip);
+      }
+    };
+
+    const handleClipAdded = (data: IStudioEventData | IClip) => {
+      const clip = (data as IStudioEventData).clip || (data as IClip);
+      if (!clip) return;
+      addClipInternal(clip);
+      timeline.alignClipsToTrack();
+      timeline.renderAll();
     };
 
     const handleClipUpdated = (data: IStudioEventData | IClip) => {
@@ -265,11 +225,13 @@ export function useStudioListener() {
 
       studio.clips.forEach((clip) => {
         if (!existingClipIds.has(clip.id)) {
-          handleClipAdded(clip);
+          addClipInternal(clip);
         } else {
           handleClipUpdated(clip);
         }
       });
+      timeline.alignClipsToTrack();
+      timeline.renderAll();
     };
 
     const handleClipRemoved = (data: any) => {
@@ -338,7 +300,7 @@ export function useStudioListener() {
       timeline.renderTracks(e.tracks || []);
       if (e.clips) {
         e.clips.forEach((clip) => {
-          if (!clipIds.includes(clip.id)) handleClipAdded(clip);
+          if (!clipIds.includes(clip.id)) addClipInternal(clip);
         });
       }
       timeline.alignClipsToTrack();
@@ -347,6 +309,15 @@ export function useStudioListener() {
 
     const handleTimeUpdate = ({ currentTime }: { currentTime: number }) => {
       setCurrentTime(currentTime / 1_000_000);
+    };
+
+    const handleClipsAdded = (data: { clips: IClip[] }) => {
+      if (!data.clips || !Array.isArray(data.clips)) return;
+      data.clips.forEach((clip) => {
+        addClipInternal(clip);
+      });
+      timeline.alignClipsToTrack();
+      timeline.renderAll();
     };
 
     const handlePlay = () => setIsPlaying(true);
@@ -360,6 +331,7 @@ export function useStudioListener() {
     studio.on('clip:added', handleClipAdded);
     studio.on('clip:updated', handleClipUpdated);
     studio.on('clip:removed', handleClipRemoved);
+    studio.on('clips:added', handleClipsAdded);
     studio.on('track:added', handleTrackAdded);
     studio.on('track:removed', handleTrackRemoved);
     studio.on('track:order-changed', handleTrackOrderChanged);

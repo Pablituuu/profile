@@ -117,6 +117,25 @@ export const translations = {
     'updates.ai_highlights': 'AI Highlights v2',
     'updates.ai_highlights_desc':
       'Extracción de clips virales con precisión quirúrgica, solapamiento dinámico y soporte para links de YouTube.',
+    'updates.ai_captions': 'Subtítulos por IA v1',
+    'updates.ai_captions_desc':
+      'Generación y quemado de subtítulos automáticamente usando Deepgram y Gemini. Incluye una nueva vista de edición y previsualizaciones de clips.',
+    'updates.transitions_stability': 'Estabilidad en Transiciones',
+    'updates.transitions_stability_desc':
+      'Se ha resuelto el comportamiento inconsistente al añadir transiciones en uniones complejas de pistas.',
+    'updates.export_performance': 'Rendimiento de Exportación',
+    'updates.export_performance_desc':
+      'Algunos usuarios pueden experimentar lentitud en exportaciones largas. Estamos optimizando nuestros renderizadores en la nube.',
+    'captions.back': 'Volver',
+    'captions.setup_title': 'Auto Subtítulos',
+    'captions.list_title': 'Editar Subtítulos',
+    'captions.regenerate': 'Regenerar Subtítulos',
+    'captions.no_audio_error':
+      'El video seleccionado no tiene pista de audio. No se pueden generar subtítulos.',
+    'captions.processing': 'Procesando Audio...',
+    'captions.system_message': 'Mensaje del Sistema',
+    'captions.transcription_error': 'Error de Transcripción',
+    'captions.alignment_complete': 'Alineación automática completada',
     'highlights.title': 'AI Highlights',
     'highlights.description':
       'Extrae automáticamente los mejores momentos de tus videos largos.',
@@ -180,6 +199,7 @@ export const translations = {
     'menu.effects': 'Efectos',
     'menu.transitions': 'Transiciones',
     'menu.highlights': 'AI Clips',
+    'menu.captions': 'Subtítulos',
     'timeline.split': 'Dividir (S)',
     'timeline.duplicate': 'Duplicar (D)',
     'timeline.delete': 'Eliminar (Del)',
@@ -316,6 +336,25 @@ export const translations = {
     'updates.ai_highlights': 'AI Highlights v2',
     'updates.ai_highlights_desc':
       'Extract viral clips with surgical precision, dynamic overlap, and YouTube link support.',
+    'updates.ai_captions': 'AI Auto-Captions v1',
+    'updates.ai_captions_desc':
+      'Generate and burn-in captions automatically using Deepgram and Gemini. Includes a new editor view and clip previews.',
+    'updates.transitions_stability': 'Transitions Stability',
+    'updates.transitions_stability_desc':
+      'Resolved inconsistent behavior when adding transitions in complex track unions.',
+    'updates.export_performance': 'Export Performance',
+    'updates.export_performance_desc':
+      'Some users may experience slow export times with long videos. We are optimizing our cloud renderers.',
+    'captions.back': 'Back',
+    'captions.setup_title': 'Auto Subtitles',
+    'captions.list_title': 'Edit Subtitles',
+    'captions.regenerate': 'Regenerate Subtitles',
+    'captions.no_audio_error':
+      'The selected video does not have an audio track. Captions cannot be generated.',
+    'captions.processing': 'Processing Audio...',
+    'captions.system_message': 'System Message',
+    'captions.transcription_error': 'Transcription Error',
+    'captions.alignment_complete': 'Automatic alignment complete',
     'highlights.title': 'AI Highlights',
     'highlights.description':
       'Automatically extract the best moments from your long videos.',
@@ -379,6 +418,7 @@ export const translations = {
     'menu.effects': 'Effects',
     'menu.transitions': 'Transitions',
     'menu.highlights': 'AI Highlights',
+    'menu.captions': 'Captions',
     'timeline.split': 'Split (S)',
     'timeline.duplicate': 'Duplicate (D)',
     'timeline.delete': 'Delete (Del)',

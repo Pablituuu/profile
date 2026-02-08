@@ -8,6 +8,7 @@ import { Track } from '../track';
 import { TIMELINE_CONSTANTS } from '../controls/constants';
 import { ActiveSelection } from 'fabric';
 import { TransitionClipTimeline } from '../transition-clip';
+import { CaptionClipTimeline } from '../caption-clip';
 import { cloneDeep } from 'lodash';
 
 class CanvasMixin {
@@ -107,7 +108,8 @@ class CanvasMixin {
       obj instanceof ImageClipTimeline ||
       obj instanceof AudioClipTimeline ||
       obj instanceof EffectClipTimeline ||
-      obj instanceof TransitionClipTimeline;
+      obj instanceof TransitionClipTimeline ||
+      obj instanceof CaptionClipTimeline;
 
     const allObjects = this.getObjects();
     const activeObject = this.getActiveObject();

@@ -8,6 +8,7 @@ import {
   ArrowRightLeft,
   Image as ImageIcon,
   Scissors,
+  Languages,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguageStore } from '@/store/use-language-store';
@@ -16,6 +17,7 @@ const menuItems = [
   { id: 'media', icon: Clapperboard, labelKey: 'menu.media' },
   { id: 'audio', icon: Music, labelKey: 'menu.audio' },
   { id: 'text', icon: Type, labelKey: 'menu.text' },
+  { id: 'captions', icon: Languages, labelKey: 'menu.captions' },
   { id: 'image', icon: ImageIcon, labelKey: 'menu.image' },
   { id: 'effects', icon: Sparkles, labelKey: 'menu.effects' },
   { id: 'transitions', icon: ArrowRightLeft, labelKey: 'menu.transitions' },

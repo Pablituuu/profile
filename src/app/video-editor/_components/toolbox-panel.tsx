@@ -8,6 +8,7 @@ import { ImagePanel } from './panels/image-panel';
 import { EffectsPanel } from './panels/effects-panel';
 import { TransitionsPanel } from './panels/transitions-panel';
 import { HighlightsPanel } from './panels/highlights-panel';
+import { CaptionsPanel } from './panels/captions-panel';
 import { useLanguageStore } from '@/store/use-language-store';
 
 interface ToolboxPanelProps {
@@ -33,6 +34,7 @@ export function ToolboxPanel({ activeTool }: ToolboxPanelProps) {
       {activeTool === 'media' && <MediaPanel />}
       {activeTool === 'audio' && <AudioPanel />}
       {activeTool === 'text' && <TextPanel />}
+      {activeTool === 'captions' && <CaptionsPanel />}
       {activeTool === 'image' && <ImagePanel />}
       {activeTool === 'effects' && <EffectsPanel />}
       {activeTool === 'transitions' && <TransitionsPanel />}
@@ -42,6 +44,7 @@ export function ToolboxPanel({ activeTool }: ToolboxPanelProps) {
       {activeTool !== 'media' &&
         activeTool !== 'audio' &&
         activeTool !== 'text' &&
+        activeTool !== 'captions' &&
         activeTool !== 'image' &&
         activeTool !== 'effects' &&
         activeTool !== 'transitions' &&
