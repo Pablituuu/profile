@@ -126,6 +126,12 @@ export const translations = {
     'updates.export_performance': 'Rendimiento de Exportación',
     'updates.export_performance_desc':
       'Algunos usuarios pueden experimentar lentitud en exportaciones largas. Estamos optimizando nuestros renderizadores en la nube.',
+    'updates.auth': 'Soporte de Autenticación',
+    'updates.auth_desc':
+      'Inicio de sesión seguro mediante Google, GitHub o Email impulsado por Supabase.',
+    'updates.access_control': 'Control de Acceso IA',
+    'updates.access_control_desc':
+      'Las funciones de IA ahora están protegidas por permisos de usuario y validación de API Keys en tiempo real.',
     'captions.back': 'Volver',
     'captions.setup_title': 'Auto Subtítulos',
     'captions.list_title': 'Editar Subtítulos',
@@ -360,6 +366,12 @@ export const translations = {
     'updates.export_performance': 'Export Performance',
     'updates.export_performance_desc':
       'Some users may experience slow export times with long videos. We are optimizing our cloud renderers.',
+    'updates.auth': 'Authentication Support',
+    'updates.auth_desc':
+      'Secure login via Google, GitHub, or Email powered by Supabase.',
+    'updates.access_control': 'AI Access Control',
+    'updates.access_control_desc':
+      'AI features are now protected by user permissions and real-time API Key validation.',
     'captions.back': 'Back',
     'captions.setup_title': 'Auto Subtitles',
     'captions.list_title': 'Edit Subtitles',

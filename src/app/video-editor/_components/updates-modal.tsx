@@ -41,12 +41,27 @@ export function UpdatesModal() {
     },
     {
       id: 'ai_assets',
-      title: 'AI Assets Generation',
+      title: t('modal.ai_assets'),
       description: t('updates.ai_assets_desc'),
     },
   ];
 
   const improvedItems = [
+    {
+      id: 'auth',
+      title: t('updates.auth'),
+      description: t('updates.auth_desc'),
+    },
+    {
+      id: 'i18n',
+      title: t('updates.i18n'),
+      description: t('updates.i18n_desc'),
+    },
+    {
+      id: 'access_control',
+      title: t('updates.access_control'),
+      description: t('updates.access_control_desc'),
+    },
     {
       id: 'transitions_stability',
       title: t('updates.transitions_stability'),
@@ -66,16 +81,6 @@ export function UpdatesModal() {
       id: 'smart_sync',
       title: t('updates.smart_sync'),
       description: t('updates.smart_sync_desc'),
-    },
-    {
-      id: 'track_management',
-      title: t('updates.track_management'),
-      description: t('updates.track_management_desc'),
-    },
-    {
-      id: 'i18n',
-      title: t('updates.i18n'),
-      description: t('updates.i18n_desc'),
     },
   ];
 
