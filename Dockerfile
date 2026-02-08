@@ -33,6 +33,7 @@ RUN pnpm run build
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
+RUN apk add --no-cache ffmpeg
 WORKDIR /app
 
 ENV NODE_ENV production
