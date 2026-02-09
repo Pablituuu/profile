@@ -89,45 +89,72 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: 'status_init',
-            message: 'Auth: Replicating Successful Local Bypass...',
+            message: 'Auth: Initiating Deep Bypass for Data Centers...',
           });
 
-          const cookieString = process.env.YOUTUBE_COOKIES || '';
+          const cookieContent = process.env.YOUTUBE_COOKIES || '';
           tempOriginalPath = path.join(os.tmpdir(), `yt_${Date.now()}.mp4`);
+          const cookiesFile = path.join(
+            os.tmpdir(),
+            `cookies_${Date.now()}.txt`
+          );
+
+          // Robust Cookie Handling:
+          // If the string starts with #, it's already Netscape format.
+          // Otherwise, we wrap it into a valid Netscape file for yt-dlp.
+          let finalCookieContent = cookieContent;
+          if (!cookieContent.trim().startsWith('#')) {
+            const netscapeHeader = '# Netscape HTTP Cookie File\n';
+            const netscapeCookies = cookieContent
+              .split(';')
+              .map((c) => {
+                const [name, ...val] = c.trim().split('=');
+                if (!name || !val.length) return '';
+                return `.youtube.com\tTRUE\t/\tTRUE\t2147483647\t${name}\t${val.join('=')}`;
+              })
+              .filter(Boolean)
+              .join('\n');
+            finalCookieContent = netscapeHeader + netscapeCookies;
+          }
+
+          await writeFileAsync(cookiesFile, finalCookieContent);
 
           sendUpdate({
             status: 'status_init',
-            message: 'yt-dlp: Bypassing via Android Headers...',
+            message: 'yt-dlp: Bypassing via iOS Native Client...',
           });
 
           try {
-            // Use the exact same method that worked locally for the user
-            const cookieHeader = cookieString
-              ? `--add-header "Cookie: ${cookieString.replace(/"/g, '\\"')}"`
-              : '';
-
+            // Updated for early 2026:
+            // 1. Used --cookies instead of --add-header (STRICTLY REQUIRED for flagged IPs)
+            // 2. Changed client to ios (currently more stable on GCP)
+            // 3. Kept Deno for decryption
             const ytDlpCmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
               --merge-output-format mp4 \
               --no-playlist \
-              ${cookieHeader} \
+              --cookies "${cookiesFile}" \
               --js-runtime deno \
-              --extractor-args "youtube:player-client=android,web" \
+              --extractor-args "youtube:player-client=ios,web" \
               -o "${tempOriginalPath}" \
               "${youtubeUrl}"`;
 
-            console.log('[yt-dlp] Executing local-cloned command...');
+            console.log('[yt-dlp] Executing Deep Bypass...');
             await execPromise(ytDlpCmd, {
               env: { ...process.env, PATH: `${process.env.PATH}:/usr/bin` },
             });
 
             sendUpdate({
               status: 'upload_complete',
-              message: 'Video downloaded successfully. Analyzing...',
+              message: 'Video downloaded (Deep Bypass)! Analyzing...',
               videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
             });
           } catch (dlError: any) {
             console.error('[yt-dlp Error]', dlError);
-            throw new Error(`Cloud Bypass failed: ${dlError.message}`);
+            throw new Error(
+              `GCP Security Block: YouTube rejected the server IP. Please update YOUTUBE_COOKIES with a full cookies.txt file content.`
+            );
+          } finally {
+            await unlinkAsync(cookiesFile).catch(() => {});
           }
         } else if (file) {
           sendUpdate({
