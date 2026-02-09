@@ -33,7 +33,10 @@ RUN pnpm run build
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
-RUN apk add --no-cache ffmpeg
+RUN apk add --no-cache ffmpeg python3
+# Install yt-dlp via binary to get the latest version easily
+RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp && \
+    chmod a+rx /usr/local/bin/yt-dlp
 WORKDIR /app
 
 ENV NODE_ENV production
