@@ -89,84 +89,62 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: 'status_init',
-            message: 'Auth: Initiating Deep Bypass for Data Centers...',
+            message: 'Auth: Bypassing via High-Speed API (Cobalt)...',
           });
-
-          const rawCookies = (process.env.YOUTUBE_COOKIES || '')
-            .replace(/\\n/g, '\n')
-            .trim();
-          console.log(
-            `[Auth] Cookie string received. Length: ${rawCookies.length}`
-          );
-
-          if (rawCookies.length < 50) {
-            console.error(
-              '[Auth Warning] Cookie string seems too short or empty'
-            );
-          }
 
           tempOriginalPath = path.join(os.tmpdir(), `yt_${Date.now()}.mp4`);
-          const cookiesFile = path.join(
-            os.tmpdir(),
-            `cookies_${Date.now()}.txt`
-          );
-
-          // Robust Cookie Cleaning for GCP:
-          // Ensure it starts with the Netscape header if it's a full file
-          let finalCookieContent = rawCookies;
-          if (!rawCookies.startsWith('#')) {
-            // Fallback: If it's just a semicolon list, wrap it
-            const netscapeHeader = '# Netscape HTTP Cookie File\n';
-            const netscapeCookies = rawCookies
-              .split(';')
-              .map((c) => {
-                const [name, ...val] = c.trim().split('=');
-                if (!name || !val.length) return '';
-                return `.youtube.com\tTRUE\t/\tTRUE\t2147483647\t${name}\t${val.join('=')}`;
-              })
-              .filter(Boolean)
-              .join('\n');
-            finalCookieContent = netscapeHeader + netscapeCookies;
-          }
-
-          await writeFileAsync(cookiesFile, finalCookieContent);
-
-          sendUpdate({
-            status: 'status_init',
-            message: 'yt-dlp: Bypassing via iOS Native Client...',
-          });
 
           try {
-            // Added --no-check-certificates for better stability in cloud environments
-            const ytDlpCmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
-              --merge-output-format mp4 \
-              --no-playlist \
-              --no-check-certificates \
-              --cookies "${cookiesFile}" \
-              --js-runtime deno \
-              --extractor-args "youtube:player-client=ios,web" \
-              -o "${tempOriginalPath}" \
-              "${youtubeUrl}"`;
-
-            console.log(
-              '[yt-dlp] Executing Deep Bypass with repaired cookies...'
+            // Using Cobalt API (The industry standard for bypassing video blocks)
+            // We use a public instance, or you can host your own.
+            const cobaltResponse = await fetch(
+              'https://api.cobalt.tools/api/json',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                  url: youtubeUrl,
+                  videoQuality: '720', // High quality but fast
+                  downloadMode: 'mp4',
+                }),
+              }
             );
-            await execPromise(ytDlpCmd, {
-              env: { ...process.env, PATH: `${process.env.PATH}:/usr/bin` },
+
+            const cobaltData = await cobaltResponse.json();
+
+            if (cobaltData.status === 'error' || !cobaltData.url) {
+              throw new Error(
+                cobaltData.text || 'Cobalt API failed to fetch video'
+              );
+            }
+
+            sendUpdate({
+              status: 'status_init',
+              message: 'Video found! Streaming to server...',
             });
+
+            // Now we stream the video from Cobalt directly to our local temp file
+            const videoRes = await fetch(cobaltData.url);
+            if (!videoRes.ok)
+              throw new Error('Failed to stream video from Cobalt');
+
+            const fileStream = createWriteStream(tempOriginalPath);
+            const arrayBuffer = await videoRes.arrayBuffer();
+            await writeFileAsync(tempOriginalPath, Buffer.from(arrayBuffer));
 
             sendUpdate({
               status: 'upload_complete',
-              message: 'Video downloaded (Deep Bypass)! Analyzing...',
+              message: 'Video downloaded (Cobalt Bypass)! Analyzing...',
               videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
             });
           } catch (dlError: any) {
-            console.error('[yt-dlp Error]', dlError);
+            console.error('[Cobalt Error]', dlError);
             throw new Error(
-              `Cloud Security Block: YouTube rejected the server IP. Ensure the cookies in GCP are up to date and in full Netscape format.`
+              `Video Bypass failed: ${dlError.message}. YouTube is currently blocking this content.`
             );
-          } finally {
-            await unlinkAsync(cookiesFile).catch(() => {});
           }
         } else if (file) {
           sendUpdate({
