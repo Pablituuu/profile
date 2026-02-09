@@ -33,7 +33,8 @@ RUN pnpm run build
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
-RUN apk add --no-cache ffmpeg python3 gcompat
+# Install ffmpeg, python, and deno (for yt-dlp js-runtime)
+RUN apk add --no-cache ffmpeg python3 deno gcompat libstdc++
 # Install yt-dlp via binary
 RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp && \
     chmod a+rx /usr/local/bin/yt-dlp

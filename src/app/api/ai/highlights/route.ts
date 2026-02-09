@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: "status_init",
-            message: "Auth: Preparing Secure Cookie File...",
+            message: "Auth: Generating Android Identity...",
           });
 
           const cookieString = process.env.YOUTUBE_COOKIES || "";
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
             `cookies_${Date.now()}.txt`,
           );
 
-          // Convert string cookies to Netscape format that yt-dlp loves
+          // Convert string cookies to Netscape format with REAL tabs
           const netscapeHeader = "# Netscape HTTP Cookie File\n";
           const netscapeCookies = cookieString
             .split(";")
@@ -116,37 +116,36 @@ export async function POST(req: NextRequest) {
 
           sendUpdate({
             status: "status_init",
-            message: "yt-dlp: Requesting stream via PS5/TV client...",
+            message: "yt-dlp: Bypassing via Android App Client...",
           });
 
           try {
             // yt-dlp flags:
-            // --cookies: use the file we just made
-            // --js-runtime node: use Node to solve YouTube's puzzles
-            // --extractor-args: spoof TV client (harder to block than web)
+            // --js-runtime deno: Use our new installed Deno (much more reliable for YouTube scripts)
+            // --extractor-args: Using android client which has lower bot-detection priority
             const ytDlpCmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
               --merge-output-format mp4 \
               --no-playlist \
               --cookies "${cookiesFile}" \
-              --js-runtime node \
-              --extractor-args "youtube:player-client=tv,web" \
-              --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+              --js-runtime deno \
+              --extractor-args "youtube:player-client=android,web" \
               -o "${tempOriginalPath}" \
               "${youtubeUrl}"`;
 
-            console.log("[yt-dlp] Executing secure command...");
-            await execPromise(ytDlpCmd);
+            console.log("[yt-dlp] Executing high-bypass command...");
+            await execPromise(ytDlpCmd, {
+              env: { ...process.env, PATH: `${process.env.PATH}:/usr/bin` },
+            });
 
             sendUpdate({
               status: "upload_complete",
-              message: "Video downloaded securely. Analyzing...",
+              message: "Video downloaded (Bypass Active). Analyzing...",
               videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
             });
           } catch (dlError: any) {
             console.error("[yt-dlp Error]", dlError);
-            throw new Error(`yt-dlp failed: ${dlError.message}`);
+            throw new Error(`Bypass failed: ${dlError.message}`);
           } finally {
-            // Cleanup cookie file immediately
             await unlinkAsync(cookiesFile).catch(() => {});
           }
         } else if (file) {
