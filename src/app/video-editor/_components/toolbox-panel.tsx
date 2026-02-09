@@ -9,6 +9,7 @@ import { EffectsPanel } from './panels/effects-panel';
 import { TransitionsPanel } from './panels/transitions-panel';
 import { HighlightsPanel } from './panels/highlights-panel';
 import { CaptionsPanel } from './panels/captions-panel';
+import { AIAssetsPanel } from './panels/ai-assets-panel';
 import { useLanguageStore } from '@/store/use-language-store';
 
 interface ToolboxPanelProps {
@@ -39,6 +40,7 @@ export function ToolboxPanel({ activeTool }: ToolboxPanelProps) {
       {activeTool === 'effects' && <EffectsPanel />}
       {activeTool === 'transitions' && <TransitionsPanel />}
       {activeTool === 'highlights' && <HighlightsPanel />}
+      {activeTool === 'ai-assets' && <AIAssetsPanel />}
 
       {/* Placeholder for other tools */}
       {activeTool !== 'media' &&
@@ -48,7 +50,8 @@ export function ToolboxPanel({ activeTool }: ToolboxPanelProps) {
         activeTool !== 'image' &&
         activeTool !== 'effects' &&
         activeTool !== 'transitions' &&
-        activeTool !== 'highlights' && (
+        activeTool !== 'highlights' &&
+        activeTool !== 'ai-assets' && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <h3 className="text-sm font-medium mb-2 capitalize">
               {activeTool} Panel

@@ -53,6 +53,11 @@ export function UpdatesModal() {
 
   const improvedItems = [
     {
+      id: 'access_control',
+      title: t('updates.access_control'),
+      description: t('updates.access_control_desc'),
+    },
+    {
       id: 'auth',
       title: t('updates.auth'),
       description: t('updates.auth_desc'),
@@ -61,11 +66,6 @@ export function UpdatesModal() {
       id: 'i18n',
       title: t('updates.i18n'),
       description: t('updates.i18n_desc'),
-    },
-    {
-      id: 'access_control',
-      title: t('updates.access_control'),
-      description: t('updates.access_control_desc'),
     },
     {
       id: 'transitions_stability',

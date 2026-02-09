@@ -22,6 +22,7 @@ const menuItems = [
   { id: 'effects', icon: Sparkles, labelKey: 'menu.effects' },
   { id: 'transitions', icon: ArrowRightLeft, labelKey: 'menu.transitions' },
   { id: 'highlights', icon: Scissors, labelKey: 'menu.highlights' },
+  { id: 'ai-assets', icon: Sparkles, labelKey: 'menu.ai_assets' },
 ];
 
 interface MenuSidebarProps {
