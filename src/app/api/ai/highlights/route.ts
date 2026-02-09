@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
-import { GoogleAIFileManager, FileState } from '@google/generative-ai/server';
-import { writeFile, unlink, createWriteStream } from 'fs';
-import { promisify } from 'util';
-import path from 'path';
-import os from 'os';
-import { exec } from 'child_process';
-import ytdl from '@distube/ytdl-core';
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleAIFileManager, FileState } from "@google/generative-ai/server";
+import { writeFile, unlink, createWriteStream } from "fs";
+import { promisify } from "util";
+import path from "path";
+import os from "os";
+import { exec } from "child_process";
+import ytdl from "@distube/ytdl-core";
 
 const execPromise = promisify(exec);
 const writeFileAsync = promisify(writeFile);
@@ -25,11 +25,11 @@ function getEnvVar(key: string): string {
 async function getVideoDuration(filePath: string): Promise<number> {
   try {
     const { stdout } = await execPromise(
-      `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`
+      `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`,
     );
     return parseFloat(stdout.trim());
   } catch (error) {
-    console.error('Failed to get video duration:', error);
+    console.error("Failed to get video duration:", error);
     return 0;
   }
 }
@@ -38,7 +38,7 @@ async function extractAndOptimizeChunk(
   inputPath: string,
   outputPath: string,
   startTime: number,
-  duration: number
+  duration: number,
 ) {
   try {
     console.log(`Extracting chunk from ${startTime}s for ${duration}s...`);
@@ -52,14 +52,14 @@ async function extractAndOptimizeChunk(
     });
     return true;
   } catch (error) {
-    console.error('FFmpeg chunk extraction failed:', error);
+    console.error("FFmpeg chunk extraction failed:", error);
     return false;
   }
 }
 
 export async function POST(req: NextRequest) {
-  console.log('--- API /api/ai/highlights [STREAMING] HIT ---');
-  let tempOriginalPath = '';
+  console.log("--- API /api/ai/highlights [STREAMING] HIT ---");
+  let tempOriginalPath = "";
   let chunkFiles: string[] = [];
 
   const encoder = new TextEncoder();
@@ -72,76 +72,89 @@ export async function POST(req: NextRequest) {
       };
 
       try {
-        const apiKey = getEnvVar('GOOGLE_GENERATIVE_AI_API_KEY');
+        const apiKey = getEnvVar("GOOGLE_GENERATIVE_AI_API_KEY");
         const genAI = new GoogleGenerativeAI(apiKey);
         const fileManager = new GoogleAIFileManager(apiKey);
 
         const formData = await req.formData();
-        const file = formData.get('video') as File;
-        const youtubeUrl = formData.get('youtubeUrl') as string;
+        const file = formData.get("video") as File;
+        const youtubeUrl = formData.get("youtubeUrl") as string;
         const targetDuration =
-          (formData.get('targetDuration') as string) || '30-60';
+          (formData.get("targetDuration") as string) || "30-60";
 
         if (!file && !youtubeUrl)
-          throw new Error('No video file or URL provided');
+          throw new Error("No video file or URL provided");
 
         // 1. Get the video (either upload or download)
         if (youtubeUrl) {
           sendUpdate({
-            status: 'status_init',
-            message: 'Auth: Checking session...',
+            status: "status_init",
+            message: "Auth: Initializing Secure Agent...",
           });
 
-          const cookieString = process.env.YOUTUBE_COOKIES || '';
-          console.log(`[YouTube] Cookie length: ${cookieString.length}`);
+          const cookieString = process.env.YOUTUBE_COOKIES || "";
 
-          const options: any = {
-            requestOptions: {
-              headers: {
-                cookie: cookieString,
-                'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              },
-            },
-          };
+          // Parse cookies string into the format ytdl expects
+          const cookieArray = cookieString
+            .split(";")
+            .map((c) => {
+              const [name, ...valueParts] = c.trim().split("=");
+              return { name, value: valueParts.join("=") };
+            })
+            .filter((c) => c.name && c.value);
+
+          // Create a persistent agent with your cookies
+          const agent = ytdl.createAgent(cookieArray);
 
           sendUpdate({
-            status: 'status_init',
-            message: 'Auth: Validated. Downloading...',
+            status: "status_init",
+            message: "Auth: Agent Ready. Requesting info...",
           });
 
-          const info = await ytdl.getInfo(youtubeUrl, options);
+          // Fetch info using the agent
+          const info = await ytdl.getInfo(youtubeUrl, { agent });
+
           const format = ytdl.chooseFormat(info.formats, {
-            quality: 'highest',
-            filter: (f) => f.hasVideo && f.hasAudio && f.container === 'mp4',
+            quality: "highest",
+            filter: (f) => f.hasVideo && f.hasAudio && f.container === "mp4",
+          });
+
+          if (!format) throw new Error("No suitable MP4 format found");
+
+          sendUpdate({
+            status: "status_init",
+            message: `Auth: Verified. Downloading ${info.videoDetails.title.substring(0, 20)}...`,
           });
 
           tempOriginalPath = path.join(os.tmpdir(), `yt_${Date.now()}.mp4`);
           const writer = createWriteStream(tempOriginalPath);
 
           await new Promise<void>((resolve, reject) => {
-            const download = ytdl(youtubeUrl, { ...options, format });
+            const download = ytdl(youtubeUrl, { agent, format });
             download.pipe(writer);
-            download.on('error', (err) => reject(err));
-            writer.on('finish', () => resolve());
-            writer.on('error', (err) => reject(err));
+            download.on("error", (err) => {
+              console.error("[YouTube Download Error]", err);
+              reject(err);
+            });
+            writer.on("finish", () => resolve());
+            writer.on("error", (err) => reject(err));
           });
 
           sendUpdate({
-            status: 'upload_complete',
-            message: 'Video downloaded. Analyzing...',
+            status: "upload_complete",
+            message: "Video downloaded successfully. Analyzing...",
             videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
           });
         } else if (file) {
           sendUpdate({
-            status: 'status_init',
-            message: 'Uploading and saving...',
+            status: "status_init",
+            message: "Uploading and saving...",
           });
 
-          const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
+          const safeName = file.name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
           tempOriginalPath = path.join(
             os.tmpdir(),
-            `orig_${Date.now()}_${safeName}`
+            `orig_${Date.now()}_${safeName}`,
           );
 
           // Stream the file to disk to save memory (Prevents 2x RAM usage)
@@ -157,16 +170,16 @@ export async function POST(req: NextRequest) {
 
           // Wait for the stream to fully finish writing
           await new Promise((resolve) =>
-            writer.on('finish', () => resolve(undefined))
+            writer.on("finish", () => resolve(undefined)),
           );
 
           sendUpdate({
-            status: 'upload_complete',
-            message: 'Video ready. Calculating parts...',
+            status: "upload_complete",
+            message: "Video ready. Calculating parts...",
           });
         }
 
-        const [minTarget, maxTarget] = targetDuration.split('-').map(Number);
+        const [minTarget, maxTarget] = targetDuration.split("-").map(Number);
         const PADDING = 5;
         const dynamicOverlap = maxTarget + 30; // 30s buffer over the max clip duration
 
@@ -177,18 +190,18 @@ export async function POST(req: NextRequest) {
         // 2. Get Duration and Calculate Chunks
         const duration = await getVideoDuration(tempOriginalPath);
         if (duration <= 0)
-          throw new Error('Could not determine video duration');
+          throw new Error("Could not determine video duration");
 
         const numChunks = Math.ceil(
-          duration / (CHUNK_DURATION_SECONDS - dynamicOverlap)
+          duration / (CHUNK_DURATION_SECONDS - dynamicOverlap),
         );
 
-        sendUpdate({ status: 'processing', totalChunks: numChunks, duration });
+        sendUpdate({ status: "processing", totalChunks: numChunks, duration });
 
         const model = genAI.getGenerativeModel({
-          model: 'gemini-2.0-flash', // Verified active model
+          model: "gemini-2.0-flash", // Verified active model
           generationConfig: {
-            responseMimeType: 'application/json',
+            responseMimeType: "application/json",
             responseSchema: {
               type: SchemaType.ARRAY,
               items: {
@@ -198,15 +211,15 @@ export async function POST(req: NextRequest) {
                   title: { type: SchemaType.STRING },
                   start: {
                     type: SchemaType.NUMBER,
-                    description: 'Relative start time in chunk (s)',
+                    description: "Relative start time in chunk (s)",
                   },
                   end: {
                     type: SchemaType.NUMBER,
-                    description: 'Relative end time in chunk (s)',
+                    description: "Relative end time in chunk (s)",
                   },
                   description: { type: SchemaType.STRING },
                 },
-                required: ['id', 'title', 'start', 'end', 'description'],
+                required: ["id", "title", "start", "end", "description"],
               },
             },
           },
@@ -217,19 +230,19 @@ export async function POST(req: NextRequest) {
           const chunkStartTime = i * (CHUNK_DURATION_SECONDS - dynamicOverlap);
           const chunkDuration = Math.min(
             CHUNK_DURATION_SECONDS,
-            duration - chunkStartTime
+            duration - chunkStartTime,
           );
 
           if (chunkDuration < 5) continue; // Skip tiny final chunks
 
           const chunkPath = path.join(
             os.tmpdir(),
-            `chunk_${i}_${Date.now()}.mp4`
+            `chunk_${i}_${Date.now()}.mp4`,
           );
           chunkFiles.push(chunkPath);
 
           sendUpdate({
-            status: 'chunk_optimizing',
+            status: "chunk_optimizing",
             chunkIndex: i,
             totalChunks: numChunks,
           });
@@ -238,15 +251,15 @@ export async function POST(req: NextRequest) {
             tempOriginalPath,
             chunkPath,
             chunkStartTime,
-            chunkDuration
+            chunkDuration,
           );
           if (!success) continue;
 
-          sendUpdate({ status: 'chunk_uploading', chunkIndex: i });
+          sendUpdate({ status: "chunk_uploading", chunkIndex: i });
 
           // Upload and Wait for Gemini
           const uploadResult = await fileManager.uploadFile(chunkPath, {
-            mimeType: 'video/mp4',
+            mimeType: "video/mp4",
             displayName: `chunk_${i}.mp4`,
           });
 
@@ -258,7 +271,7 @@ export async function POST(req: NextRequest) {
 
           if (fileState.state === FileState.FAILED) continue;
 
-          sendUpdate({ status: 'chunk_analyzing', chunkIndex: i });
+          sendUpdate({ status: "chunk_analyzing", chunkIndex: i });
 
           const prompt = `You are a World-Class Viral Content Strategist. 
           Analyze this video segment (part ${i + 1} of ${numChunks}) to extract the "Retention Peaks" — identify NOT ONLY quick hooks but also LONG, continuous segments where the engagement remains high (e.g., 2-3 minute compelling stories or debates).
@@ -299,11 +312,11 @@ export async function POST(req: NextRequest) {
 
               const paddedStart = Math.max(
                 0,
-                Math.min(chunkDuration, s - PADDING)
+                Math.min(chunkDuration, s - PADDING),
               );
               const paddedEnd = Math.max(
                 0,
-                Math.min(chunkDuration, e + PADDING)
+                Math.min(chunkDuration, e + PADDING),
               );
 
               const finalDuration = paddedEnd - paddedStart;
@@ -321,7 +334,7 @@ export async function POST(req: NextRequest) {
             .filter(Boolean);
 
           sendUpdate({
-            status: 'chunk_done',
+            status: "chunk_done",
             clips: globalClips,
             chunkIndex: i,
             totalChunks: numChunks,
@@ -331,10 +344,10 @@ export async function POST(req: NextRequest) {
           await fileManager.deleteFile(uploadResult.file.name).catch(() => {});
         }
 
-        sendUpdate({ status: 'all_done' });
+        sendUpdate({ status: "all_done" });
       } catch (error: any) {
-        console.error('Critical Stream Error:', error);
-        sendUpdate({ status: 'error', message: error.message });
+        console.error("Critical Stream Error:", error);
+        sendUpdate({ status: "error", message: error.message });
       } finally {
         // Cleanup local files
         try {
@@ -349,9 +362,9 @@ export async function POST(req: NextRequest) {
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
     },
   });
 }
