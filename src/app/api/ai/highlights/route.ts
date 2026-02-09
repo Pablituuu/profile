@@ -92,20 +92,32 @@ export async function POST(req: NextRequest) {
             message: 'Auth: Initiating Deep Bypass for Data Centers...',
           });
 
-          const cookieContent = process.env.YOUTUBE_COOKIES || '';
+          const rawCookies = (process.env.YOUTUBE_COOKIES || '')
+            .replace(/\\n/g, '\n')
+            .trim();
+          console.log(
+            `[Auth] Cookie string received. Length: ${rawCookies.length}`
+          );
+
+          if (rawCookies.length < 50) {
+            console.error(
+              '[Auth Warning] Cookie string seems too short or empty'
+            );
+          }
+
           tempOriginalPath = path.join(os.tmpdir(), `yt_${Date.now()}.mp4`);
           const cookiesFile = path.join(
             os.tmpdir(),
             `cookies_${Date.now()}.txt`
           );
 
-          // Robust Cookie Handling:
-          // If the string starts with #, it's already Netscape format.
-          // Otherwise, we wrap it into a valid Netscape file for yt-dlp.
-          let finalCookieContent = cookieContent;
-          if (!cookieContent.trim().startsWith('#')) {
+          // Robust Cookie Cleaning for GCP:
+          // Ensure it starts with the Netscape header if it's a full file
+          let finalCookieContent = rawCookies;
+          if (!rawCookies.startsWith('#')) {
+            // Fallback: If it's just a semicolon list, wrap it
             const netscapeHeader = '# Netscape HTTP Cookie File\n';
-            const netscapeCookies = cookieContent
+            const netscapeCookies = rawCookies
               .split(';')
               .map((c) => {
                 const [name, ...val] = c.trim().split('=');
@@ -125,20 +137,20 @@ export async function POST(req: NextRequest) {
           });
 
           try {
-            // Updated for early 2026:
-            // 1. Used --cookies instead of --add-header (STRICTLY REQUIRED for flagged IPs)
-            // 2. Changed client to ios (currently more stable on GCP)
-            // 3. Kept Deno for decryption
+            // Added --no-check-certificates for better stability in cloud environments
             const ytDlpCmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
               --merge-output-format mp4 \
               --no-playlist \
+              --no-check-certificates \
               --cookies "${cookiesFile}" \
               --js-runtime deno \
               --extractor-args "youtube:player-client=ios,web" \
               -o "${tempOriginalPath}" \
               "${youtubeUrl}"`;
 
-            console.log('[yt-dlp] Executing Deep Bypass...');
+            console.log(
+              '[yt-dlp] Executing Deep Bypass with repaired cookies...'
+            );
             await execPromise(ytDlpCmd, {
               env: { ...process.env, PATH: `${process.env.PATH}:/usr/bin` },
             });
@@ -151,7 +163,7 @@ export async function POST(req: NextRequest) {
           } catch (dlError: any) {
             console.error('[yt-dlp Error]', dlError);
             throw new Error(
-              `GCP Security Block: YouTube rejected the server IP. Please update YOUTUBE_COOKIES with a full cookies.txt file content.`
+              `Cloud Security Block: YouTube rejected the server IP. Ensure the cookies in GCP are up to date and in full Netscape format.`
             );
           } finally {
             await unlinkAsync(cookiesFile).catch(() => {});
