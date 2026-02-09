@@ -89,17 +89,26 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: 'status_init',
-            message: 'Downloading YouTube video (using auth)...',
+            message: 'Auth: Checking session...',
           });
 
-          const cookies = process.env.YOUTUBE_COOKIES;
+          const cookieString = process.env.YOUTUBE_COOKIES || '';
+          console.log(`[YouTube] Cookie length: ${cookieString.length}`);
+
           const options: any = {
             requestOptions: {
               headers: {
-                cookie: cookies || '',
+                cookie: cookieString,
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
               },
             },
           };
+
+          sendUpdate({
+            status: 'status_init',
+            message: 'Auth: Validated. Downloading...',
+          });
 
           const info = await ytdl.getInfo(youtubeUrl, options);
           const format = ytdl.chooseFormat(info.formats, {
@@ -111,30 +120,49 @@ export async function POST(req: NextRequest) {
           const writer = createWriteStream(tempOriginalPath);
 
           await new Promise<void>((resolve, reject) => {
-            ytdl(youtubeUrl, { ...options, format })
-              .pipe(writer)
-              .on('finish', () => resolve())
-              .on('error', (err) => reject(err));
+            const download = ytdl(youtubeUrl, { ...options, format });
+            download.pipe(writer);
+            download.on('error', (err) => reject(err));
+            writer.on('finish', () => resolve());
+            writer.on('error', (err) => reject(err));
           });
 
           sendUpdate({
             status: 'upload_complete',
-            message: 'YouTube video downloaded. Analyzing...',
-            // Pass a special URL for the frontend to preview via proxy
+            message: 'Video downloaded. Analyzing...',
             videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
           });
         } else if (file) {
-          const buffer = Buffer.from(await file.arrayBuffer());
+          sendUpdate({
+            status: 'status_init',
+            message: 'Uploading and saving...',
+          });
+
           const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
           tempOriginalPath = path.join(
             os.tmpdir(),
             `orig_${Date.now()}_${safeName}`
           );
-          await writeFileAsync(tempOriginalPath, buffer);
+
+          // Stream the file to disk to save memory (Prevents 2x RAM usage)
+          const writer = createWriteStream(tempOriginalPath);
+          const reader = file.stream().getReader();
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            writer.write(Buffer.from(value));
+          }
+          writer.end();
+
+          // Wait for the stream to fully finish writing
+          await new Promise((resolve) =>
+            writer.on('finish', () => resolve(undefined))
+          );
 
           sendUpdate({
             status: 'upload_complete',
-            message: 'Video saved on server. Calculating parts...',
+            message: 'Video ready. Calculating parts...',
           });
         }
 
