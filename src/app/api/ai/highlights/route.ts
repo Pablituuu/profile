@@ -89,58 +89,65 @@ export async function POST(req: NextRequest) {
         if (youtubeUrl) {
           sendUpdate({
             status: "status_init",
-            message: "Auth: Initializing yt-dlp engine...",
+            message: "Auth: Preparing Secure Cookie File...",
           });
 
           const cookieString = process.env.YOUTUBE_COOKIES || "";
           tempOriginalPath = path.join(os.tmpdir(), `yt_${Date.now()}.mp4`);
+          const cookiesFile = path.join(
+            os.tmpdir(),
+            `cookies_${Date.now()}.txt`,
+          );
 
-          // Use yt-dlp which is much more robust than ytdl-core
-          // We pass cookies, user-agent and some bypass flags
+          // Convert string cookies to Netscape format that yt-dlp loves
+          const netscapeHeader = "# Netscape HTTP Cookie File\n";
+          const netscapeCookies = cookieString
+            .split(";")
+            .map((c) => {
+              const [name, ...val] = c.trim().split("=");
+              if (!name || !val.length) return "";
+              // Domain, Include subdomains, Path, Secure, Expiry, Name, Value
+              return `.youtube.com\tTRUE\t/\tTRUE\t2147483647\t${name}\t${val.join("=")}`;
+            })
+            .filter(Boolean)
+            .join("\n");
+
+          await writeFileAsync(cookiesFile, netscapeHeader + netscapeCookies);
+
           sendUpdate({
             status: "status_init",
-            message: "yt-dlp: Requesting best MP4 stream...",
+            message: "yt-dlp: Requesting stream via PS5/TV client...",
           });
 
-          // Create a temporary cookies file if we have them
-          let cookiesPath = "";
-          if (cookieString) {
-            cookiesPath = path.join(os.tmpdir(), `cookies_${Date.now()}.txt`);
-            // yt-dlp can accept simple cookie strings via --add-header but a file is better
-            // For now let's try --add-header for simplicity unless it's too long
-          }
-
           try {
-            // yt-dlp command:
-            // -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" (Ensures MP4)
-            // --no-playlist (Only download the video, not the whole playlist)
-            // --add-header "Cookie: ..." (Bypass bot detection)
-            // --user-agent "..." (Spoof browser)
-            const cookieHeader = cookieString
-              ? `--add-header "Cookie: ${cookieString.replace(/"/g, '\\"')}"`
-              : "";
-            const userAgent =
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
+            // yt-dlp flags:
+            // --cookies: use the file we just made
+            // --js-runtime node: use Node to solve YouTube's puzzles
+            // --extractor-args: spoof TV client (harder to block than web)
             const ytDlpCmd = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
               --merge-output-format mp4 \
               --no-playlist \
-              ${cookieHeader} \
-              --user-agent "${userAgent}" \
+              --cookies "${cookiesFile}" \
+              --js-runtime node \
+              --extractor-args "youtube:player-client=tv,web" \
+              --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
               -o "${tempOriginalPath}" \
               "${youtubeUrl}"`;
 
-            console.log("[yt-dlp] Executing command...");
+            console.log("[yt-dlp] Executing secure command...");
             await execPromise(ytDlpCmd);
 
             sendUpdate({
               status: "upload_complete",
-              message: "Video downloaded (yt-dlp). Analyzing...",
+              message: "Video downloaded securely. Analyzing...",
               videoUrl: `/api/ai/video/serve?path=${encodeURIComponent(tempOriginalPath)}`,
             });
           } catch (dlError: any) {
             console.error("[yt-dlp Error]", dlError);
             throw new Error(`yt-dlp failed: ${dlError.message}`);
+          } finally {
+            // Cleanup cookie file immediately
+            await unlinkAsync(cookiesFile).catch(() => {});
           }
         } else if (file) {
           sendUpdate({
