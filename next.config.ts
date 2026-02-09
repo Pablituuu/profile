@@ -24,6 +24,36 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Turbopack config (Next.js 16 default)
+  turbopack: {},
+  // Webpack fallback for production builds
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      crypto: false,
+    };
+    return config;
+  },
+  // Headers para SharedArrayBuffer (requerido por FFmpeg.wasm)
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

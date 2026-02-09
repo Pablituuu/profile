@@ -17,13 +17,20 @@ export async function POST(req: NextRequest) {
   let tempAudioPath = '';
 
   try {
-    const apiKey = process.env.DEEPGRAM_API_KEY;
-    if (!apiKey) {
+    const { checkAiAccess } = await import('@/app/actions/check-api-key');
+    const hasAccess = await checkAiAccess();
+
+    if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Deepgram API Key is not configured' },
-        { status: 501 }
+        {
+          error:
+            'NO_ACCESS: No tienes permisos para usar funciones de IA o tu sesión ha expirado.',
+        },
+        { status: 403 }
       );
     }
+
+    const apiKey = process.env.DEEPGRAM_API_KEY;
 
     const formData = await req.formData();
     const file = formData.get('video') as File;

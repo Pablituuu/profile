@@ -40,6 +40,11 @@ export function UpdatesModal() {
       description: t('updates.ai_highlights_desc'),
     },
     {
+      id: 'ai_highlights_tuning',
+      title: t('updates.highlights_tuning'),
+      description: t('updates.highlights_tuning_desc'),
+    },
+    {
       id: 'ai_assets',
       title: t('modal.ai_assets'),
       description: t('updates.ai_assets_desc'),

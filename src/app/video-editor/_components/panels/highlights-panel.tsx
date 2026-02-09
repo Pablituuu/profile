@@ -8,8 +8,6 @@ import {
   Plus,
   Loader2,
   Clock,
-  Link as LinkIcon,
-  Youtube,
   Github,
   Linkedin,
   Mail,
@@ -44,6 +42,7 @@ interface HighlightCardProps {
   clip: SuggestedClip;
   videoUrl: string | null;
   onAdd: (clip: SuggestedClip) => void;
+  isProcessing?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -55,7 +54,12 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
+function HighlightCard({
+  clip,
+  videoUrl,
+  onAdd,
+  isProcessing = false,
+}: HighlightCardProps) {
   const { t } = useLanguageStore();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -66,28 +70,38 @@ function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-
-    video.src = videoUrl;
-    video.currentTime = clip.start;
+    let isMounted = true;
 
     const handleSeeked = () => {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        canvas.width = 320;
-        canvas.height = 180;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        try {
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          setThumbnail(dataUrl);
-        } catch (e) {
-          console.warn('Error generating thumbnail:', e);
+      // Pequeño delay para que el frame se renderice bien
+      setTimeout(() => {
+        if (!isMounted) return;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          canvas.width = 320;
+          canvas.height = 180;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          try {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            setThumbnail(dataUrl);
+          } catch (e) {
+            console.warn('Error thumbnails:', e);
+          }
         }
-      }
+      }, 150);
     };
 
     video.addEventListener('seeked', handleSeeked);
+
+    // Forzamos carga y seek
+    video.src = videoUrl;
+    video.currentTime = clip.start;
+    video.load();
+
     return () => {
+      isMounted = false;
       video.removeEventListener('seeked', handleSeeked);
+      video.pause();
       video.removeAttribute('src');
       video.load();
     };
@@ -139,11 +153,21 @@ function HighlightCard({ clip, videoUrl, onAdd }: HighlightCardProps) {
 
         <Button
           onClick={() => onAdd(clip)}
+          disabled={isProcessing}
           size="sm"
-          className="w-full h-9 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold border-none shadow-[0_4px_10px_rgba(79,70,229,0.3)] hover:shadow-indigo-500/50 transition-all rounded-lg active:scale-95"
+          className="w-full h-9 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold border-none shadow-[0_4px_10px_rgba(79,70,229,0.3)] hover:shadow-indigo-500/50 transition-all rounded-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          {t('highlights.add_to_timeline')}
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('highlights.add_to_timeline')}
+            </>
+          )}
         </Button>
       </div>
     </div>
@@ -157,9 +181,9 @@ export function HighlightsPanel() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [suggestedClips, setSuggestedClips] = useState<SuggestedClip[]>([]);
-  const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [activeMethod, setActiveMethod] = useState<'upload' | 'url'>('upload');
+  // YouTube functionality removed - only local upload supported
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  // Extension removed - using direct upload only
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Check API Key on mount
@@ -198,34 +222,72 @@ export function HighlightsPanel() {
   const [targetDuration, setTargetDuration] = useState('30-60');
 
   const processWithIA = async () => {
-    if (activeMethod === 'upload' && !videoFile) return;
-    if (activeMethod === 'url' && !youtubeUrl) return;
+    if (!videoFile) return;
 
     setIsProcessing(true);
     setProgress(0);
     setSuggestedClips([]);
-    setProcessedChunks(0);
-    setTotalChunks(0);
-    setCurrentMessage(t('highlights.status_init'));
+    setCurrentMessage('Iniciando...');
 
     try {
-      const formData = new FormData();
-      if (activeMethod === 'upload' && videoFile) {
-        formData.append('video', videoFile);
-      } else {
-        formData.append('youtubeUrl', youtubeUrl);
-      }
-      formData.append('targetDuration', targetDuration);
+      console.log('--- [WEB] Modo de procesamiento local (FFmpeg) ---');
 
-      const response = await fetch('/api/ai/highlights', {
-        method: 'POST',
-        body: formData,
+      // PASO 1: Obtener duración del video de los metadatos
+      const duration = await new Promise<number>((resolve) => {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.onloadedmetadata = () => {
+          resolve(v.duration);
+          URL.revokeObjectURL(v.src);
+        };
+        v.src = URL.createObjectURL(videoFile);
       });
 
-      if (!response.ok) throw new Error('Error en la conexión con el servidor');
+      // PASO 2: Procesamiento local optimizado con FFmpeg
+      setCurrentMessage('Optimizando video para IA...');
+      setProgress(5);
+      const { createLightweightVideo, uploadToGCS } = await import(
+        '@/utils/ffmpeg-client'
+      );
+
+      // Usamos 2 FPS: Equilibrio perfecto entre velocidad y precisión para Gemini
+      const fps = 2;
+      const lightweightBlob = await createLightweightVideo(
+        videoFile,
+        fps,
+        (p) => setProgress(5 + p * 0.45) // 5% a 50%
+      );
+
+      // PASO 3: Subir el video ligero a GCS
+      setCurrentMessage('Subiendo versión optimizada...');
+      const uploadResult = await uploadToGCS(
+        lightweightBlob,
+        `lightweight_${videoFile.name}`,
+        (p) => setProgress(50 + p * 0.2) // 50% a 70%
+      );
+
+      console.log('[WEB] Video optimizado subido:', uploadResult.readUrl);
+      setProgress(70);
+
+      // PASO 4: Solicitar análisis a la API
+      setCurrentMessage('La IA está analizando el video optimizado...');
+      const response = await fetch('/api/ai/highlights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: uploadResult.readUrl,
+          publicUrl: uploadResult.publicUrl,
+          duration,
+          targetDuration,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+
+      setProgress(80);
 
       const reader = response.body?.getReader();
-      if (!reader) throw new Error('No se pudo leer la respuesta del servidor');
+      if (!reader) throw new Error('No se pudo leer el stream');
 
       const decoder = new TextDecoder();
       let buffer = '';
@@ -240,49 +302,19 @@ export function HighlightsPanel() {
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-
           try {
             const data = JSON.parse(line.replace('data: ', ''));
 
             switch (data.status) {
-              case 'upload_complete':
-                setCurrentMessage(t('highlights.status_init'));
-                setProgress(10);
-                if (data.videoUrl) setVideoUrl(data.videoUrl);
-                break;
-              case 'processing':
-                setTotalChunks(data.totalChunks);
-                setCurrentMessage(
-                  `${t('highlights.status_split')} (${data.totalChunks})`
-                );
-                break;
-              case 'chunk_optimizing':
-                setCurrentMessage(
-                  `${t('highlights.status_optimizing')} ${data.chunkIndex + 1}/${data.totalChunks}`
-                );
-                setProcessedChunks(data.chunkIndex);
-                break;
-              case 'chunk_uploading':
-                setCurrentMessage(
-                  `${t('highlights.status_uploading')} ${data.chunkIndex + 1}/${totalChunks}`
-                );
-                break;
               case 'chunk_analyzing':
                 setCurrentMessage(
-                  `${t('highlights.status_analyzing')} ${data.chunkIndex + 1}/${totalChunks}`
+                  'Gemini está identificando los mejores momentos...'
                 );
+                setProgress(90);
                 break;
               case 'chunk_done':
-                if (data.clips) {
-                  setSuggestedClips((prev) => [...prev, ...data.clips]);
-                }
-                // Use data.totalChunks if available, otherwise fallback to state
-                const total = data.totalChunks || totalChunks || 1;
-                const newProgress = Math.min(
-                  10 + ((data.chunkIndex + 1) / total) * 85,
-                  95
-                );
-                setProgress(newProgress);
+                if (data.clips) setSuggestedClips(data.clips);
+                setProgress(95);
                 break;
               case 'all_done':
                 setCurrentMessage(t('highlights.status_complete'));
@@ -293,31 +325,35 @@ export function HighlightsPanel() {
                 throw new Error(data.message);
             }
           } catch (e) {
-            console.warn('Error parsing stream line:', e);
+            console.warn('Stream parse error:', e);
           }
         }
       }
     } catch (error: any) {
-      console.error('Failed to analyze video:', error);
+      console.error('AI Analysis failed:', error);
       setCurrentMessage(`Error: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const [processingClips, setProcessingClips] = useState<
+    Record<string, boolean>
+  >({});
+
   const addClipToTimeline = async (clip: SuggestedClip) => {
     if (!studio || !videoFile) return;
 
-    // Use existing videoUrl if available, else create temp (though videoUrl should exist if videoFile exists)
-    const src = videoUrl || URL.createObjectURL(videoFile);
+    setProcessingClips((prev) => ({ ...prev, [clip.id]: true }));
 
     try {
+      // Ya no recortaremos físicamente el video (Blob de corte FFmpeg).
+      // Usaremos el archivo original y aplicaremos un Trim virtual en el editor.
+      const src = URL.createObjectURL(videoFile);
       const videoClip = await VideoClip.fromUrl(src);
-
       await videoClip.ready;
 
-      // Configurar los tiempos de recorte (trim) y duración en el timeline (display)
-      // Los tiempos de la API vienen en segundos, OpenVideo usa microsegundos
+      // Configurar el recorte virtual (Trim) en microsegundos
       const startMicro = clip.start * 1e6;
       const endMicro = clip.end * 1e6;
       const durationMicro = endMicro - startMicro;
@@ -325,19 +361,23 @@ export function HighlightsPanel() {
       videoClip.trim.from = startMicro;
       videoClip.trim.to = endMicro;
 
-      // La duración del objeto en el timeline debe coincidir con el recorte
+      // La duración en el timeline es igual al segmento recortado
       videoClip.duration = durationMicro;
-      videoClip.display.to = durationMicro;
-      videoClip.display.from = currentTime;
 
-      // Escalar para ajustar al lienzo (asumiendo formato Shorts 1080x1920)
-      // Idealmente deberíamos obtener las dimensiones del proyecto del store o studio
+      // Posicionarlo en el cursor actual del player
+      videoClip.display.from = currentTime;
+      videoClip.display.to = currentTime + durationMicro;
+
+      // Escalar y centrar (Format Shorts)
       await videoClip.scaleToFit(1080, 1920);
       videoClip.centerInScene(1080, 1920);
 
       await studio.addClip(videoClip);
+      console.log(`[CLIP] "${clip.title}" añadido con recorte virtual.`);
     } catch (error) {
-      console.error('Error adding highlight clip:', error);
+      console.error('Error adding clip:', error);
+    } finally {
+      setProcessingClips((prev) => ({ ...prev, [clip.id]: false }));
     }
   };
 
@@ -497,99 +537,56 @@ export function HighlightsPanel() {
 
     return (
       <>
-        {/* Method Toggle */}
-        {!isProcessing && suggestedClips.length === 0 && (
-          <div className="flex bg-[#111] p-1 rounded-lg border border-white/5">
-            <button
-              onClick={() => setActiveMethod('upload')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[11px] font-bold transition-all ${
-                activeMethod === 'upload'
-                  ? 'bg-indigo-600 text-white shadow-lg'
-                  : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              <CloudUpload className="h-4 w-4" />
-              {t('media.upload')}
-            </button>
-            <button
-              onClick={() => setActiveMethod('url')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-[11px] font-bold transition-all ${
-                activeMethod === 'url'
-                  ? 'bg-indigo-600 text-white shadow-lg'
-                  : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              <Youtube className="h-4 w-4" />
-              YouTube
-            </button>
-          </div>
-        )}
+        {/* Local Upload Only */}
 
         {/* Input Area (Upload or URL) */}
         {!isProcessing && suggestedClips.length === 0 && (
           <div className="space-y-6">
-            {activeMethod === 'upload' ? (
-              !videoFile ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all group"
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="video/*"
-                    onChange={handleFileChange}
-                  />
-                  <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <CloudUpload className="h-6 w-6 text-muted-foreground group-hover:text-indigo-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {t('highlights.upload_title')}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {t('highlights.upload_subtitle')}
-                    </p>
-                  </div>
+            {!videoFile ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-white/10 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all group"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="video/*"
+                  onChange={handleFileChange}
+                />
+                <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <CloudUpload className="h-6 w-6 text-muted-foreground group-hover:text-indigo-400" />
                 </div>
-              ) : (
-                <div className="bg-white/5 rounded-lg p-3 border border-white/10 flex items-center justify-between animate-in fade-in duration-300">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <Scissors className="h-4 w-4 text-indigo-400 shrink-0" />
-                    <span className="text-xs font-medium truncate">
-                      {videoFile.name}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-[10px]"
-                    onClick={() => setVideoFile(null)}
-                  >
-                    {t('highlights.change_video')}
-                  </Button>
+                <div>
+                  <p className="text-sm font-semibold">
+                    {t('highlights.upload_title')}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {t('highlights.upload_subtitle')}
+                  </p>
                 </div>
-              )
+              </div>
             ) : (
-              <div className="space-y-4 animate-in fade-in zoom-in duration-300">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <LinkIcon className="h-3 w-3" />
-                    {t('highlights.url_label')}
-                  </label>
-                  <Input
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder={t('highlights.url_placeholder')}
-                    className="bg-black/20 border-white/5 text-xs h-10 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+              <div className="bg-white/5 rounded-lg p-3 border border-white/10 flex items-center justify-between animate-in fade-in duration-300">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <Scissors className="h-4 w-4 text-indigo-400 shrink-0" />
+                  <span className="text-xs font-medium truncate">
+                    {videoFile.name}
+                  </span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px]"
+                  onClick={() => setVideoFile(null)}
+                >
+                  {t('highlights.change_video')}
+                </Button>
               </div>
             )}
 
             {/* Common Options and Process Button */}
-            {(videoFile || (activeMethod === 'url' && youtubeUrl)) && (
+            {videoFile && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -669,7 +666,7 @@ export function HighlightsPanel() {
                 {t('highlights.suggested')}
               </h3>
               <div className="flex items-center gap-2">
-                {(videoFile || youtubeUrl) && (
+                {videoFile && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -677,7 +674,6 @@ export function HighlightsPanel() {
                     onClick={() => {
                       setSuggestedClips([]);
                       setVideoFile(null);
-                      setYoutubeUrl('');
                     }}
                   >
                     {t('highlights.change_video')}
@@ -690,12 +686,13 @@ export function HighlightsPanel() {
             </div>
 
             <div className="space-y-3">
-              {suggestedClips.map((clip) => (
+              {suggestedClips.map((clip, idx) => (
                 <HighlightCard
-                  key={clip.id}
+                  key={`${clip.id}-${idx}`}
                   clip={clip}
                   videoUrl={videoUrl}
                   onAdd={addClipToTimeline}
+                  isProcessing={processingClips[clip.id]}
                 />
               ))}
             </div>

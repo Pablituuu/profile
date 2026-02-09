@@ -11,16 +11,8 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host'); // mirror the protocol and host
-      const isLocalEnv = process.env.NODE_ENV === 'development';
-      if (isLocalEnv) {
-        // we can be sure that origin is http://localhost:3000
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
+      // Usar origin directamente para mantener al usuario en el mismo dominio (localhost o producción)
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 

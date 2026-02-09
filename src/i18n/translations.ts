@@ -116,7 +116,7 @@ export const translations = {
       'Generación de imágenes y assets mediante inteligencia artificial directamente en el editor.',
     'updates.ai_highlights': 'AI Highlights v2',
     'updates.ai_highlights_desc':
-      'Extracción de clips virales con precisión quirúrgica, solapamiento dinámico y soporte para links de YouTube.',
+      'Extracción de clips virales con precisión quirúrgica, solapamiento dinámico y procesamiento optimizado.',
     'updates.ai_captions': 'Subtítulos por IA v1',
     'updates.ai_captions_desc':
       'Generación y quemado de subtítulos automáticamente usando Deepgram y Gemini. Incluye una nueva vista de edición y previsualizaciones de clips.',
@@ -132,6 +132,9 @@ export const translations = {
     'updates.access_control': 'Control de Acceso IA',
     'updates.access_control_desc':
       'Las funciones de IA ahora están protegidas por permisos de usuario y validación de API Keys en tiempo real.',
+    'updates.highlights_tuning': 'Ajuste de Precisión en Clips',
+    'updates.highlights_tuning_desc':
+      'Pre-procesamiento local con FFmpeg (frames + audio), reduciendo drásticamente el uso de tokens y acelerando el análisis de Gemini.',
     'captions.back': 'Volver',
     'captions.setup_title': 'Auto Subtítulos',
     'captions.list_title': 'Editar Subtítulos',
@@ -356,7 +359,7 @@ export const translations = {
       'Generate images and assets using artificial intelligence directly within the editor.',
     'updates.ai_highlights': 'AI Highlights v2',
     'updates.ai_highlights_desc':
-      'Extract viral clips with surgical precision, dynamic overlap, and YouTube link support.',
+      'Extract viral clips with surgical precision, dynamic overlap, and optimized processing.',
     'updates.ai_captions': 'AI Auto-Captions v1',
     'updates.ai_captions_desc':
       'Generate and burn-in captions automatically using Deepgram and Gemini. Includes a new editor view and clip previews.',
@@ -372,6 +375,9 @@ export const translations = {
     'updates.access_control': 'AI Access Control',
     'updates.access_control_desc':
       'AI features are now protected by user permissions and real-time API Key validation.',
+    'updates.highlights_tuning': 'Precision Highlights Tuning',
+    'updates.highlights_tuning_desc':
+      'Local pre-processing with FFmpeg (frames + audio), drastically reducing token usage and speeding up Gemini analysis.',
     'captions.back': 'Back',
     'captions.setup_title': 'Auto Subtitles',
     'captions.list_title': 'Edit Subtitles',
