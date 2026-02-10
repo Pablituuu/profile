@@ -24,28 +24,59 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="mb-10 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-tr from-purple-600 to-blue-600 shadow-2xl shadow-purple-500/20 mb-6 group transition-transform hover:scale-110">
-            <svg
-              className=" h-8 w-8 text-white transition-transform group-hover:rotate-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          <div className="relative inline-flex mb-6 group">
+            <div className="absolute -inset-1 bg-linear-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative h-20 w-20 flex items-center justify-center rounded-2xl bg-black border border-white/10 shadow-2xl transition-transform group-hover:scale-105 duration-500">
+              <img
+                src="/logo.png"
+                alt="Pablituuu Studio Logo"
+                className="h-12 w-12 object-contain"
               />
-            </svg>
+            </div>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+          <h1 className="text-4xl font-black tracking-tight text-white mb-2 leading-tight">
             Pablituuu{' '}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-blue-400">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-indigo-400">
               Studio
             </span>
           </h1>
-          <p className="text-white/40 font-medium">{t('login.subtitle')}</p>
+          <p className="text-white/40 font-medium mb-6">
+            {t('login.subtitle')}
+          </p>
+
+          <div className="relative group mb-8 overflow-hidden rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-4 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-1000 text-left">
+            <div className="absolute -left-1 -top-1 size-12 bg-indigo-500/20 blur-xl group-hover:bg-indigo-500/40 transition-colors duration-500" />
+            <div className="relative flex items-start gap-4">
+              <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 shadow-inner ring-1 ring-white/10">
+                <svg
+                  className="size-5 animate-pulse"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2v8" />
+                  <path d="m4.93 4.93 4.24 4.24" />
+                  <path d="M2 12h8" />
+                  <path d="m4.93 19.07 4.24-4.24" />
+                  <path d="M12 22v-8" />
+                  <path d="m19.07 19.07-4.24-4.24" />
+                  <path d="M22 12h-8" />
+                  <path d="m19.07 4.93-4.24 4.24" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.15em] text-indigo-400">
+                  {t('updates.access_control')}
+                </h4>
+                <p className="text-[14px] leading-relaxed font-bold text-white tracking-tight">
+                  {t('login.ai_notice')}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Suspense

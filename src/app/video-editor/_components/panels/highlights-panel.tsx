@@ -11,14 +11,10 @@ import {
   Github,
   Linkedin,
   Mail,
-  MessageCircle,
   Bot,
-  Lock,
 } from 'lucide-react';
 import { checkGeminiApiKey } from '@/app/actions/check-api-key';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -40,7 +36,7 @@ interface SuggestedClip {
 
 interface HighlightCardProps {
   clip: SuggestedClip;
-  videoUrl: string | null;
+  thumbnail: string | null;
   onAdd: (clip: SuggestedClip) => void;
   isProcessing?: boolean;
 }
@@ -54,71 +50,18 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 function HighlightCard({
   clip,
-  videoUrl,
+  thumbnail,
   onAdd,
   isProcessing = false,
 }: HighlightCardProps) {
   const { t } = useLanguageStore();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [thumbnail, setThumbnail] = useState<string>('');
-
-  useEffect(() => {
-    if (!videoUrl || !videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    let isMounted = true;
-
-    const handleSeeked = () => {
-      // Pequeño delay para que el frame se renderice bien
-      setTimeout(() => {
-        if (!isMounted) return;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          canvas.width = 320;
-          canvas.height = 180;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          try {
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            setThumbnail(dataUrl);
-          } catch (e) {
-            console.warn('Error thumbnails:', e);
-          }
-        }
-      }, 150);
-    };
-
-    video.addEventListener('seeked', handleSeeked);
-
-    // Forzamos carga y seek
-    video.src = videoUrl;
-    video.currentTime = clip.start;
-    video.load();
-
-    return () => {
-      isMounted = false;
-      video.removeEventListener('seeked', handleSeeked);
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-    };
-  }, [videoUrl, clip.start]);
 
   return (
     <div className="group bg-[#222] border border-white/10 rounded-xl overflow-hidden hover:border-indigo-500/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.2)] transition-all duration-300">
-      <video
-        ref={videoRef}
-        className="hidden"
-        crossOrigin="anonymous"
-        muted
-        preload="auto"
-      />
-      <canvas ref={canvasRef} className="hidden" />
-
-      {/* Preview Area */}
       <div className="relative aspect-video bg-black w-full overflow-hidden">
         {thumbnail ? (
           <img
@@ -142,7 +85,6 @@ function HighlightCard({
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      {/* Content Area */}
       <div className="p-4 bg-linear-to-b from-transparent to-black/20">
         <h4 className="text-[13px] font-bold text-white mb-1.5 leading-snug group-hover:text-indigo-300 transition-colors">
           {clip.title}
@@ -179,14 +121,15 @@ export function HighlightsPanel() {
   const { studio, currentTime } = useEditorStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [suggestedClips, setSuggestedClips] = useState<SuggestedClip[]>([]);
-  // YouTube functionality removed - only local upload supported
   const [hasKey, setHasKey] = useState<boolean | null>(null);
-  // Extension removed - using direct upload only
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check API Key on mount
+  const [progress, setProgress] = useState(0);
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const [targetDuration, setTargetDuration] = useState('30-60');
+
   useEffect(() => {
     const checkAccess = async () => {
       const configured = await checkGeminiApiKey();
@@ -194,17 +137,6 @@ export function HighlightsPanel() {
     };
     checkAccess();
   }, []);
-
-  // Manage video URL creation/cleanup
-  useEffect(() => {
-    if (videoFile) {
-      const url = URL.createObjectURL(videoFile);
-      setVideoUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setVideoUrl(null);
-    }
-  }, [videoFile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -214,12 +146,44 @@ export function HighlightsPanel() {
     }
   };
 
-  /* New state for streaming performance */
-  const [progress, setProgress] = useState(0);
-  const [currentMessage, setCurrentMessage] = useState('');
-  const [processedChunks, setProcessedChunks] = useState(0);
-  const [totalChunks, setTotalChunks] = useState(0);
-  const [targetDuration, setTargetDuration] = useState('30-60');
+  const generateBatchThumbnails = async (
+    videoBlob: Blob,
+    clips: SuggestedClip[]
+  ) => {
+    const url = URL.createObjectURL(videoBlob);
+    const video = document.createElement('video');
+    video.src = url;
+    video.muted = true;
+    video.preload = 'auto';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 180;
+    const ctx = canvas.getContext('2d');
+
+    const newThumbnails: Record<string, string> = {};
+
+    await new Promise((resolve) => {
+      video.onloadedmetadata = resolve;
+    });
+
+    for (const clip of clips) {
+      await new Promise((resolve) => {
+        video.onseeked = () => {
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            newThumbnails[clip.id] = canvas.toDataURL('image/jpeg', 0.7);
+          }
+          resolve(null);
+        };
+        video.currentTime = clip.start;
+      });
+      setThumbnails((prev) => ({ ...prev, ...newThumbnails }));
+    }
+
+    URL.revokeObjectURL(url);
+    video.remove();
+  };
 
   const processWithIA = async () => {
     if (!videoFile) return;
@@ -227,112 +191,114 @@ export function HighlightsPanel() {
     setIsProcessing(true);
     setProgress(0);
     setSuggestedClips([]);
-    setCurrentMessage('Iniciando...');
+    setThumbnails({});
+    setCurrentMessage(t('highlights.status_loading_tools'));
 
     try {
-      console.log('--- [WEB] Modo de procesamiento local (FFmpeg) ---');
-
-      // PASO 1: Obtener duración del video de los metadatos
-      const duration = await new Promise<number>((resolve) => {
-        const v = document.createElement('video');
-        v.preload = 'metadata';
-        v.onloadedmetadata = () => {
-          resolve(v.duration);
-          URL.revokeObjectURL(v.src);
-        };
-        v.src = URL.createObjectURL(videoFile);
-      });
-
-      // PASO 2: Procesamiento local optimizado con FFmpeg
-      setCurrentMessage('Optimizando video para IA...');
-      setProgress(5);
-      const { createLightweightVideo, uploadToGCS } = await import(
+      const { uploadToGCS, getVideoDuration, cutVideoClip } = await import(
         '@/utils/ffmpeg-client'
       );
 
-      // Usamos 2 FPS: Equilibrio perfecto entre velocidad y precisión para Gemini
-      const fps = 2;
-      const lightweightBlob = await createLightweightVideo(
-        videoFile,
-        fps,
-        (p) => setProgress(5 + p * 0.45) // 5% a 50%
-      );
+      const duration = await getVideoDuration(videoFile);
+      const CHUNK_SIZE = 600; // 10 minutos
+      const numChunks = Math.ceil(duration / CHUNK_SIZE);
 
-      // PASO 3: Subir el video ligero a GCS
-      setCurrentMessage('Subiendo versión optimizada...');
-      const uploadResult = await uploadToGCS(
-        lightweightBlob,
-        `lightweight_${videoFile.name}`,
-        (p) => setProgress(50 + p * 0.2) // 50% a 70%
-      );
+      for (let i = 0; i < numChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min((i + 1) * CHUNK_SIZE, duration);
 
-      console.log('[WEB] Video optimizado subido:', uploadResult.readUrl);
-      setProgress(70);
+        const baseProgress = (i / numChunks) * 100;
+        setProgress(baseProgress);
 
-      // PASO 4: Solicitar análisis a la API
-      setCurrentMessage('La IA está analizando el video optimizado...');
-      const response = await fetch('/api/ai/highlights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          videoUrl: uploadResult.readUrl,
-          publicUrl: uploadResult.publicUrl,
-          duration,
-          targetDuration,
-        }),
-      });
+        let blobToUpload: Blob = videoFile;
+        let fileNameToUpload = videoFile.name;
 
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        if (numChunks > 1) {
+          setCurrentMessage(
+            `${t('highlights.status_trimming')} ${Math.floor(start / 60)} - ${Math.floor(end / 60)}...`
+          );
+          blobToUpload = await cutVideoClip(videoFile, start, end);
+          fileNameToUpload = `chunk_${i}_${videoFile.name}`;
+          setProgress(baseProgress + 5 / numChunks);
+        }
 
-      setProgress(80);
+        setCurrentMessage(
+          `${t('highlights.status_uploading')} (${i + 1}/${numChunks})...`
+        );
+        const uploadResult = await uploadToGCS(blobToUpload, fileNameToUpload);
+        setProgress(baseProgress + 10 / numChunks);
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No se pudo leer el stream');
+        setCurrentMessage(
+          `${t('highlights.status_analyzing_range')} ${Math.floor(start / 60)} - ${Math.floor(end / 60)}...`
+        );
 
-      const decoder = new TextDecoder();
-      let buffer = '';
+        const response = await fetch('/api/ai/highlights', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: uploadResult.fileName,
+            targetDuration,
+          }),
+        });
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+        if (!response.ok)
+          throw new Error(
+            `${t('highlights.status_error')} ${Math.floor(start / 60)}-${Math.floor(end / 60)}`
+          );
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
+        const reader = response.body?.getReader();
+        if (!reader) continue;
 
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.replace('data: ', ''));
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-            switch (data.status) {
-              case 'chunk_analyzing':
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const data = JSON.parse(line.replace('data: ', ''));
+              if (data.status === 'chunk_done' && data.clips) {
+                const adjustedClips = data.clips.map((c: any) => ({
+                  ...c,
+                  start: c.start + start,
+                  end: c.end + start,
+                  id: Math.random().toString(36).substr(2, 9),
+                }));
+                setSuggestedClips((prev) => [...prev, ...adjustedClips]);
+                generateBatchThumbnails(videoFile, adjustedClips);
+              }
+              if (
+                data.status === 'processing' &&
+                data.message.includes('429')
+              ) {
+                // Si es un mensaje de cuota del API, usamos nuestra traducción
                 setCurrentMessage(
-                  'Gemini está identificando los mejores momentos...'
+                  `${t('highlights.status_quota_wait')} 10s...`
                 );
-                setProgress(90);
-                break;
-              case 'chunk_done':
-                if (data.clips) setSuggestedClips(data.clips);
-                setProgress(95);
-                break;
-              case 'all_done':
-                setCurrentMessage(t('highlights.status_complete'));
-                setProgress(100);
-                setIsProcessing(false);
-                break;
-              case 'error':
-                throw new Error(data.message);
-            }
-          } catch (e) {
-            console.warn('Stream parse error:', e);
+              }
+            } catch (e) {}
           }
         }
+
+        if (i < numChunks - 1) {
+          setCurrentMessage(t('highlights.status_breathing'));
+          await delay(15000);
+        }
       }
+
+      setCurrentMessage(t('highlights.status_complete'));
+      setProgress(100);
+      setIsProcessing(false);
     } catch (error: any) {
-      console.error('AI Analysis failed:', error);
+      console.error('Process Error:', error);
       setCurrentMessage(`Error: ${error.message}`);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -347,33 +313,26 @@ export function HighlightsPanel() {
     setProcessingClips((prev) => ({ ...prev, [clip.id]: true }));
 
     try {
-      // Ya no recortaremos físicamente el video (Blob de corte FFmpeg).
-      // Usaremos el archivo original y aplicaremos un Trim virtual en el editor.
       const src = URL.createObjectURL(videoFile);
       const videoClip = await VideoClip.fromUrl(src);
       await videoClip.ready;
 
-      // Configurar el recorte virtual (Trim) en microsegundos
-      const startMicro = clip.start * 1e6;
-      const endMicro = clip.end * 1e6;
+      const startMicro = Math.round(clip.start * 1e6);
+      const endMicro = Math.round(clip.end * 1e6);
       const durationMicro = endMicro - startMicro;
+      const currentTimeMicro = Math.round(currentTime * 1e6);
 
       videoClip.trim.from = startMicro;
       videoClip.trim.to = endMicro;
-
-      // La duración en el timeline es igual al segmento recortado
       videoClip.duration = durationMicro;
 
-      // Posicionarlo en el cursor actual del player
-      videoClip.display.from = currentTime;
-      videoClip.display.to = currentTime + durationMicro;
+      videoClip.display.from = currentTimeMicro;
+      videoClip.display.to = currentTimeMicro + durationMicro;
 
-      // Escalar y centrar (Format Shorts)
       await videoClip.scaleToFit(1080, 1920);
       videoClip.centerInScene(1080, 1920);
 
       await studio.addClip(videoClip);
-      console.log(`[CLIP] "${clip.title}" añadido con recorte virtual.`);
     } catch (error) {
       console.error('Error adding clip:', error);
     } finally {
@@ -396,23 +355,16 @@ export function HighlightsPanel() {
     if (hasKey === false) {
       return (
         <div className="flex flex-col items-center py-6 text-center space-y-6 h-full animate-in fade-in duration-500">
-          {/* Lock Icon & Title */}
-          <div className="space-y-3">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center relative">
-              <div className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full" />
-              <Lock className="w-6 h-6 text-indigo-400 relative z-10" />
-            </div>
-            <div className="space-y-1 px-4">
-              <h3 className="text-base font-bold text-white tracking-tight">
-                {t('highlights.demo_title')}
-              </h3>
-              <p className="text-xs text-white/40 leading-relaxed">
-                {t('highlights.demo_description')}
-              </p>
-            </div>
+          <div className="space-y-3 px-4">
+            <Bot className="w-12 h-12 text-indigo-400 mx-auto" />
+            <h3 className="text-base font-bold text-white tracking-tight">
+              {t('highlights.demo_title')}
+            </h3>
+            <p className="text-xs text-white/40 leading-relaxed">
+              {t('highlights.demo_description')}
+            </p>
           </div>
 
-          {/* Profile Section */}
           <div className="w-full space-y-2">
             <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-base font-bold text-white shadow-xl ring-4 ring-white/5">
@@ -426,7 +378,6 @@ export function HighlightsPanel() {
                   Full Stack Developer
                 </p>
               </div>
-
               <div className="flex items-center gap-2.5">
                 {[
                   {
@@ -450,83 +401,11 @@ export function HighlightsPanel() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all hover:scale-110 active:scale-95 border border-white/5 hover:border-white/10 shadow-sm"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all hover:scale-110 active:scale-95 border border-white/5 shadow-sm"
                     title={social.title}
                   >
                     <social.icon className="w-4 h-4" />
                   </a>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <a
-                href="https://wa.me/51922323921"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-all group/btn hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/20 text-green-400">
-                    <MessageCircle className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs text-green-200 font-semibold">
-                    +51 922 323 921
-                  </span>
-                </div>
-                <span className="text-[10px] bg-green-500/20 text-green-300 px-2 py-0.5 rounded-md group-hover/btn:bg-green-500/30 transition-colors font-bold uppercase tracking-wider">
-                  WhatsApp
-                </span>
-              </a>
-
-              <a
-                href="mailto:pablito.silvainca@gmail.com"
-                className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group/btn hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/10 text-white/70">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs text-white/70 font-semibold">
-                    Request Demo
-                  </span>
-                </div>
-                <span className="text-[10px] bg-white/5 text-white/40 px-2 py-0.5 rounded-md group-hover/btn:bg-white/10 transition-colors font-bold uppercase tracking-wider">
-                  Email
-                </span>
-              </a>
-            </div>
-          </div>
-
-          {/* Overview Section */}
-          <div className="space-y-4 w-full pt-4">
-            <div className="flex items-center justify-center gap-3 opacity-30">
-              <div className="h-px bg-white/50 flex-1" />
-              <span className="text-[10px] uppercase font-black tracking-widest text-white/50">
-                {t('highlights.overview')}
-              </span>
-              <div className="h-px bg-white/50 flex-1" />
-            </div>
-
-            <div className="w-full bg-white/5 rounded-2xl border border-white/5 p-4 text-left space-y-3">
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.15em]">
-                {t('highlights.current_features')}
-              </p>
-              <div className="grid grid-cols-1 gap-2.5">
-                {[
-                  t('updates.ai_highlights'),
-                  'YouTube Link Extraction',
-                  'Dynamic Overlap Analysis',
-                  t('highlights.target_duration'),
-                  t('updates.i18n'),
-                ].map((feat) => (
-                  <div
-                    key={feat}
-                    className="text-xs text-white/60 flex items-center gap-2.5 group"
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50 group-hover:bg-indigo-400 group-hover:scale-125 transition-all" />
-                    {feat}
-                  </div>
                 ))}
               </div>
             </div>
@@ -537,9 +416,6 @@ export function HighlightsPanel() {
 
     return (
       <>
-        {/* Local Upload Only */}
-
-        {/* Input Area (Upload or URL) */}
         {!isProcessing && suggestedClips.length === 0 && (
           <div className="space-y-6">
             {!videoFile ? (
@@ -567,7 +443,7 @@ export function HighlightsPanel() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white/5 rounded-lg p-3 border border-white/10 flex items-center justify-between animate-in fade-in duration-300">
+              <div className="bg-white/5 rounded-lg p-3 border border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <Scissors className="h-4 w-4 text-indigo-400 shrink-0" />
                   <span className="text-xs font-medium truncate">
@@ -585,9 +461,8 @@ export function HighlightsPanel() {
               </div>
             )}
 
-            {/* Common Options and Process Button */}
             {videoFile && (
-              <div className="space-y-4 animate-in fade-in duration-300">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Clock className="h-3 w-3" />
@@ -618,7 +493,7 @@ export function HighlightsPanel() {
 
                 <Button
                   onClick={processWithIA}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 h-10 border-none shadow-lg shadow-indigo-600/20"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 h-10 shadow-lg shadow-indigo-600/20"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>{t('highlights.extract_btn')}</span>
@@ -628,69 +503,43 @@ export function HighlightsPanel() {
           </div>
         )}
 
-        {/* Processing State */}
         {isProcessing && (
           <div className="py-12 flex flex-col items-center justify-center text-center gap-4">
-            <div className="relative">
-              <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-              <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
-            </div>
+            <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
             <div className="space-y-1">
-              <p className="text-xs font-medium text-indigo-200 animate-pulse">
+              <p className="text-xs font-medium text-white/80">
                 {currentMessage}
               </p>
-              <p className="text-[10px] text-indigo-200/50">
-                {progress > 90
-                  ? t('highlights.status_finalizing')
-                  : t('highlights.status_wait')}
-              </p>
+              <div className="w-56 h-1.5 bg-white/5 rounded-full overflow-hidden mt-2 border border-white/5">
+                <div
+                  className="h-full bg-linear-to-r from-indigo-600 to-purple-600 transition-all duration-500 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-[9px] font-mono text-indigo-300/50 uppercase tracking-widest">
+                {t('highlights.processing')} • {Math.round(progress)}%
+              </span>
             </div>
-
-            <div className="w-56 h-1.5 bg-white/5 rounded-full overflow-hidden mt-2 border border-white/5">
-              <div
-                className="h-full bg-linear-to-r from-indigo-600 to-violet-400 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(79,70,229,0.5)]"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <span className="text-[9px] font-mono text-indigo-300/50">
-              {Math.round(progress)}%
-            </span>
           </div>
         )}
 
-        {/* Results List */}
         {suggestedClips.length > 0 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="flex items-center justify-between border-b border-white/5 pb-2">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 {t('highlights.suggested')}
               </h3>
-              <div className="flex items-center gap-2">
-                {videoFile && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-[9px] text-white/40 hover:text-white"
-                    onClick={() => {
-                      setSuggestedClips([]);
-                      setVideoFile(null);
-                    }}
-                  >
-                    {t('highlights.change_video')}
-                  </Button>
-                )}
-                <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
-                  {suggestedClips.length} {t('highlights.clips_count')}
-                </span>
-              </div>
+              <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full font-bold">
+                {suggestedClips.length} {t('highlights.clips_count')}
+              </span>
             </div>
 
             <div className="space-y-3">
-              {suggestedClips.map((clip, idx) => (
+              {suggestedClips.map((clip) => (
                 <HighlightCard
-                  key={`${clip.id}-${idx}`}
+                  key={clip.id}
                   clip={clip}
-                  videoUrl={videoUrl}
+                  thumbnail={thumbnails[clip.id] || null}
                   onAdd={addClipToTimeline}
                   isProcessing={processingClips[clip.id]}
                 />
@@ -699,7 +548,7 @@ export function HighlightsPanel() {
 
             <Button
               variant="outline"
-              className="w-full border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 text-xs h-10"
+              className="w-full border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 text-xs h-10 rounded-xl"
               onClick={() => suggestedClips.forEach(addClipToTimeline)}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -713,8 +562,8 @@ export function HighlightsPanel() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background">
-      <div className="p-4 border-b border-border/50">
-        <h2 className="text-sm font-bold flex items-center gap-2">
+      <div className="p-4 border-b border-border/50 bg-black/5">
+        <h2 className="text-sm font-bold flex items-center gap-2 text-white">
           <Sparkles className="h-4 w-4 text-indigo-400" />
           {t('highlights.title')}
         </h2>
@@ -722,7 +571,6 @@ export function HighlightsPanel() {
           {t('highlights.description')}
         </p>
       </div>
-
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {renderContent()}
       </div>

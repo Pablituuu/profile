@@ -1,66 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+// Ubicación: src/app/api/ai/highlights/route.ts
+import { NextRequest } from 'next/server';
+import { VertexAI, SchemaType } from '@google-cloud/vertexai';
 
-// Para Next.js App Router
-export const maxDuration = 300; // 5 minutos máximo
+export const maxDuration = 300;
 
-function getEnvVar(key: string): string {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing environment variable: ${key}`);
-  return value;
-}
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export async function POST(req: NextRequest) {
-  console.log('--- API /api/ai/highlights [VIDEO URL MODE] ---');
-
+export async function POST(req: Request) {
   const encoder = new TextEncoder();
+
+  const projectId = process.env.GCS_PROJECT_ID || 'pablituuu-personal';
+  const location = 'us-east4';
+  const privateKey = process.env.GCS_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+  const vertex = new VertexAI({
+    project: projectId,
+    location: location,
+    googleAuthOptions: {
+      credentials: {
+        client_email: process.env.GCS_CLIENT_EMAIL,
+        private_key: privateKey,
+      },
+    },
+  });
 
   const stream = new ReadableStream({
     async start(controller) {
       const sendUpdate = (data: any) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        try {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+          );
+        } catch (e) {}
       };
 
       try {
-        const apiKey = getEnvVar('GOOGLE_GENERATIVE_AI_API_KEY');
-        const genAI = new GoogleGenerativeAI(apiKey);
-
-        // Recibir videoUrl extraído y subido por el cliente
         const body = await req.json();
-        const { videoUrl, duration, targetDuration } = body;
-        console.log('[API] Body recibido:', {
-          duration,
-          targetDuration,
-          hasUrl: !!videoUrl,
-        });
+        const { fileName, targetDuration } = body;
+        const bucketName = process.env.GCS_BUCKET_NAME;
+        const gcsUri = `gs://${bucketName}/${fileName}`;
+        const [minT, maxT] = (targetDuration || '30-60').split('-').map(Number);
 
-        if (!videoUrl) {
-          throw new Error(
-            'No videoUrl provided. Upload the video to storage first.'
-          );
-        }
+        console.log(`[API] Analizando Fragmento: ${gcsUri}`);
 
-        console.log(
-          `[API] Analizando video desde: ${videoUrl.substring(0, 80)}...`
-        );
-
-        sendUpdate({
-          status: 'status_init',
-          message: `Iniciando análisis del video...`,
-        });
-
-        const [minTarget, maxTarget] = (targetDuration || '30-60')
-          .split('-')
-          .map(Number);
-
-        console.log(`[API] Targets: min=${minTarget}, max=${maxTarget}`);
-
-        const PADDING = 2; // Menos padding ahora que analizamos el video completo
-        const minAI = Math.max(5, minTarget - PADDING * 2);
-        const maxAI = maxTarget - PADDING * 2;
-
-        const model = genAI.getGenerativeModel({
-          model: 'gemini-2.0-flash',
+        const model = vertex.getGenerativeModel({
+          model: 'gemini-2.0-flash-001',
           generationConfig: {
             responseMimeType: 'application/json',
             responseSchema: {
@@ -68,116 +52,75 @@ export async function POST(req: NextRequest) {
               items: {
                 type: SchemaType.OBJECT,
                 properties: {
-                  id: { type: SchemaType.STRING },
                   title: { type: SchemaType.STRING },
-                  start: {
-                    type: SchemaType.NUMBER,
-                    description: 'Relative start time (seconds)',
-                  },
-                  end: {
-                    type: SchemaType.NUMBER,
-                    description: 'Relative end time (seconds)',
-                  },
+                  start: { type: SchemaType.NUMBER },
+                  end: { type: SchemaType.NUMBER },
                   description: { type: SchemaType.STRING },
+                  viralScore: { type: SchemaType.NUMBER },
                 },
-                required: ['id', 'title', 'start', 'end', 'description'],
+                required: ['title', 'start', 'end', 'description'],
               },
             },
           },
         });
 
-        // 1. Descargar el video desde la Signed URL para enviarlo a Gemini
-        sendUpdate({
-          status: 'processing',
-          message: 'Preparando video para Gemini...',
-        });
+        const prompt = `Act as a world-class viral video editor. 
+Analyze THIS video segment.
+TASK: Identify high-engagement moments between ${minT}s and ${maxT}s.
+IMPORTANT: Return absolute seconds (0s is the start of THIS file).
+Return a valid JSON array.`;
 
-        const videoResponse = await fetch(videoUrl);
-        if (!videoResponse.ok)
-          throw new Error(
-            `Failed to fetch video from storage. Status: ${videoResponse.status}`
-          );
+        let result;
+        let retries = 3;
+        let waitTime = 10000;
 
-        const videoBuffer = await videoResponse.arrayBuffer();
-        console.log(
-          `[API] Video descargado para Gemini: ${(videoBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`
-        );
+        while (retries > 0) {
+          try {
+            result = await model.generateContent({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [
+                    { fileData: { mimeType: 'video/mp4', fileUri: gcsUri } },
+                    { text: prompt },
+                  ],
+                },
+              ],
+            });
+            break;
+          } catch (err: any) {
+            const isQuota = err.message?.includes('429') || err.code === 429;
+            if (isQuota && retries > 1) {
+              sendUpdate({
+                status: 'processing',
+                message: `Cuota regional llena. Reintentando en ${waitTime / 1000}s...`,
+              });
+              await delay(waitTime);
+              retries--;
+              waitTime *= 2;
+            } else {
+              throw err;
+            }
+          }
+        }
 
-        const videoBase64 = Buffer.from(videoBuffer).toString('base64');
+        if (!result) throw new Error('No response from Vertex.');
 
-        const videoPart = {
-          inlineData: {
-            data: videoBase64,
-            mimeType: 'video/mp4',
-          },
-        };
-
-        const prompt = `You are a World-Class Viral Content Strategist and Video Editor. 
-The provided video is EXACTLY ${duration} seconds long.
-Analyze it to identify the best 10-15 most engaging moments.
-
-STRICT REQUIREMENTS:
-- Provide at least 5-10 distinct clips.
-- Each highlight MUST be exactly between ${minTarget} and ${maxTarget} seconds long to follow the user preference.
-- Use human-readable SECONDS for 'start' and 'end' (e.g., 45.2). 
-- All timestamps MUST be between 0 and ${duration}.
-- Ensure clips are unique and represent different high-engagement moments in the video.
-
-Return ONLY valid JSON array of objects:
-[{ "id": "unique_string", "title": "Viral Clickbait Title", "description": "Why this specific moment is gold", "start": seconds, "end": seconds }]`;
-
-        sendUpdate({
-          status: 'chunk_analyzing',
-          chunkIndex: 0,
-          totalChunks: 1,
-          message: `La IA está analizando el video completo (${duration}s)...`,
-        });
-
-        console.log('[API] Enviando petición a Gemini...');
-        const result = await model.generateContent([
-          videoPart,
-          { text: prompt },
-        ]);
-
-        const rawText = result.response.text();
-        console.log('[API] Respuesta raw de Gemini:', rawText);
-
-        const clips = JSON.parse(rawText);
-        console.log(`[API] Gemini encontró ${clips.length} clips potenciales.`);
-
-        // Aplicar padding y validar clips (quitamos el filtro restrictivo de duración)
-        const finalClips = clips
-          .filter((c: any) => c.start !== undefined && c.end !== undefined)
-          .map((c: any) => {
-            let s = Number(c.start);
-            let e = Number(c.end);
-            if (s > e) [s, e] = [e, s];
-
-            // Aplicar padding
-            const paddedStart = Math.max(0, s - PADDING);
-            const paddedEnd = Math.min(duration || e + PADDING, e + PADDING);
-
-            return {
-              ...c,
-              start: Math.round(paddedStart * 10) / 10,
-              end: Math.round(paddedEnd * 10) / 10,
-            };
-          });
-
-        console.log(
-          `[API] Enviando ${finalClips.length} clips finales al cliente.`
-        );
+        const response = await result.response;
+        const rawText =
+          response.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+        const cleanJson = rawText
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+        const clips = JSON.parse(cleanJson);
 
         sendUpdate({
           status: 'chunk_done',
-          clips: finalClips,
-          chunkIndex: 0,
-          totalChunks: 1,
+          clips: clips,
         });
-
-        sendUpdate({ status: 'all_done' });
       } catch (error: any) {
-        console.error('Critical Stream Error:', error);
+        console.error('ERROR API:', error.message);
         sendUpdate({ status: 'error', message: error.message });
       } finally {
         controller.close();

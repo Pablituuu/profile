@@ -137,9 +137,20 @@ export function UpdatesModal() {
         <div className="p-6 pb-2">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-indigo-400">
-                <Sparkles className="size-6" />
-                {t('updates.title')}
+              <DialogTitle className="flex items-center gap-2.5 text-2xl font-bold text-white">
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="size-8 object-contain rounded-lg shadow-lg shadow-indigo-500/20"
+                />
+                <div className="flex flex-col -space-y-1">
+                  <span className="text-xl tracking-tight">
+                    {t('updates.title')}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-[0.2em] font-black text-indigo-400/80">
+                    Pablituuu Studio
+                  </span>
+                </div>
               </DialogTitle>
               <Badge
                 variant="outline"

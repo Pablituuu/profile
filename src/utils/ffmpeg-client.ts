@@ -5,6 +5,21 @@ import { toBlobURL, fetchFile } from '@ffmpeg/util';
 let ffmpeg: FFmpeg | null = null;
 let loaded = false;
 
+export async function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      resolve(video.duration);
+      URL.revokeObjectURL(video.src);
+    };
+    video.onerror = () => {
+      reject('Error loading video metadata');
+    };
+    video.src = URL.createObjectURL(file);
+  });
+}
+
 export async function loadFFmpeg(): Promise<{
   ffmpeg: FFmpeg;
   fetchFile: typeof fetchFile;
@@ -39,40 +54,37 @@ export async function createLightweightVideo(
   const { ffmpeg, fetchFile } = await loadFFmpeg();
 
   console.log(`[FFMPEG] Iniciando optimización (${fps} FPS)...`);
+
+  // Registrar el progreso real de FFmpeg
+  ffmpeg.on('progress', ({ progress }) => {
+    if (onProgress) onProgress(progress);
+  });
+
   const videoData = await fetchFile(videoFile);
   await ffmpeg.writeFile('input.mp4', videoData);
 
-  // Escuchamos el log para intentar dar progreso básico
-  ffmpeg.on('log', ({ message }) => {
-    if (message.includes('frame=')) {
-      console.log('[FFMPEG Log]:', message);
-    }
-  });
-
-  // Un solo comando altamente optimizado:
-  // -vf: fps=X (bajar frames), scale=640:360 (bajar resolución)
-  // -preset ultrafast: máxima velocidad de codificación
-  // -crf 32: calidad baja aceptable para IA
-  // -ac: 1, -ar: 16000: audio mono ligero
+  // Comando optimizado para máxima velocidad y ahorro de tokens (10 FPS)
   await ffmpeg.exec([
     '-i',
     'input.mp4',
     '-vf',
-    `fps=${fps},scale=640:360`,
+    `fps=10,scale=320:-2`, // 10 FPS y resolución muy baja
     '-c:v',
     'libx264',
     '-preset',
     'ultrafast',
     '-crf',
-    '32',
+    '40', // Calidad mínima aceptable para IA
+    '-b:v',
+    '100k',
+    '-tune',
+    'fastdecode',
     '-acodec',
     'aac',
     '-ar',
-    '16000',
+    '8000', // Audio de baja fidelidad para ahorrar tokens
     '-ac',
     '1',
-    '-b:a',
-    '32k',
     'output.mp4',
   ]);
 
@@ -81,7 +93,8 @@ export async function createLightweightVideo(
     type: 'video/mp4',
   });
 
-  // Limpieza de memoria virtual
+  // Limpieza y remoción de listeners para evitar memory leaks
+  ffmpeg.off('progress', () => {});
   await ffmpeg.deleteFile('input.mp4');
   await ffmpeg.deleteFile('output.mp4');
 
@@ -111,6 +124,8 @@ export async function cutVideoClip(
     duration.toString(),
     '-c',
     'copy',
+    '-avoid_negative_ts',
+    'make_zero',
     'output.mp4',
   ]);
 

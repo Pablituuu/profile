@@ -108,15 +108,15 @@ export const translations = {
       'Ahora toda la interfaz está disponible en Español e Inglés con cambio instantáneo.',
     'updates.ai_stability': 'Estabilidad Asistente AI',
     'updates.ai_stability_desc':
-      'Mejora crítica en el streaming de Gemini para evitar errores JSON y procesamiento de estilos optimizado mediante strings.',
+      'Migración estratégica a us-east4 y manejo de cuotas mejorado. Mayor estabilidad en el procesamiento de videos pesados y streaming de Gemini.',
     'updates.corner_radius_fix': 'Fix de Radio de Borde',
     'updates.corner_radius_fix_desc':
       'Se ha corregido un problema que impedía aplicar el radio de borde correctamente con valor 0, forzando un mínimo de 1.',
     'updates.ai_assets_desc':
       'Nueva interfaz unificada para generación de imágenes y videos con selector de tipo de contenido y carga de referencias simultánea.',
-    'updates.ai_highlights': 'AI Highlights v2',
+    'updates.ai_highlights': 'AI Highlights v3',
     'updates.ai_highlights_desc':
-      'Extracción de clips virales con precisión quirúrgica, solapamiento dinámico y procesamiento optimizado.',
+      "Soporte para videos de hasta 1 hora. Implementación de 'Slicing' dinámico por bloques de 10 minutos para máxima precisión y estabilidad regional.",
     'updates.ai_captions': 'Subtítulos por IA v1',
     'updates.ai_captions_desc':
       'Generación y quemado de subtítulos automáticamente usando Deepgram y Gemini. Incluye una nueva vista de edición y previsualizaciones de clips.',
@@ -176,6 +176,12 @@ export const translations = {
     'highlights.status_wait': 'Esto puede tomar unos momentos...',
     'highlights.clips_count': 'clips',
     'highlights.status_verifying': 'Verificando permisos...',
+    'highlights.status_loading_tools': 'Cargando herramientas...',
+    'highlights.status_trimming': 'Recortando minutos',
+    'highlights.status_analyzing_range': 'Analizando minutos',
+    'highlights.status_quota_wait': 'Saturación regional. Reintentando en',
+    'highlights.status_breathing': 'Respirando para liberar cuota...',
+    'highlights.status_error': 'Error en fragmento',
     'highlights.demo_mode': 'Modo Demo',
     'highlights.demo_title': 'Contenido Protegido',
     'highlights.demo_description':
@@ -277,6 +283,8 @@ export const translations = {
     'login.signup': 'Registrarse',
     'login.privacy':
       'Al iniciar sesión, aceptas nuestra política de privacidad.',
+    'login.ai_notice':
+      'El inicio de sesión es necesario para llevar un control de los servicios de IA, ya que no están habilitados de forma pública para todos.',
     'login.rights': 'Todos los derechos reservados.',
   },
   en: {
@@ -386,15 +394,15 @@ export const translations = {
       'The entire interface is now available in both Spanish and English with instant switching.',
     'updates.ai_stability': 'AI Assistant Stability',
     'updates.ai_stability_desc':
-      'Critical improvement in Gemini streaming to prevent JSON errors and optimized style processing using strings.',
+      'Strategic migration to us-east4 and improved quota management. Better stability for heavy video processing and Gemini streaming.',
     'updates.corner_radius_fix': 'Border Radius Fix',
     'updates.corner_radius_fix_desc':
       'Fixed an issue that prevented correctly applying border radius with value 0, enforcing a minimum of 1.',
     'updates.ai_assets_desc':
       'New unified interface for image and video generation with content type selector and simultaneous reference uploads.',
-    'updates.ai_highlights': 'AI Highlights v2',
+    'updates.ai_highlights': 'AI Highlights v3',
     'updates.ai_highlights_desc':
-      'Extract viral clips with surgical precision, dynamic overlap, and optimized processing.',
+      "Support for videos up to 1 hour long. Dynamic 'Slicing' implementation in 10-minute blocks for maximum precision and regional stability.",
     'updates.ai_captions': 'AI Auto-Captions v1',
     'updates.ai_captions_desc':
       'Generate and burn-in captions automatically using Deepgram and Gemini. Includes a new editor view and clip previews.',
@@ -454,6 +462,12 @@ export const translations = {
     'highlights.status_wait': 'This may take a few moments...',
     'highlights.clips_count': 'clips',
     'highlights.status_verifying': 'Verifying permissions...',
+    'highlights.status_loading_tools': 'Loading tools...',
+    'highlights.status_trimming': 'Trimming minutes',
+    'highlights.status_analyzing_range': 'Analyzing minutes',
+    'highlights.status_quota_wait': 'Regional saturation. Retrying in',
+    'highlights.status_breathing': 'Breathing to release quota...',
+    'highlights.status_error': 'Error in segment',
     'highlights.demo_mode': 'Demo Mode',
     'highlights.demo_title': 'Protected Content',
     'highlights.demo_description':
@@ -553,6 +567,8 @@ export const translations = {
     'login.signin': 'Sign In',
     'login.signup': 'Sign Up',
     'login.privacy': 'By signing in, you agree to our privacy policy.',
+    'login.ai_notice':
+      'Sign-in is required to maintain control over AI services, as they are not enabled for the general public.',
     'login.rights': 'All rights reserved.',
   },
 } as const;
