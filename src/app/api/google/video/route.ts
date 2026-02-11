@@ -1,31 +1,13 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { Storage } from '@google-cloud/storage';
-
-const STYLE_DEFINITIONS: Record<string, string> = {
-  REALISTIC:
-    'Extreme photorealism, focus on lifelike skin textures, cinematic natural lighting, 8k resolution, global illumination, Ray Tracing, professional cinematography.',
-  MANGA:
-    'High-end Anime Studio Mappa/Ufotable style, clean line art, vibrant cel-shading, cinematic lighting, expressive features, masterpiece anime quality.',
-  CINEMATIC:
-    'Hollywood high-budget movie still, anamorphic lens flares, teal and orange color grading, dramatic lighting, volumetric fog, IMAX quality, cinematic masterpiece.',
-  '3D': 'Modern 3D render, High-end Octane render style, Ray Traced reflections, digital clean look, high-end toy aesthetic, 4k digital masterpiece.',
-  CARTOON:
-    'Modern whimsical illustration style, Disney/Pixar modern look, bold colors, playful character design, smooth gradients, clean vector animation look.',
-  PIXEL:
-    'High quality masterpiece pixel art, 32-bit aesthetic, vibrant palette, sharp distinct grid structure, retro game feel, clean edges.',
-  WATERCOLOR:
-    'Traditional fluid watercolor painting, rough paper texture, delicate hand-painted washes of color, artistic drips, fluid masterpiece transitions.',
-  OIL: 'Classic oil on canvas, visible impasto brushstrokes, rich physical paint texture, deep colors, dramatic chiaroscuro, artistic depth.',
-  OIL_PAINTING:
-    'Classic oil on canvas, visible impasto brushstrokes, rich physical paint texture, deep colors, dramatic chiaroscuro, artistic depth.',
-  CYBERPUNK:
-    'Futuristic neon aesthetic, high-tech low-life, glowing lights, rain-slicked streets, metallic surfaces, purple and blue cinematic palette.',
-  SKETCH:
-    'Hand-drawn graphite pencil sketch, fine cross-hatching, charcoal shading, artistic feeling, white paper background, raw masterpiece sketch.',
-  VINTAGE:
-    '1970s film grain photography, Kodak Portra 400 aesthetic, grainy texture, warm sepia tones, light leaks, nostalgic cinematic atmosphere.',
-};
+import { geminiFlash } from '@/lib/ai/clients';
+import { HumanMessage } from '@langchain/core/messages';
+import {
+  ASSET_STYLE_DEFINITIONS,
+  ASSET_VISION_PROXY_PROMPT,
+  ASSET_ENRICHMENT_PROMPT,
+} from '@/lib/ai/prompts/assets';
 
 export async function POST(req: Request) {
   try {
@@ -107,25 +89,26 @@ export async function POST(req: Request) {
     if (referenceImage) {
       try {
         console.log(
-          '[VideoGen] 👁️ Generating scene description via Vision Proxy...'
+          '[VideoGen] 👁️ Generating scene description via Vision Proxy (LangChain)...'
         );
-        const visionResult = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: [
+
+        const message = new HumanMessage({
+          content: [
             {
-              role: 'user',
-              parts: [
-                {
-                  text: 'Analyze the attached image and provide a rich, detailed description of the scene, subjects, composition, and colors. Focus on the core essence and layout. Do not mention it is a photo; describe it as a cinematic concept.',
-                },
-                { inlineData: referenceImage },
-              ],
+              type: 'text',
+              text: 'Analyze the attached image and provide a rich, detailed description of the scene, subjects, composition, and colors. Focus on the core essence and layout. Do not mention it is a photo; describe it as a cinematic concept.',
+            },
+            {
+              type: 'image_url',
+              image_url: `data:${referenceImage.mimeType};base64,${referenceImage.data}`,
             },
           ],
         });
 
-        if (visionResult.candidates?.[0]?.content?.parts?.[0]?.text) {
-          extraDescription = visionResult.candidates[0].content.parts[0].text;
+        const visionResult = await geminiFlash.invoke([message]);
+
+        if (visionResult.content) {
+          extraDescription = visionResult.content as string;
           console.log(
             '[VideoGen] 👁️ Vision Proxy output:',
             extraDescription.substring(0, 100) + '...'
@@ -143,66 +126,38 @@ export async function POST(req: Request) {
       (m: any) => m.fileUri && m.mimeType?.startsWith('video/')
     );
 
-    // Build strict enriched prompt for Veo based on Gemini technical advice
-    const detailedStyle = visualStyle
-      ? STYLE_DEFINITIONS[visualStyle.toUpperCase()] || visualStyle
+    // Build strict enriched prompt with LangChain template
+    const styleDescription = visualStyle
+      ? ASSET_STYLE_DEFINITIONS[visualStyle.toUpperCase()] || visualStyle
+      : 'Professional cinematography';
+
+    const qualityDescription =
+      quality === 'H'
+        ? 'Ultra high resolution, extremely detailed, professional masterpiece'
+        : 'High quality, sharp focus';
+
+    const styleForceInstruction = [
+      'MANGA',
+      '3D',
+      'CARTOON',
+      'PIXEL',
+      'SKETCH',
+    ].includes(visualStyle?.toUpperCase())
+      ? `CRITICAL: Convert all real-world textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.`
+      : 'Maintain high artistic quality.';
+
+    const visionContext = extraDescription
+      ? `\nREFERENCE CONTEXT (BREAKING PIXEL BIAS): ${extraDescription}\n`
       : '';
 
-    // Classification tag to break pixel bias from 1:1 reference images (Gemini advice)
-    const classificationTag = referenceImage
-      ? '[IMAGE_INDEPENDENT]'
-      : '[NEW_GENERATION]';
-
-    let enrichedPrompt = `TASK: ${classificationTag} AUTHORITATIVE COMMAND - GENERATE A NEW MASTERPIECE.
-BREAK ALL PIXEL BONDS: Use the reference image context as a blueprint, not a template.
-
-### TECHNICAL BREAKDOWN ###
-SUBJECT: ${prompt || 'Dynamic cinematic sequence'}
-ACTION: High quality fluid motion, professional camera work, cinematic sequence.
-ENVIRONMENT: Seamlessly integrated with the ${visualStyle || 'Realistic'} aesthetic.
-${extraDescription ? `\nREFERENCE CONTEXT (LATENT FRAME ANALYSIS): ${extraDescription}\n` : ''}
-`;
-
-    if (detailedStyle) {
-      enrichedPrompt += `\nVISUAL STYLE: ${detailedStyle}\n`;
-      // Specific instruction for styles that often fail due to bias
-      if (
-        ['MANGA', '3D', 'CARTOON', 'PIXEL', 'SKETCH'].includes(
-          visualStyle?.toUpperCase()
-        )
-      ) {
-        enrichedPrompt += `CRITICAL: Convert all real-world textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.
-ESTHETIC_OVERRIDE: Full conversion to ${visualStyle.toUpperCase()} universe.\n`;
-      }
-    }
-
-    if (aspectRatio) {
-      const extra = aspectRatio === '1:1' ? ' (SQUARE FORMAT)' : '';
-      enrichedPrompt += `\nASPECT RATIO: ${aspectRatio}${extra} (CRITICAL: The output MUST be in this exact format)\n`;
-    }
-
-    if (quality) {
-      const qualityDesc =
-        quality === 'H'
-          ? 'Ultra high resolution, extremely detailed, professional masterpiece'
-          : 'High quality, sharp focus';
-      enrichedPrompt += `\nQUALITY: ${qualityDesc}\n`;
-    }
-
-    if (duration) {
-      enrichedPrompt += `\nDURATION: ${duration} minutes\n`;
-    }
-
-    if (firstVideo?.fileUri) {
-      enrichedPrompt += `\nMOTION REFERENCE: Use the motion and timing from ${firstVideo.fileUri} as a guide, but create NEW content.\n`;
-    }
-
-    if (referenceImage) {
-      enrichedPrompt += `\nREFERENCE IMAGE INSTRUCTIONS:
-- MAINTAIN consistency with the subjects, environment, and characters from the attached image.
-- ADAPT the composition to the requested format while keeping the core identity intact.
-- EXTEND the background and scene naturally to fill the widescreen format.\n`;
-    }
+    const enrichedPrompt = await ASSET_ENRICHMENT_PROMPT.format({
+      prompt: prompt || 'Dynamic cinematic sequence',
+      visionContext,
+      styleDescription,
+      aspectRatio: aspectRatio || '16:9',
+      qualityDescription,
+      styleForceInstruction,
+    });
 
     console.log(`[VideoGen] Final Enriched Prompt:\n${enrichedPrompt}`);
 

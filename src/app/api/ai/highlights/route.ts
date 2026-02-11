@@ -1,6 +1,9 @@
 // Ubicación: src/app/api/ai/highlights/route.ts
 import { NextRequest } from 'next/server';
-import { VertexAI, SchemaType } from '@google-cloud/vertexai';
+import { vertexFlash } from '@/lib/ai/clients';
+import { JsonOutputParser } from '@langchain/core/output_parsers';
+import { HumanMessage } from '@langchain/core/messages';
+import { HIGHLIGHTS_DISCOVERY_PROMPT } from '@/lib/ai/prompts/highlights';
 
 export const maxDuration = 300;
 
@@ -8,21 +11,6 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export async function POST(req: Request) {
   const encoder = new TextEncoder();
-
-  const projectId = process.env.GCS_PROJECT_ID || 'pablituuu-personal';
-  const location = 'us-east4';
-  const privateKey = process.env.GCS_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  const vertex = new VertexAI({
-    project: projectId,
-    location: location,
-    googleAuthOptions: {
-      credentials: {
-        client_email: process.env.GCS_CLIENT_EMAIL,
-        private_key: privateKey,
-      },
-    },
-  });
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -41,52 +29,38 @@ export async function POST(req: Request) {
         const gcsUri = `gs://${bucketName}/${fileName}`;
         const [minT, maxT] = (targetDuration || '30-60').split('-').map(Number);
 
-        console.log(`[API] Analizando Fragmento: ${gcsUri}`);
+        console.log(
+          `[API] Analizando Fragmento con LangChain Chain: ${gcsUri}`
+        );
 
-        const model = vertex.getGenerativeModel({
-          model: 'gemini-2.0-flash-001',
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: SchemaType.ARRAY,
-              items: {
-                type: SchemaType.OBJECT,
-                properties: {
-                  title: { type: SchemaType.STRING },
-                  start: { type: SchemaType.NUMBER },
-                  end: { type: SchemaType.NUMBER },
-                  description: { type: SchemaType.STRING },
-                  viralScore: { type: SchemaType.NUMBER },
-                },
-                required: ['title', 'start', 'end', 'description'],
-              },
-            },
-          },
+        // Use the centralized prompt template for precise duration control
+        const formattedPrompt = await HIGHLIGHTS_DISCOVERY_PROMPT.format({
+          minT,
+          maxT,
         });
-
-        const prompt = `Act as a world-class viral video editor. 
-Analyze THIS video segment.
-TASK: Identify high-engagement moments between ${minT}s and ${maxT}s.
-IMPORTANT: Return absolute seconds (0s is the start of THIS file).
-Return a valid JSON array.`;
 
         let result;
         let retries = 3;
         let waitTime = 10000;
 
+        const parser = new JsonOutputParser();
+
         while (retries > 0) {
           try {
-            result = await model.generateContent({
-              contents: [
+            // LangChain human message with multi-modal parts (Vertex AI format)
+            const message = new HumanMessage({
+              content: [
                 {
-                  role: 'user',
-                  parts: [
-                    { fileData: { mimeType: 'video/mp4', fileUri: gcsUri } },
-                    { text: prompt },
-                  ],
-                },
+                  type: 'media',
+                  mimeType: 'video/mp4',
+                  fileUri: gcsUri,
+                } as any, // Cast because Vertex types might be strict
+                { type: 'text', text: formattedPrompt },
               ],
             });
+
+            const response = await vertexFlash.invoke([message]);
+            result = await parser.parse(response.content as string);
             break;
           } catch (err: any) {
             const isQuota = err.message?.includes('429') || err.code === 429;
@@ -104,23 +78,14 @@ Return a valid JSON array.`;
           }
         }
 
-        if (!result) throw new Error('No response from Vertex.');
-
-        const response = await result.response;
-        const rawText =
-          response.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
-        const cleanJson = rawText
-          .replace(/```json/g, '')
-          .replace(/```/g, '')
-          .trim();
-        const clips = JSON.parse(cleanJson);
+        if (!result) throw new Error('No response from Gemini.');
 
         sendUpdate({
           status: 'chunk_done',
-          clips: clips,
+          clips: result,
         });
       } catch (error: any) {
-        console.error('ERROR API:', error.message);
+        console.error('ERROR API HIGHLIGHTS (LangChain):', error.message);
         sendUpdate({ status: 'error', message: error.message });
       } finally {
         controller.close();

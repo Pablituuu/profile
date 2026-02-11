@@ -8,6 +8,9 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
+  // NOTE: For the Chat Assistant, we use the native AI SDK provider
+  // because it provides the tool-calling framework used by the frontend.
+  // LangChain remains the engine for specialized multi-modal tasks (Highlights, Assets).
   const result = streamText({
     model: google('gemini-2.0-flash'),
     messages: await convertToModelMessages(messages),

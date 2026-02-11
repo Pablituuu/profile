@@ -116,10 +116,10 @@ export const translations = {
     'updates.corner_radius_fix_desc':
       'Se ha corregido un problema que impedía aplicar el radio de borde correctamente con valor 0, forzando un mínimo de 1.',
     'updates.ai_assets_desc':
-      'Nueva interfaz unificada para generación de imágenes y videos con selector de tipo de contenido y carga de referencias simultánea.',
-    'updates.ai_highlights': 'AI Highlights v3',
+      'Generación impulsada por LangChain con Vision Proxy. Transformación de estilo profunda y consistencia visual mejorada.',
+    'updates.ai_highlights': 'AI Highlights v3.5 (LangChain)',
     'updates.ai_highlights_desc':
-      "Soporte para videos de hasta 1 hora. Implementación de 'Slicing' dinámico por bloques de 10 minutos para máxima precisión y estabilidad regional.",
+      'Análisis avanzado con LangChain Vertex AI. Mayor precisión en la detección de momentos y control de duración de clips.',
     'updates.ai_captions': 'Subtítulos por IA v1',
     'updates.ai_captions_desc':
       'Generación y quemado de subtítulos automáticamente usando Deepgram y Gemini. Incluye una nueva vista de edición y previsualizaciones de clips.',
@@ -138,6 +138,12 @@ export const translations = {
     'updates.highlights_tuning': 'Ajuste de Precisión en Clips',
     'updates.highlights_tuning_desc':
       'Pre-procesamiento local con FFmpeg (frames + audio), reduciendo drásticamente el uso de tokens y acelerando el análisis de Gemini.',
+    'updates.langchain_orchestration': 'Orquestación LangChain',
+    'updates.langchain_orchestration_desc':
+      'Nueva infraestructura basada en LangChain para una lógica de IA más robusta, modular y escalable en todo el Studio.',
+    'updates.vision_proxy': 'Vision Proxy (Antigravity)',
+    'updates.vision_proxy_desc':
+      'Análisis inteligente de imágenes de referencia que permite romper el sesgo de píxeles y lograr transformaciones de estilo artísticas reales.',
     'captions.back': 'Volver',
     'captions.setup_title': 'Auto Subtítulos',
     'captions.list_title': 'Editar Subtítulos',
@@ -448,10 +454,10 @@ export const translations = {
     'updates.corner_radius_fix_desc':
       'Fixed an issue that prevented correctly applying border radius with value 0, enforcing a minimum of 1.',
     'updates.ai_assets_desc':
-      'New unified interface for image and video generation with content type selector and simultaneous reference uploads.',
-    'updates.ai_highlights': 'AI Highlights v3',
+      'LangChain-powered generation with Vision Proxy. Deep style transformation and improved visual consistency.',
+    'updates.ai_highlights': 'AI Highlights v3.5 (LangChain)',
     'updates.ai_highlights_desc':
-      "Support for videos up to 1 hour long. Dynamic 'Slicing' implementation in 10-minute blocks for maximum precision and regional stability.",
+      'Advanced analysis with LangChain Vertex AI. Improved moment detection accuracy and clip duration control.',
     'updates.ai_captions': 'AI Auto-Captions v1',
     'updates.ai_captions_desc':
       'Generate and burn-in captions automatically using Deepgram and Gemini. Includes a new editor view and clip previews.',
@@ -470,6 +476,12 @@ export const translations = {
     'updates.highlights_tuning': 'Precision Highlights Tuning',
     'updates.highlights_tuning_desc':
       'Local pre-processing with FFmpeg (frames + audio), drastically reducing token usage and speeding up Gemini analysis.',
+    'updates.langchain_orchestration': 'LangChain Orchestration',
+    'updates.langchain_orchestration_desc':
+      'New LangChain-based infrastructure for more robust, modular, and scalable AI logic across the Studio.',
+    'updates.vision_proxy': 'Vision Proxy (Antigravity)',
+    'updates.vision_proxy_desc':
+      'Intelligent reference image analysis that breaks pixel bias for true artistic style transformations.',
     'captions.back': 'Back',
     'captions.setup_title': 'Auto Subtitles',
     'captions.list_title': 'Edit Subtitles',

@@ -17,7 +17,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLanguageStore } from '@/store/use-language-store';
-import { Sparkles } from 'lucide-react';
 import packageInfo from '@/../package.json';
 
 export function UpdatesModal() {
@@ -57,6 +56,16 @@ export function UpdatesModal() {
   ];
 
   const improvedItems = [
+    {
+      id: 'langchain_orchestration',
+      title: t('updates.langchain_orchestration'),
+      description: t('updates.langchain_orchestration_desc'),
+    },
+    {
+      id: 'vision_proxy',
+      title: t('updates.vision_proxy'),
+      description: t('updates.vision_proxy_desc'),
+    },
     {
       id: 'access_control',
       title: t('updates.access_control'),

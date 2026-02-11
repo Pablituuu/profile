@@ -1,30 +1,12 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-
-const STYLE_DEFINITIONS: Record<string, string> = {
-  REALISTIC:
-    'Extreme photorealism, shot on 35mm lens, f/1.8, cinematic depth of field, hyper-detailed skin textures, natural 8k lighting, global illumination, Ray Tracing, professional photography architecture.',
-  MANGA:
-    'High-end Anime Studio Ghibli and MAPPA style, crisp line art, vibrant cel-shading, cinematic anime lighting, expressive features, masterpiece quality, 8k resolution anime illustration.',
-  CINEMATIC:
-    'Hollywood movie still, anamorphic lens flares, teal and orange color grading, dramatic chiaroscuro lighting, volumetric fog, highly detailed IMAX quality, 8k cinematic masterpiece.',
-  '3D': 'High-end Octane Render, Unreal Engine 5 aesthetic, Ray Traced reflections, subsurface scattering, polished 3D textures, digital masterpiece, 4k digital art, soft shadows.',
-  CARTOON:
-    'Professional vector illustration, Disney/Pixar modern style, smooth gradients, bold playful character design, vibrant clean colors, high-end commercial animation look.',
-  PIXEL:
-    'Masterpiece pixel art, 32-bit console aesthetic, sharp distinct pixels, vibrant retro palette, clean grid alignment, high-end indie game art style.',
-  WATERCOLOR:
-    'Professional fluid watercolor painting, rough paper texture, delicate hand-painted washes, artistic ink splatters, soft blended edges, masterpiece traditional art.',
-  OIL: 'Masterpiece oil on canvas, heavy impasto brushstrokes, rich physical paint texture, dramatic baroque lighting, classic fine art gallery quality, vibrant oil colors.',
-  OIL_PAINTING:
-    'Masterpiece oil on canvas, heavy impasto brushstrokes, rich physical paint texture, dramatic baroque lighting, classic fine art gallery quality, vibrant oil colors.',
-  CYBERPUNK:
-    'Neon-drenched futuristic aesthetic, Blade Runner style, wet street reflections, volumetric purple and blue lighting, high-tech low-life, hyper-detailed mechanical parts.',
-  SKETCH:
-    'Professional graphite pencil drawing, fine cross-hatching, charcoal shading, hand-drawn artistic feel, high-quality white grain paper, raw masterpiece sketch.',
-  VINTAGE:
-    'Authentic 1970s film grain technique, Kodak Portra 400 aesthetic, warm nostalgia, natural light leaks, faded retro colors, professional analog photography.',
-};
+import { geminiFlash } from '@/lib/ai/clients';
+import { HumanMessage } from '@langchain/core/messages';
+import {
+  ASSET_STYLE_DEFINITIONS,
+  ASSET_VISION_PROXY_PROMPT,
+  ASSET_ENRICHMENT_PROMPT,
+} from '@/lib/ai/prompts/assets';
 
 export async function POST(req: Request) {
   try {
@@ -120,26 +102,25 @@ export async function POST(req: Request) {
     let extraDescription = '';
     if (mediaParts.length > 0) {
       try {
-        console.log(
-          '[ImageGen] 👁️ Generating scene description via Vision Proxy...'
-        );
-        const visionResult = await ai.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: [
+        const visionPrompt = await ASSET_VISION_PROXY_PROMPT.format({});
+
+        const message = new HumanMessage({
+          content: [
             {
-              role: 'user',
-              parts: [
-                {
-                  text: 'Analyze the attached image(s) and provide a rich, detailed description of the scene, subjects, composition, and colors. Focus on the core essence and layout. Do not mention that these are photos; describe them as artistic concepts.',
-                },
-                ...mediaParts,
-              ],
+              type: 'text',
+              text: visionPrompt,
             },
+            ...mediaParts.map((p) => ({
+              type: 'image_url',
+              image_url: `data:${p.inlineData.mimeType};base64,${p.inlineData.data}`,
+            })),
           ],
         });
 
-        if (visionResult.candidates?.[0]?.content?.parts?.[0]?.text) {
-          extraDescription = visionResult.candidates[0].content.parts[0].text;
+        const visionResult = await geminiFlash.invoke([message]);
+
+        if (visionResult.content) {
+          extraDescription = visionResult.content as string;
           console.log(
             '[ImageGen] 👁️ Vision Proxy output:',
             extraDescription.substring(0, 100) + '...'
@@ -153,62 +134,42 @@ export async function POST(req: Request) {
       }
     }
 
-    // Build strict enriched prompt with all parameters
-    // IMPORTANT: The prompt must explicitly request NEW image generation from scratch
-    let basePrompt = prompt || 'Generate a high quality artistic asset';
+    // Build strict enriched prompt with LangChain template
+    const styleDescription = visualStyle
+      ? ASSET_STYLE_DEFINITIONS[visualStyle.toUpperCase()] || visualStyle
+      : 'Professional digital art';
 
-    // Map style if found, otherwise use raw style
-    const detailedStyle = visualStyle
-      ? STYLE_DEFINITIONS[visualStyle.toUpperCase()] || visualStyle
+    const qualityDescription =
+      quality === 'H'
+        ? 'Ultra high resolution, extremely detailed, professional masterpiece'
+        : quality === 'S'
+          ? 'Standard quality'
+          : 'High quality, sharp focus';
+
+    const styleForceInstruction = [
+      'MANGA',
+      '3D',
+      'CARTOON',
+      'PIXEL',
+      'SKETCH',
+    ].includes(visualStyle?.toUpperCase())
+      ? `CRITICAL: Convert all real-world textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.`
+      : 'Maintain high artistic quality.';
+
+    const visionContext = extraDescription
+      ? `\nREFERENCE CONTEXT (BREAKING PIXEL BIAS): ${extraDescription}\n`
       : '';
 
-    // Build the "Enriched Prompt" with maximum authority and clarity
-    let enrichedPrompt = `TASK: AUTHORITATIVE COMMAND - GENERATE A COMPLETELY NEW IMAGE FROM SCRATCH.
-BREAK ALL PIXEL BONDS: Do NOT edit or modify the reference. Use the description as your blueprint.
+    const enrichedPrompt = await ASSET_ENRICHMENT_PROMPT.format({
+      prompt: prompt || 'Generate a high quality artistic asset',
+      visionContext,
+      styleDescription,
+      aspectRatio: aspectRatio || '16:9',
+      qualityDescription,
+      styleForceInstruction,
+    });
 
-OBJECTIVE: Create a NEW unique image.
-
-PRIMARY DESCRIPTION: ${basePrompt}
-${extraDescription ? `\nREFERENCE CONTEXT (BREAKING PIXEL BIAS): ${extraDescription}\n` : ''}
-`;
-
-    if (detailedStyle) {
-      enrichedPrompt += `\nVISUAL STYLE: ${detailedStyle}\n`;
-      // Specific instruction for styles that often fail due to bias
-      if (
-        ['MANGA', '3D', 'CARTOON', 'PIXEL', 'SKETCH'].includes(
-          visualStyle?.toUpperCase()
-        )
-      ) {
-        enrichedPrompt += `CRITICAL: Convert all real-world textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.\n`;
-      }
-    }
-
-    if (aspectRatio) {
-      const extra = aspectRatio === '1:1' ? ' (SQUARE FORMAT)' : '';
-      enrichedPrompt += `\nASPECT RATIO: ${aspectRatio}${extra} (CRITICAL: The output MUST be in this exact format)\n`;
-    }
-
-    if (quality) {
-      const qualityDesc =
-        quality === 'H'
-          ? 'Ultra high resolution, extremely detailed, professional masterpiece'
-          : quality === 'S'
-            ? 'Standard quality'
-            : 'High quality, sharp focus';
-      enrichedPrompt += `\nQUALITY: ${qualityDesc}\n`;
-    }
-
-    // If there are reference images, explain how to use them
-    if (mediaParts.length > 0) {
-      enrichedPrompt += `\nREFERENCE IMAGE INSTRUCTIONS:
-- Use the provided context ONLY for mood, vibe, and color palette.
-- CREATE a TOTALLY DIFFERENT composition and subject.
-- DO NOT replicate anything from the reference images directly.
-- IGNORE the specific objects in the references; focus only on the COLOR SCHEME.\n`;
-    }
-
-    console.log(`[ImageGen] Final Prompt:\n${enrichedPrompt}`);
+    console.log(`[ImageGen] Final LangChain Prompt:\n${enrichedPrompt}`);
     console.log(`[ImageGen] Media parts count: ${mediaParts.length}`);
 
     // If we have a strong description, we might want to OMIT the images in the second call

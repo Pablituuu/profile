@@ -1,6 +1,6 @@
 {
   "name": "pablituuu",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -23,6 +23,10 @@
     "@google-cloud/vertexai": "^1.10.0",
     "@google/genai": "^1.38.0",
     "@google/generative-ai": "^0.24.1",
+    "@langchain/community": "^1.1.14",
+    "@langchain/core": "^1.1.22",
+    "@langchain/google-genai": "^2.1.17",
+    "@langchain/google-vertexai": "^2.1.17",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-checkbox": "^1.3.3",
