@@ -48,3 +48,11 @@ export async function checkDeepgramApiKey() {
   const key = process.env.DEEPGRAM_API_KEY;
   return !!key && key.length > 0;
 }
+export async function checkElevenLabsApiKey() {
+  // First check if the user actually has permission to use AI
+  const hasAccess = await checkAiAccess();
+  if (!hasAccess) return false;
+
+  const key = process.env.ELEVENLABS_API_KEY;
+  return !!key && key.length > 0;
+}

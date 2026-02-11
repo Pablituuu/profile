@@ -30,6 +30,11 @@ export function UpdatesModal() {
 
   const aiItems = [
     {
+      id: 'voice_ai_pro',
+      title: t('updates.voice_ai_pro'),
+      description: t('updates.voice_ai_pro_desc'),
+    },
+    {
       id: 'ai_captions',
       title: t('updates.ai_captions'),
       description: t('updates.ai_captions_desc'),
@@ -121,7 +126,6 @@ export function UpdatesModal() {
   ];
 
   const comingSoonItems = [
-    t('updates.ai_voiceover'),
     t('updates.audio_mixing'),
     t('updates.export_formats'),
     t('updates.script_to_video'),

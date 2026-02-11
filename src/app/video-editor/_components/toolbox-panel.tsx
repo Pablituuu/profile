@@ -10,6 +10,7 @@ import { TransitionsPanel } from './panels/transitions-panel';
 import { HighlightsPanel } from './panels/highlights-panel';
 import { CaptionsPanel } from './panels/captions-panel';
 import { AIAssetsPanel } from './panels/ai-assets-panel';
+import { VoiceAIPanel } from './panels/voice-ai-panel';
 import { useLanguageStore } from '@/store/use-language-store';
 
 interface ToolboxPanelProps {
@@ -41,11 +42,13 @@ export function ToolboxPanel({ activeTool }: ToolboxPanelProps) {
       {activeTool === 'transitions' && <TransitionsPanel />}
       {activeTool === 'highlights' && <HighlightsPanel />}
       {activeTool === 'ai-assets' && <AIAssetsPanel />}
+      {activeTool === 'voice-ai' && <VoiceAIPanel />}
 
       {/* Placeholder for other tools */}
       {activeTool !== 'media' &&
         activeTool !== 'audio' &&
         activeTool !== 'text' &&
+        activeTool !== 'voice-ai' &&
         activeTool !== 'captions' &&
         activeTool !== 'image' &&
         activeTool !== 'effects' &&

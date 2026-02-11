@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   Scissors,
   Languages,
+  Mic,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguageStore } from '@/store/use-language-store';
@@ -17,6 +18,7 @@ const menuItems = [
   { id: 'media', icon: Clapperboard, labelKey: 'menu.media' },
   { id: 'audio', icon: Music, labelKey: 'menu.audio' },
   { id: 'text', icon: Type, labelKey: 'menu.text' },
+  { id: 'voice-ai', icon: Mic, labelKey: 'menu.voice_ai' },
   { id: 'captions', icon: Languages, labelKey: 'menu.captions' },
   { id: 'image', icon: ImageIcon, labelKey: 'menu.image' },
   { id: 'effects', icon: Sparkles, labelKey: 'menu.effects' },
