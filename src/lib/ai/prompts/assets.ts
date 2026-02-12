@@ -2,7 +2,9 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 
 export const ASSET_STYLE_DEFINITIONS: Record<string, string> = {
   REALISTIC:
-    'Extreme photorealism, shot on 35mm lens, f/1.8, cinematic depth of field, hyper-detailed skin textures, natural 8k lighting, global illumination, Ray Tracing, professional photography architecture.',
+    'Professional cinematic shot, extreme photorealism, shot on 35mm lens, f/1.8, cinematic depth of field, hyper-detailed textures, natural 8k lighting, global illumination, Ray Tracing, professional photography, high-end production value.',
+  SCIENTIFIC_GLOW:
+    'Extreme photorealistic cinematic anatomy. 3D internal visualization where glowing nerves and energy fibers are embedded deep inside the body. High-intensity volumetric lighting, emissive energy pulses, and aggressive subsurface scattering (SSS) making the skin semi-transparent. Cinematic 8k medical sci-fi.',
   MANGA:
     'High-end Anime Studio Ghibli and MAPPA style, crisp line art, vibrant cel-shading, cinematic anime lighting, expressive features, masterpiece quality, 8k resolution anime illustration.',
   CINEMATIC:
@@ -33,7 +35,7 @@ export const ASSET_VISION_PROXY_PROMPT = ChatPromptTemplate.fromMessages([
   ],
   [
     'user',
-    'Analyze the attached image(s) and provide a rich, detailed description of the scene, subjects, composition, and colors. Focus on the core essence and layout. Do not mention that these are photos; describe them as artistic concepts.',
+    'Analyze the attached image(s) and provide a rich, detailed description of the scene, subjects, composition, and colors. Focus on the core essence and layout. Identify key anatomical paths (nerves, veins) if applicable. Do not mention that these are photos; describe them as artistic concepts.',
   ],
 ]);
 
@@ -58,7 +60,7 @@ export const ASSET_ENRICHMENT_PROMPT = ChatPromptTemplate.fromMessages([
     
     INSTRUCTIONS:
     - {styleForceInstruction}
-    - Break all pixel bonds with any reference images.
+    - {pixelBiasInstruction}
     - Create a unique composition.`,
   ],
 ]);

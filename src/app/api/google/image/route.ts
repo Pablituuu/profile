@@ -146,6 +146,10 @@ export async function POST(req: Request) {
           ? 'Standard quality'
           : 'High quality, sharp focus';
 
+    const visionContext = extraDescription
+      ? `\nREFERENCE CONTEXT: ${extraDescription}\n`
+      : '';
+
     const styleForceInstruction = [
       'MANGA',
       '3D',
@@ -153,12 +157,18 @@ export async function POST(req: Request) {
       'PIXEL',
       'SKETCH',
     ].includes(visualStyle?.toUpperCase())
-      ? `CRITICAL: Convert all real-world textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.`
-      : 'Maintain high artistic quality.';
+      ? `CRITICAL: Convert all textures into clean ${visualStyle.toUpperCase()} lines and surfaces. NO PHOTOREALISM ALLOWED.`
+      : visualStyle?.toUpperCase() === 'SCIENTIFIC_GLOW'
+        ? "INTEGRATION: The glowing nerves are NOT painted on the skin. They are internal, emissive fibers embedded deep inside the body. Use heavy 'volumetric lighting' and 'subsurface scattering' to render the glow coming from within."
+        : 'Maintain high artistic quality and identity.';
 
-    const visionContext = extraDescription
-      ? `\nREFERENCE CONTEXT (BREAKING PIXEL BIAS): ${extraDescription}\n`
-      : '';
+    const pixelBiasInstruction = ['REALISTIC', 'VINTAGE'].includes(
+      visualStyle?.toUpperCase()
+    )
+      ? 'Maintain strong composition and structural fidelity from the reference images. Focus on identity and realism. Preserve the layout perfectly.'
+      : visualStyle?.toUpperCase() === 'SCIENTIFIC_GLOW'
+        ? 'TRANSFORMATION: Focus ONLY on the primary subjects from the reference images (animals, people, or objects). Replace the background with a cinematic, high-tech, or medical environment. Break the structural layout of the background completely while keeping the subjects.'
+        : 'Break all pixel bonds with any reference images. Create something completely transformative while keeping the essence.';
 
     const enrichedPrompt = await ASSET_ENRICHMENT_PROMPT.format({
       prompt: prompt || 'Generate a high quality artistic asset',
@@ -167,6 +177,7 @@ export async function POST(req: Request) {
       aspectRatio: aspectRatio || '16:9',
       qualityDescription,
       styleForceInstruction,
+      pixelBiasInstruction,
     });
 
     console.log(`[ImageGen] Final LangChain Prompt:\n${enrichedPrompt}`);
@@ -176,15 +187,9 @@ export async function POST(req: Request) {
     // to truly break the bias, especially for high-transformation styles.
     const shouldOmitImages =
       extraDescription &&
-      [
-        'MANGA',
-        '3D',
-        'CARTOON',
-        'PIXEL',
-        'SKETCH',
-        'WATERCOLOR',
-        'OIL',
-      ].includes(visualStyle?.toUpperCase());
+      ['MANGA', '3D', 'CARTOON', 'PIXEL', 'SKETCH', 'SCIENTIFIC_GLOW'].includes(
+        visualStyle?.toUpperCase()
+      );
 
     const finalParts = shouldOmitImages
       ? [{ text: enrichedPrompt }]

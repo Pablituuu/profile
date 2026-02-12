@@ -53,6 +53,7 @@ const readFileAsBase64 = (file: File): Promise<string> => {
 
 const STYLES = [
   { id: 'realistic', labelKey: 'ai_assets.style_realistic' },
+  { id: 'scientific_glow', labelKey: 'ai_assets.style_scientific_glow' },
   { id: 'manga', labelKey: 'ai_assets.style_manga' },
   { id: 'cinematic', labelKey: 'ai_assets.style_cinematic' },
   { id: '3d', labelKey: 'ai_assets.style_3d' },
@@ -72,9 +73,9 @@ const RATIOS = [
 ];
 
 const QUALITIES = [
-  { id: 'standard', labelKey: 'ai_assets.quality_standard' },
-  { id: 'high', labelKey: 'ai_assets.quality_high' },
-  { id: 'hd', labelKey: 'ai_assets.quality_hd' },
+  { id: 'standard', label: 'SD' },
+  { id: 'high', label: 'HD' },
+  { id: 'hd', label: '4K' },
 ];
 
 export function AIAssetsPanel() {
@@ -615,7 +616,7 @@ export function AIAssetsPanel() {
                       : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10 hover:border-white/10'
                   )}
                 >
-                  {t(q.labelKey as any).charAt(0)}
+                  {q.label}
                 </button>
               ))}
             </div>
@@ -630,7 +631,11 @@ export function AIAssetsPanel() {
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe lo que quieres generar..."
+              placeholder={
+                selectedStyle === 'scientific_glow'
+                  ? 'Ej: Internal view of glowing cyan nervous system inside the face and neck, golden pulses of energy moving through veins, skin is semi-transparent and glowing from within, cinematic volumetric lighting, hyper-realistic anatomy.'
+                  : 'Describe lo que quieres generar...'
+              }
               className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:bg-white/8 transition-all min-h-[90px] resize-none"
             />
             <Sparkles className="absolute bottom-4 right-4 w-4 h-4 text-white/10 group-focus-within:text-indigo-400 group-focus-within:animate-pulse transition-colors" />
