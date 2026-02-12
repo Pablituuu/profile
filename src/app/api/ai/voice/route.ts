@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+
 import { Storage } from '@google-cloud/storage';
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;

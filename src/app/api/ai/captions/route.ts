@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+
 import { writeFile, unlink, readFileSync } from 'fs';
 import { promisify } from 'util';
 import path from 'path';

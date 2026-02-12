@@ -5,6 +5,7 @@ import { JsonOutputParser } from '@langchain/core/output_parsers';
 import { HumanMessage } from '@langchain/core/messages';
 import { HIGHLIGHTS_DISCOVERY_PROMPT } from '@/lib/ai/prompts/highlights';
 
+export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

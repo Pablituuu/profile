@@ -8,6 +8,8 @@ import {
   ASSET_ENRICHMENT_PROMPT,
 } from '@/lib/ai/prompts/assets';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const { prompt, media, visualStyle, quality, aspectRatio } =
