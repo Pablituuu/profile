@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
-import { login, signup } from "./actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useSearchParams } from 'next/navigation';
+import { login, signup } from './actions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Card,
   CardHeader,
@@ -11,26 +11,26 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/Label";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { useState } from "react";
-import { useLanguageStore } from "@/store/use-language-store";
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/Label';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useLanguageStore } from '@/store/use-language-store';
 
 export function LoginForm() {
   const { t } = useLanguageStore();
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const message = searchParams.get("message");
+  const error = searchParams.get('error');
+  const message = searchParams.get('message');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    const { createClient } = await import("@/utils/supabase/client");
+    const { createClient } = await import('@/utils/supabase/client');
     const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -46,10 +46,10 @@ export function LoginForm() {
     <Card className="w-full border-white/10 bg-black/40 backdrop-blur-xl transition-all hover:border-white/20">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold tracking-tight text-white text-center">
-          {t("login.title")}
+          {t('login.title')}
         </CardTitle>
         <CardDescription className="text-white/60 text-center">
-          {t("login.description")}
+          {t('login.description')}
         </CardDescription>
       </CardHeader>
 
@@ -96,7 +96,7 @@ export function LoginForm() {
               <path fill="none" d="M0 0h24v24H0z" />
             </svg>
           )}
-          {t("login.google")}
+          {t('login.google')}
         </Button>
       </CardContent>
     </Card>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MenuSidebar } from './_components/menu-sidebar';
 import { ToolboxPanel } from './_components/toolbox-panel';
 import { PlayerPreview } from './_components/player-preview';
@@ -11,9 +12,18 @@ import { AIChat } from './_components/ai-chat';
 import { UpdatesModal } from './_components/updates-modal';
 import { cn } from '@/lib/utils';
 import { useEditorStore } from '@/store/use-editor-store';
+import { useGuestStore } from '@/store/use-guest-store';
 
 export default function VideoEditorPage() {
   const { activeTool, setActiveTool } = useEditorStore();
+  const searchParams = useSearchParams();
+  const setIsGuest = useGuestStore((s) => s.setIsGuest);
+  const isGuest = useGuestStore((s) => s.isGuest);
+
+  useEffect(() => {
+    const guest = searchParams.get('guest') === 'true';
+    setIsGuest(guest);
+  }, [searchParams, setIsGuest]);
 
   return (
     <div className="h-screen w-screen flex bg-background text-foreground overflow-hidden">
@@ -44,7 +54,7 @@ export default function VideoEditorPage() {
         </div>
       </div>
 
-      <AIChat />
+      {!isGuest && <AIChat />}
     </div>
   );
 }

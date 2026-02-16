@@ -13,10 +13,13 @@ import {
   Download,
   ChevronDown,
   LogOut,
+  LogIn,
+  Sparkles,
 } from 'lucide-react';
 import { signOut } from '@/app/login/actions';
 import { useEditorStore } from '@/store/use-editor-store';
 import { useLanguageStore } from '@/store/use-language-store';
+import { useGuestStore } from '@/store/use-guest-store';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,12 +30,14 @@ import {
 export function Header() {
   const { studio } = useEditorStore();
   const { t } = useLanguageStore();
+  const isGuest = useGuestStore((s) => s.isGuest);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    if (isGuest) return;
     const fetchUser = async () => {
       const { createClient } = await import('@/utils/supabase/client');
       const supabase = createClient();
@@ -40,7 +45,7 @@ export function Header() {
       setUser(data.user);
     };
     fetchUser();
-  }, []);
+  }, [isGuest]);
 
   useEffect(() => {
     if (!studio) return;
@@ -145,6 +150,18 @@ export function Header() {
             <Redo2 className="h-4 w-4" />
           </Button>
         </div>
+
+        {/* Guest mode banner */}
+        {isGuest && (
+          <div className="hidden md:flex items-center gap-2 ml-4 border-l border-border pl-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <Sparkles className="h-3.5 w-3.5 text-yellow-400" />
+              <span className="text-[11px] font-semibold text-yellow-300/90">
+                {t('header.guest_banner')}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -191,49 +208,62 @@ export function Header() {
           {t('header.export')}
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        {isGuest ? (
+          <a href="/login">
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-full border border-border/50 hover:bg-zinc-800/50 p-0 overflow-hidden"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-2 px-3 border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-indigo-200 transition-colors"
             >
-              {user?.user_metadata?.avatar_url ? (
-                <Image
-                  src={user.user_metadata.avatar_url}
-                  alt="User Avatar"
-                  width={36}
-                  height={36}
-                  className="rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full rounded-full bg-linear-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white uppercase">
-                  {user?.email?.charAt(0) || 'U'}
-                </div>
-              )}
+              <LogIn className="h-4 w-4" />
+              {t('header.sign_in')}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-56 border-border bg-background/95 backdrop-blur-xl p-2"
-          >
-            <div className="px-2 py-2 mb-2 border-b border-white/5">
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1.5">
-                Usuario
-              </p>
-              <p className="text-xs font-medium text-white truncate">
-                {user?.email}
-              </p>
-            </div>
-            <DropdownMenuItem
-              className="gap-2 cursor-pointer text-red-00 hover:bg-red-500/10 focus:bg-red-500/10 text-red-400 hover:text-red-300 focus:text-red-300 rounded-lg"
-              onClick={() => signOut()}
+          </a>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full border border-border/50 hover:bg-zinc-800/50 p-0 overflow-hidden"
+              >
+                {user?.user_metadata?.avatar_url ? (
+                  <Image
+                    src={user.user_metadata.avatar_url}
+                    alt="User Avatar"
+                    width={36}
+                    height={36}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full rounded-full bg-linear-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white uppercase">
+                    {user?.email?.charAt(0) || 'U'}
+                  </div>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 border-border bg-background/95 backdrop-blur-xl p-2"
             >
-              <LogOut className="h-4 w-4" />
-              <span className="font-medium">{t('header.logout')}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <div className="px-2 py-2 mb-2 border-b border-white/5">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-none mb-1.5">
+                  Usuario
+                </p>
+                <p className="text-xs font-medium text-white truncate">
+                  {user?.email}
+                </p>
+              </div>
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer text-red-00 hover:bg-red-500/10 focus:bg-red-500/10 text-red-400 hover:text-red-300 focus:text-red-300 rounded-lg"
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="font-medium">{t('header.logout')}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
       <ExportModal
         open={isExportModalOpen}

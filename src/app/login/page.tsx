@@ -87,6 +87,46 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
 
+        {/* Try without login button */}
+        <div className="mt-6 text-center">
+          <a
+            href="/video-editor?guest=true"
+            className="group relative inline-flex items-center justify-center gap-2.5 w-full px-6 py-3.5 rounded-2xl border border-white/10 bg-white/3 backdrop-blur-sm text-white/70 hover:text-white hover:border-white/20 hover:bg-white/6 transition-all duration-300"
+          >
+            <svg
+              className="h-4 w-4 text-white/40 group-hover:text-indigo-400 transition-colors duration-300"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+            </svg>
+            <span className="text-sm font-semibold tracking-tight">
+              {t('login.try_without_login')}
+            </span>
+          </a>
+          <p className="mt-2.5 text-[11px] text-white/25 font-medium flex items-center justify-center gap-1.5">
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {t('login.try_without_login_note')}
+          </p>
+        </div>
+
         <p className="mt-8 text-center text-sm text-white/20">
           {t('login.privacy')}
           <br />
