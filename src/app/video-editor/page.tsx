@@ -13,6 +13,7 @@ import { UpdatesModal } from './_components/updates-modal';
 import { cn } from '@/lib/utils';
 import { useEditorStore } from '@/store/use-editor-store';
 import { useGuestStore } from '@/store/use-guest-store';
+import { useHotkeys } from './_hooks/use-hotkeys';
 
 export default function VideoEditorPage() {
   const { activeTool, setActiveTool } = useEditorStore();
@@ -24,6 +25,9 @@ export default function VideoEditorPage() {
     const guest = searchParams.get('guest') === 'true';
     setIsGuest(guest);
   }, [searchParams, setIsGuest]);
+
+  // Register keyboard shortcuts
+  useHotkeys();
 
   return (
     <div className="h-screen w-screen flex bg-background text-foreground overflow-hidden">

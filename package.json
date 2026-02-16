@@ -51,6 +51,7 @@
     "color": "^5.0.3",
     "dotenv": "^17.2.3",
     "fabric": "^6.9.1",
+    "hotkeys-js": "^4.0.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.562.0",
     "next": "16.1.4",

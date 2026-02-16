@@ -15,6 +15,7 @@ import {
   LogOut,
   LogIn,
   Sparkles,
+  Keyboard,
 } from 'lucide-react';
 import { signOut } from '@/app/login/actions';
 import { useEditorStore } from '@/store/use-editor-store';
@@ -26,12 +27,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ShortcutsModal } from './shortcuts-modal';
 
 export function Header() {
   const { studio } = useEditorStore();
   const { t } = useLanguageStore();
   const isGuest = useGuestStore((s) => s.isGuest);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -165,6 +168,16 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          title={t('header.shortcuts')}
+          onClick={() => setIsShortcutsOpen(true)}
+        >
+          <Keyboard className="h-4 w-4" />
+        </Button>
+
         <LanguageSwitcher />
 
         <DropdownMenu>
@@ -268,6 +281,10 @@ export function Header() {
       <ExportModal
         open={isExportModalOpen}
         onOpenChange={setIsExportModalOpen}
+      />
+      <ShortcutsModal
+        open={isShortcutsOpen}
+        onOpenChange={setIsShortcutsOpen}
       />
     </header>
   );
