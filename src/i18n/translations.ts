@@ -373,6 +373,9 @@ export const translations = {
     'shortcuts.move_left': 'Mover izquierda 1px',
     'shortcuts.move_right': 'Mover derecha 1px',
     'shortcuts.move_5px': 'Mover 5px',
+    'updates.keyboard_shortcuts': 'Atajos de Teclado (hotkeys-js)',
+    'updates.keyboard_shortcuts_desc':
+      'Sistema completo de atajos de teclado para el editor: reproducción, edición de clips (copiar, pegar, duplicar, eliminar, dividir), navegación por frames, zoom de timeline, movimiento de objetos por píxeles y exportación rápida.',
   },
   en: {
     'media.upload': 'Upload',
@@ -742,6 +745,9 @@ export const translations = {
     'shortcuts.move_left': 'Move left 1px',
     'shortcuts.move_right': 'Move right 1px',
     'shortcuts.move_5px': 'Move 5px',
+    'updates.keyboard_shortcuts': 'Keyboard Shortcuts (hotkeys-js)',
+    'updates.keyboard_shortcuts_desc':
+      'Full keyboard shortcuts system for the editor: playback, clip editing (copy, paste, duplicate, delete, split), frame navigation, timeline zoom, pixel-precise object movement, and quick export.',
   },
 } as const;
 

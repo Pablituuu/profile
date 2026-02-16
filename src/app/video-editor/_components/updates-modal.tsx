@@ -57,6 +57,11 @@ export function UpdatesModal() {
 
   const improvedItems = [
     {
+      id: 'keyboard_shortcuts',
+      title: t('updates.keyboard_shortcuts'),
+      description: t('updates.keyboard_shortcuts_desc'),
+    },
+    {
       id: 'langchain_orchestration',
       title: t('updates.langchain_orchestration'),
       description: t('updates.langchain_orchestration_desc'),
