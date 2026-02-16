@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MenuSidebar } from './_components/menu-sidebar';
 import { ToolboxPanel } from './_components/toolbox-panel';
@@ -16,6 +16,14 @@ import { useGuestStore } from '@/store/use-guest-store';
 import { useHotkeys } from './_hooks/use-hotkeys';
 
 export default function VideoEditorPage() {
+  return (
+    <Suspense>
+      <VideoEditorContent />
+    </Suspense>
+  );
+}
+
+function VideoEditorContent() {
   const { activeTool, setActiveTool } = useEditorStore();
   const searchParams = useSearchParams();
   const setIsGuest = useGuestStore((s) => s.setIsGuest);
